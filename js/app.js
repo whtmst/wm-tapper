@@ -161,6 +161,101 @@ const tapKeyController =
 
 
 /* =========================================================
+   SESSION TIMER
+   ========================================================= */
+
+/*
+ * This timer marks the end of the current
+ * tap session after the configured period
+ * of inactivity.
+ */
+
+let sessionTimer = null;
+
+
+/**
+ * Clear the current session timer.
+ */
+function clearSessionTimer() {
+
+    if (
+        sessionTimer !== null
+    ) {
+
+        clearTimeout(
+            sessionTimer
+        );
+
+        sessionTimer = null;
+    }
+}
+
+
+/**
+ * Start / restart the session timer.
+ *
+ * @param {number} delaySeconds
+ */
+function restartSessionTimer(
+    delaySeconds
+) {
+
+    clearSessionTimer();
+
+
+    sessionTimer =
+        setTimeout(
+            () => {
+
+                sessionTimer = null;
+
+                finishTapSession();
+
+            },
+            delaySeconds * 1000
+        );
+}
+
+
+/**
+ * Finish the current tap session.
+ *
+ * The final average BPM is rounded and
+ * moved to the main button.
+ */
+function finishTapSession() {
+
+    const averageBpm =
+        tapEngine.getAverageBpm();
+
+
+    /*
+     * Do nothing when the session contains
+     * fewer than two valid taps.
+     */
+
+    if (
+        !Number.isFinite(
+            averageBpm
+        )
+    ) {
+        return;
+    }
+
+
+    /*
+     * The final result shown on the main
+     * button is the rounded session average.
+     */
+
+    tapValue.textContent =
+        `${Math.round(
+            averageBpm
+        )} BPM`;
+}
+
+
+/* =========================================================
    LANGUAGE
    ========================================================= */
 
@@ -676,6 +771,7 @@ function updateTapDisplayLanguage(language) {
 
         averageValue.textContent =
             "—";
+
     } else {
 
         averageValue.textContent =
@@ -954,6 +1050,14 @@ function renderTapConnectors(
  */
 function handleTap() {
 
+    /*
+     * A new tap means the current session
+     * is still active, so reset the timeout.
+     */
+
+    clearSessionTimer();
+
+
     const result =
         tapEngine.registerTap();
 
@@ -980,7 +1084,8 @@ function handleTap() {
 
 
     /*
-     * Display the latest measured BPM.
+     * Display the current measured BPM
+     * while the user is actively tapping.
      */
 
     if (
@@ -990,11 +1095,9 @@ function handleTap() {
     ) {
 
         tapValue.textContent =
-            String(
-                Math.round(
-                    result.bpm
-                )
-            );
+            `${Math.round(
+                result.bpm
+            )} BPM`;
     }
 
 
@@ -1017,6 +1120,28 @@ function handleTap() {
 
         averageValue.textContent =
             "—";
+    }
+
+
+    /*
+     * Restart the session timeout after
+     * every accepted tap.
+     */
+
+    if (
+        Array.isArray(
+            result.history
+        ) &&
+        result.history.length > 0
+    ) {
+
+        restartSessionTimer(
+            Number(
+                settings.get(
+                    "sessionTimeout"
+                )
+            )
+        );
     }
 
 
@@ -1360,6 +1485,9 @@ settingsButton.addEventListener(
 resetButton.addEventListener(
     "click",
     () => {
+
+        clearSessionTimer();
+
 
         tapEngine.reset();
 
