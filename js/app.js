@@ -1,756 +1,163 @@
 /* =========================================================
    WM TAPPER
-   Main application script
-
-   Architecture:
-
-   UI
-    ↓
-   Settings Manager
-    ↓
-   Storage Adapter
-    ↓
-   localStorage
-
-   Later in Tauri:
-
-   UI
-    ↓
-   Settings Manager
-    ↓
-   Storage Adapter
-    ↓
-   Tauri Store / JSON
+   Main application controller
    ========================================================= */
+
+
+/* =========================================================
+   IMPORTS
+   ========================================================= */
+
+import {
+    settings
+} from "./settings.js";
+
+
+import {
+    supportedLanguages,
+    getTranslations,
+    formatDecimal
+} from "./i18n.js";
+
+
+import {
+    TapKeyController
+} from "./key-handler.js";
+
+
+import {
+    TapEngine
+} from "./tap-engine.js";
+
+
+import {
+    TrackAnalyzer
+} from "./analyzer.js";
 
 
 /* =========================================================
    DOM ELEMENTS
    ========================================================= */
 
-const settingsButton = document.getElementById("settingsButton");
-const flipCard = document.getElementById("flipCard");
-
-const tapButton = document.getElementById("tapButton");
-const tapValue = document.getElementById("tapValue");
-
-const resetButton = document.getElementById("resetButton");
-
-const averageValue = document.getElementById("averageValue");
-const tapHistory = document.getElementById("tapHistory");
-
-const tapKeyControl = document.getElementById("tapKeyControl");
-const tapKeyValue = document.getElementById("tapKeyValue");
-
-const sessionControl = document.getElementById("sessionControl");
-const sessionValue = document.getElementById("sessionValue");
-const sessionMenu = document.getElementById("sessionMenu");
-
-const historyControl = document.getElementById("historyControl");
-const historyValue = document.getElementById("historyValue");
-const historyMenu = document.getElementById("historyMenu");
-
-const languageSwitcher = document.getElementById("languageSwitcher");
-const madeByText = document.getElementById("madeByText");
-
-
-/* =========================================================
-   APPLICATION CONSTANTS
-   ========================================================= */
-
-const APP_NAME = "wm-tapper";
-
-const SETTINGS_STORAGE_KEY = `${APP_NAME}:settings`;
-
-
-/* =========================================================
-   DEFAULT SETTINGS
-   ========================================================= */
-
-const DEFAULT_SETTINGS = {
-    version: 1,
-
-    language: "en",
-
-    sessionTimeout: 3,
-
-    historyLength: 12,
-
-    tapKey: "Space"
-};
-
-
-/* =========================================================
-   ALLOWED TAP KEYS
-   ========================================================= */
-
-/*
- * Only single keys are supported.
- *
- * Modifier combinations such as:
- *
- * Ctrl + T
- * Alt + Space
- * Shift + T
- *
- * are not supported.
- *
- * Escape is reserved for cancelling key selection.
- */
-
-const ALLOWED_SPECIAL_KEYS = new Set([
-    "Space",
-    "Enter",
-    "Tab",
-
-    "F1",
-    "F2",
-    "F3",
-    "F4",
-    "F5",
-    "F6",
-    "F7",
-    "F8",
-    "F9",
-    "F10",
-    "F11",
-    "F12",
-
-    "ArrowUp",
-    "ArrowDown",
-    "ArrowLeft",
-    "ArrowRight",
-
-    "Home",
-    "End",
-
-    "PageUp",
-    "PageDown",
-
-    "Insert",
-    "Delete"
-]);
-
-
-/* =========================================================
-   STORAGE ADAPTER
-   ========================================================= */
-
-const storage = {
-
-    /**
-     * Read a value from persistent storage.
-     *
-     * @param {string} key
-     * @returns {any|null}
-     */
-    get(key) {
-
-        try {
-
-            const rawValue =
-                localStorage.getItem(key);
-
-            if (rawValue === null) {
-                return null;
-            }
-
-            return JSON.parse(rawValue);
-
-        } catch (error) {
-
-            console.error(
-                "WM Tapper: failed to read storage.",
-                error
-            );
-
-            return null;
-        }
-    },
-
-
-    /**
-     * Write a value to persistent storage.
-     *
-     * @param {string} key
-     * @param {any} value
-     */
-    set(key, value) {
-
-        try {
-
-            localStorage.setItem(
-                key,
-                JSON.stringify(value)
-            );
-
-        } catch (error) {
-
-            console.error(
-                "WM Tapper: failed to write storage.",
-                error
-            );
-        }
-    },
-
-
-    /**
-     * Remove a value from persistent storage.
-     *
-     * @param {string} key
-     */
-    remove(key) {
-
-        try {
-
-            localStorage.removeItem(key);
-
-        } catch (error) {
-
-            console.error(
-                "WM Tapper: failed to remove storage.",
-                error
-            );
-        }
-    }
-};
-
-
-/* =========================================================
-   SETTINGS MANAGER
-   ========================================================= */
-
-const settings = {
-
-    data: null,
-
-
-    /**
-     * Load settings from storage.
-     */
-    load() {
-
-        const savedSettings =
-            storage.get(
-                SETTINGS_STORAGE_KEY
-            );
-
-
-        if (
-            !savedSettings ||
-            typeof savedSettings !== "object"
-        ) {
-
-            this.data = {
-                ...DEFAULT_SETTINGS
-            };
-
-            this.save();
-
-            return;
-        }
-
-
-        this.data = {
-            ...DEFAULT_SETTINGS,
-            ...savedSettings
-        };
-
-
-        /*
-         * Sanitize values loaded from storage.
-         */
-
-        this.sanitize();
-
-        this.save();
-    },
-
-
-    /**
-     * Validate and normalize stored settings.
-     */
-    sanitize() {
-
-        /* ---------------------------------------------
-           Language
-           --------------------------------------------- */
-
-        if (
-            !supportedLanguages.includes(
-                this.data.language
-            )
-        ) {
-            this.data.language =
-                DEFAULT_SETTINGS.language;
-        }
-
-
-        /* ---------------------------------------------
-           Session timeout
-           --------------------------------------------- */
-
-        const validSessionValues = [
-            1.5,
-            2,
-            2.5,
-            3,
-            3.5,
-            4,
-            4.5,
-            5
-        ];
-
-
-        const sessionValue =
-            Number(
-                this.data.sessionTimeout
-            );
-
-
-        if (
-            !validSessionValues.includes(
-                sessionValue
-            )
-        ) {
-
-            this.data.sessionTimeout =
-                DEFAULT_SETTINGS.sessionTimeout;
-
-        } else {
-
-            this.data.sessionTimeout =
-                sessionValue;
-        }
-
-
-        /* ---------------------------------------------
-           History length
-           --------------------------------------------- */
-
-        const validHistoryValues = [
-            8,
-            12,
-            16,
-            20,
-            24
-        ];
-
-
-        const historyValue =
-            Number(
-                this.data.historyLength
-            );
-
-
-        if (
-            !validHistoryValues.includes(
-                historyValue
-            )
-        ) {
-
-            this.data.historyLength =
-                DEFAULT_SETTINGS.historyLength;
-
-        } else {
-
-            this.data.historyLength =
-                historyValue;
-        }
-
-
-        /* ---------------------------------------------
-           Tap key
-           --------------------------------------------- */
-
-        if (
-            typeof this.data.tapKey !== "string" ||
-            !isAllowedTapKey(
-                this.data.tapKey
-            )
-        ) {
-
-            this.data.tapKey =
-                DEFAULT_SETTINGS.tapKey;
-        }
-
-
-        /* ---------------------------------------------
-           Version
-           --------------------------------------------- */
-
-        if (
-            typeof this.data.version !== "number"
-        ) {
-
-            this.data.version =
-                DEFAULT_SETTINGS.version;
-        }
-    },
-
-
-    /**
-     * Save settings.
-     */
-    save() {
-
-        storage.set(
-            SETTINGS_STORAGE_KEY,
-            this.data
-        );
-    },
-
-
-    /**
-     * Read one setting.
-     *
-     * @param {string} key
-     * @returns {any}
-     */
-    get(key) {
-
-        if (!this.data) {
-            this.load();
-        }
-
-        return this.data[key];
-    },
-
-
-    /**
-     * Change one setting and save immediately.
-     *
-     * @param {string} key
-     * @param {any} value
-     */
-    set(key, value) {
-
-        if (!this.data) {
-            this.load();
-        }
-
-        this.data[key] = value;
-
-        this.sanitize();
-
-        this.save();
-    },
-
-
-    /**
-     * Update multiple settings.
-     *
-     * @param {Object} values
-     */
-    update(values) {
-
-        if (!this.data) {
-            this.load();
-        }
-
-        this.data = {
-            ...this.data,
-            ...values
-        };
-
-        this.sanitize();
-
-        this.save();
-    },
-
-
-    /**
-     * Reset settings to defaults.
-     */
-    reset() {
-
-        this.data = {
-            ...DEFAULT_SETTINGS
-        };
-
-        this.save();
-    }
-};
-
-
-/* =========================================================
-   TRANSLATIONS
-   ========================================================= */
-
-const translations = {
-
-    en: {
-        tap: "TAP",
-
-        average: "Average BPM:",
-
-        reset: "RESET",
-
-        settings: "SETTINGS",
-
-        tapKey: "Tap Key",
-
-        newSession: "New Session After",
-
-        history: "History",
-
-        language: "Language",
-
-        pressKey: "PRESS KEY...",
-
-        seconds: "SEC",
-
-        taps: "TAPS",
-
-        madeBy: "Made by Wht Mst"
-    },
-
-
-    ru: {
-        tap: "ТАП",
-
-        average: "Средний BPM:",
-
-        reset: "СБРОС",
-
-        settings: "НАСТРОЙКИ",
-
-        tapKey: "Клавиша тапа",
-
-        newSession: "Новая серия после",
-
-        history: "История",
-
-        language: "Язык",
-
-        pressKey: "НАЖМИТЕ КЛАВИШУ...",
-
-        seconds: "СЕК",
-
-        taps: "ТАПОВ",
-
-        madeBy: "Сделано Wht Mst"
-    },
-
-
-    az: {
-        tap: "TAP",
-
-        average: "Orta BPM:",
-
-        reset: "SIFIRLA",
-
-        settings: "AYARLAR",
-
-        tapKey: "Tap düyməsi",
-
-        newSession: "Yeni sessiyadan sonra",
-
-        history: "Tarixçə",
-
-        language: "Dil",
-
-        pressKey: "DÜYMƏYƏ BASIN...",
-
-        seconds: "SAN",
-
-        taps: "TAP",
-
-        madeBy: "Wht Mst tərəfindən"
-    }
-};
-
-
-/* =========================================================
-   SUPPORTED LANGUAGES
-   ========================================================= */
-
-const supportedLanguages = [
-    "en",
-    "ru",
-    "az"
-];
-
-
-/* =========================================================
-   TAP KEY VALIDATION
-   ========================================================= */
-
-/**
- * Check whether a key is allowed for Tap Key.
- *
- * @param {string} key
- * @returns {boolean}
- */
-function isAllowedTapKey(key) {
-
-    /* Letters */
-
-    if (
-        /^Key[A-Z]$/.test(key)
-    ) {
-        return true;
-    }
-
-
-    /* Numbers */
-
-    if (
-        /^Digit[0-9]$/.test(key)
-    ) {
-        return true;
-    }
-
-
-    /* Numpad numbers */
-
-    if (
-        /^Numpad[0-9]$/.test(key)
-    ) {
-        return true;
-    }
-
-
-    /* Numpad actions */
-
-    const allowedNumpadKeys = new Set([
-        "NumpadAdd",
-        "NumpadSubtract",
-        "NumpadMultiply",
-        "NumpadDivide",
-        "NumpadDecimal",
-        "NumpadEnter"
-    ]);
-
-
-    if (
-        allowedNumpadKeys.has(key)
-    ) {
-        return true;
-    }
-
-
-    /* Other supported keys */
-
-    if (
-        ALLOWED_SPECIAL_KEYS.has(key)
-    ) {
-        return true;
-    }
-
-
-    return false;
-}
-
-
-/* =========================================================
-   KEY DISPLAY NAME
-   ========================================================= */
-
-/**
- * Convert KeyboardEvent.code to a readable label.
- *
- * @param {string} code
- * @returns {string}
- */
-function getKeyDisplayName(code) {
-
-    /* Letters */
-
-    if (
-        /^Key[A-Z]$/.test(code)
-    ) {
-        return code.replace(
-            "Key",
-            ""
-        );
-    }
-
-
-    /* Numbers */
-
-    if (
-        /^Digit[0-9]$/.test(code)
-    ) {
-        return code.replace(
-            "Digit",
-            ""
-        );
-    }
-
-
-    /* Numpad numbers */
-
-    if (
-        /^Numpad[0-9]$/.test(code)
-    ) {
-        return `NUM ${code.replace("Numpad", "")}`;
-    }
-
-
-    const specialNames = {
-
-        Space: "SPACE",
-
-        Enter: "ENTER",
-
-        Tab: "TAB",
-
-
-        F1: "F1",
-        F2: "F2",
-        F3: "F3",
-        F4: "F4",
-        F5: "F5",
-        F6: "F6",
-        F7: "F7",
-        F8: "F8",
-        F9: "F9",
-        F10: "F10",
-        F11: "F11",
-        F12: "F12",
-
-
-        ArrowUp: "↑",
-        ArrowDown: "↓",
-        ArrowLeft: "←",
-        ArrowRight: "→",
-
-
-        Home: "HOME",
-
-        End: "END",
-
-
-        PageUp: "PAGE UP",
-
-        PageDown: "PAGE DOWN",
-
-
-        Insert: "INSERT",
-
-        Delete: "DELETE",
-
-
-        NumpadAdd: "NUM +",
-
-        NumpadSubtract: "NUM −",
-
-        NumpadMultiply: "NUM ×",
-
-        NumpadDivide: "NUM ÷",
-
-        NumpadDecimal: "NUM .",
-
-        NumpadEnter: "NUM ENTER"
-    };
-
-
-    return (
-        specialNames[code] ||
-        code.toUpperCase()
+const settingsButton =
+    document.getElementById(
+        "settingsButton"
     );
-}
+
+
+const flipCard =
+    document.getElementById(
+        "flipCard"
+    );
+
+
+const tapButton =
+    document.getElementById(
+        "tapButton"
+    );
+
+
+const tapValue =
+    document.getElementById(
+        "tapValue"
+    );
+
+
+const resetButton =
+    document.getElementById(
+        "resetButton"
+    );
+
+
+const averageValue =
+    document.getElementById(
+        "averageValue"
+    );
+
+
+const tapHistory =
+    document.getElementById(
+        "tapHistory"
+    );
+
+
+const tapKeyControl =
+    document.getElementById(
+        "tapKeyControl"
+    );
+
+
+const tapKeyValue =
+    document.getElementById(
+        "tapKeyValue"
+    );
+
+
+const sessionControl =
+    document.getElementById(
+        "sessionControl"
+    );
+
+
+const sessionValue =
+    document.getElementById(
+        "sessionValue"
+    );
+
+
+const sessionMenu =
+    document.getElementById(
+        "sessionMenu"
+    );
+
+
+const historyControl =
+    document.getElementById(
+        "historyControl"
+    );
+
+
+const historyValue =
+    document.getElementById(
+        "historyValue"
+    );
+
+
+const historyMenu =
+    document.getElementById(
+        "historyMenu"
+    );
+
+
+const languageSwitcher =
+    document.getElementById(
+        "languageSwitcher"
+    );
+
+
+const madeByText =
+    document.getElementById(
+        "madeByText"
+    );
+
+
+/* =========================================================
+   APPLICATION MODULES
+   ========================================================= */
+
+const tapEngine =
+    new TapEngine();
+
+
+const trackAnalyzer =
+    new TrackAnalyzer();
+
+
+const tapKeyController =
+    new TapKeyController({
+        control: tapKeyControl,
+        value: tapKeyValue
+    });
 
 
 /* =========================================================
@@ -777,12 +184,12 @@ function getCurrentLanguage() {
     }
 
 
-    return DEFAULT_SETTINGS.language;
+    return "en";
 }
 
 
 /**
- * Set language immediately.
+ * Set language and save immediately.
  *
  * @param {string} language
  */
@@ -809,40 +216,33 @@ function setLanguage(language) {
 }
 
 
-/* =========================================================
-   LANGUAGE APPLICATION
-   ========================================================= */
-
+/**
+ * Apply language to the UI.
+ *
+ * @param {string} language
+ */
 function applyLanguage(language) {
 
-    if (
-        !supportedLanguages.includes(
-            language
-        )
-    ) {
-        language =
-            DEFAULT_SETTINGS.language;
-    }
-
-
     const text =
-        translations[language];
+        getTranslations(
+            language
+        );
 
 
-    /* ---------------------------------------------
+    /* -----------------------------------------
        Front side
-       --------------------------------------------- */
+       ----------------------------------------- */
 
     const currentTapText =
         tapValue.textContent.trim();
 
 
-    const isInitialTapState =
+    const initialTapState =
         currentTapText === "TAP" ||
         currentTapText === "ТАП";
 
 
-    if (isInitialTapState) {
+    if (initialTapState) {
 
         tapValue.textContent =
             text.tap;
@@ -859,9 +259,9 @@ function applyLanguage(language) {
         text.reset;
 
 
-    /* ---------------------------------------------
+    /* -----------------------------------------
        Settings header
-       --------------------------------------------- */
+       ----------------------------------------- */
 
     document.querySelector(
         ".settings-content__header"
@@ -869,9 +269,9 @@ function applyLanguage(language) {
         text.settings;
 
 
-    /* ---------------------------------------------
-       Setting labels
-       --------------------------------------------- */
+    /* -----------------------------------------
+       Labels
+       ----------------------------------------- */
 
     document.getElementById(
         "tapKeyLabel"
@@ -897,9 +297,9 @@ function applyLanguage(language) {
         text.language;
 
 
-    /* ---------------------------------------------
+    /* -----------------------------------------
        Footer
-       --------------------------------------------- */
+       ----------------------------------------- */
 
     if (madeByText) {
 
@@ -908,44 +308,39 @@ function applyLanguage(language) {
     }
 
 
-    /* ---------------------------------------------
+    /* -----------------------------------------
        Tap Key
-       --------------------------------------------- */
+       ----------------------------------------- */
 
-    if (
-        !tapKeyControl.classList.contains(
-            "is-listening"
-        )
-    ) {
-
-        updateTapKeyDisplay();
-    }
+    tapKeyController.updateDisplay();
 
 
-    /* ---------------------------------------------
+    /* -----------------------------------------
        Session
-       --------------------------------------------- */
+       ----------------------------------------- */
 
     updateSessionDisplay();
 
 
-    /* ---------------------------------------------
+    /* -----------------------------------------
        History
-       --------------------------------------------- */
+       ----------------------------------------- */
 
     updateHistoryDisplay();
 
 
-    /* ---------------------------------------------
-       Dropdown menu translations
-       --------------------------------------------- */
+    /* -----------------------------------------
+       Dropdown translations
+       ----------------------------------------- */
 
-    updateDropdownTranslations();
+    updateDropdownTranslations(
+        language
+    );
 
 
-    /* ---------------------------------------------
+    /* -----------------------------------------
        Language buttons
-       --------------------------------------------- */
+       ----------------------------------------- */
 
     updateLanguageButtons(
         language
@@ -954,63 +349,95 @@ function applyLanguage(language) {
 
 
 /* =========================================================
-   DROPDOWN TRANSLATIONS
+   SESSION DISPLAY
    ========================================================= */
 
-/**
- * Format a decimal number according to language.
- *
- * English:
- * 3.0
- *
- * Russian / Azerbaijani:
- * 3,0
- *
- * @param {number} value
- * @param {string} language
- * @returns {string}
- */
-function formatDecimal(
-    value,
-    language
-) {
+function updateSessionDisplay() {
 
-    const formatted =
-        value.toFixed(1);
+    const language =
+        getCurrentLanguage();
 
 
-    if (
-        language === "ru" ||
-        language === "az"
-    ) {
-        return formatted.replace(
-            ".",
-            ","
+    const text =
+        getTranslations(
+            language
         );
-    }
 
 
-    return formatted;
+    const value =
+        Number(
+            settings.get(
+                "sessionTimeout"
+            )
+        );
+
+
+    sessionValue.textContent =
+        `${formatDecimal(
+            value,
+            language
+        )} ${text.seconds}`;
+
+
+    updateSelectedOption(
+        sessionMenu,
+        String(value)
+    );
 }
 
 
-/**
- * Update all visible dropdown options
- * according to the current language.
- *
- * @param {string} language
- */
+/* =========================================================
+   HISTORY DISPLAY
+   ========================================================= */
+
+function updateHistoryDisplay() {
+
+    const language =
+        getCurrentLanguage();
+
+
+    const text =
+        getTranslations(
+            language
+        );
+
+
+    const value =
+        Number(
+            settings.get(
+                "historyLength"
+            )
+        );
+
+
+    historyValue.textContent =
+        `${value} ${text.taps}`;
+
+
+    updateSelectedOption(
+        historyMenu,
+        String(value)
+    );
+}
+
+
+/* =========================================================
+   DROPDOWN TRANSLATIONS
+   ========================================================= */
+
 function updateDropdownTranslations(
     language = getCurrentLanguage()
 ) {
 
     const text =
-        translations[language];
+        getTranslations(
+            language
+        );
 
 
-    /* ---------------------------------------------
-       Session dropdown
-       --------------------------------------------- */
+    /* -----------------------------------------
+       Session options
+       ----------------------------------------- */
 
     sessionMenu
         .querySelectorAll(
@@ -1041,9 +468,9 @@ function updateDropdownTranslations(
         );
 
 
-    /* ---------------------------------------------
-       History dropdown
-       --------------------------------------------- */
+    /* -----------------------------------------
+       History options
+       ----------------------------------------- */
 
     historyMenu
         .querySelectorAll(
@@ -1076,242 +503,30 @@ function updateDropdownTranslations(
    LANGUAGE BUTTONS
    ========================================================= */
 
-function updateLanguageButtons(language) {
+function updateLanguageButtons(
+    language
+) {
 
-    const buttons =
-        languageSwitcher.querySelectorAll(
+    languageSwitcher
+        .querySelectorAll(
             ".language-button"
-        );
-
-
-    buttons.forEach(
-        (button) => {
-
-            const isActive =
-                button.dataset.language ===
-                language;
-
-
-            button.classList.toggle(
-                "is-active",
-                isActive
-            );
-        }
-    );
-}
-
-
-/* =========================================================
-   TAP KEY
-   ========================================================= */
-
-let isCapturingTapKey = false;
-
-let previousTapKey =
-    DEFAULT_SETTINGS.tapKey;
-
-
-/**
- * Update displayed Tap Key.
- */
-function updateTapKeyDisplay() {
-
-    const key =
-        settings.get("tapKey");
-
-
-    tapKeyValue.textContent =
-        getKeyDisplayName(
-            key
-        );
-}
-
-
-/**
- * Start key capture mode.
- */
-function startTapKeyCapture() {
-
-    if (isCapturingTapKey) {
-        return;
-    }
-
-
-    previousTapKey =
-        settings.get("tapKey");
-
-
-    isCapturingTapKey = true;
-
-
-    tapKeyControl.classList.add(
-        "is-listening"
-    );
-
-
-    tapKeyValue.textContent =
-        translations[
-            getCurrentLanguage()
-        ].pressKey;
-
-
-    document.addEventListener(
-        "keydown",
-        captureTapKey,
-        true
-    );
-}
-
-
-/**
- * Stop key capture mode.
- */
-function stopTapKeyCapture() {
-
-    isCapturingTapKey = false;
-
-
-    tapKeyControl.classList.remove(
-        "is-listening"
-    );
-
-
-    document.removeEventListener(
-        "keydown",
-        captureTapKey,
-        true
-    );
-
-
-    updateTapKeyDisplay();
-}
-
-
-/**
- * Capture the next allowed key.
- *
- * @param {KeyboardEvent} event
- */
-function captureTapKey(event) {
-
-    /* ---------------------------------------------
-       Escape cancels selection
-       --------------------------------------------- */
-
-    if (
-        event.code === "Escape"
-    ) {
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        stopTapKeyCapture();
-
-        settings.set(
-            "tapKey",
-            previousTapKey
-        );
-
-        updateTapKeyDisplay();
-
-        return;
-    }
-
-
-    /* ---------------------------------------------
-       Modifier keys are not allowed
-       --------------------------------------------- */
-
-    if (
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey ||
-        event.metaKey
-    ) {
-        return;
-    }
-
-
-    /* ---------------------------------------------
-       Modifier-only keys
-       --------------------------------------------- */
-
-    const modifierOnlyKeys = new Set([
-        "ControlLeft",
-        "ControlRight",
-
-        "ShiftLeft",
-        "ShiftRight",
-
-        "AltLeft",
-        "AltRight",
-
-        "MetaLeft",
-        "MetaRight"
-    ]);
-
-
-    if (
-        modifierOnlyKeys.has(
-            event.code
         )
-    ) {
-        return;
-    }
+        .forEach(
+            (button) => {
 
-
-    /* ---------------------------------------------
-       Allowed key check
-       --------------------------------------------- */
-
-    if (
-        !isAllowedTapKey(
-            event.code
-        )
-    ) {
-        return;
-    }
-
-
-    event.preventDefault();
-    event.stopPropagation();
-
-
-    /* ---------------------------------------------
-       Save immediately
-       --------------------------------------------- */
-
-    settings.set(
-        "tapKey",
-        event.code
-    );
-
-
-    stopTapKeyCapture();
+                button.classList.toggle(
+                    "is-active",
+                    button.dataset.language ===
+                    language
+                );
+            }
+        );
 }
 
 
 /* =========================================================
-   TAP KEY BUTTON
+   DROPDOWNS
    ========================================================= */
-
-tapKeyControl.addEventListener(
-    "click",
-    () => {
-
-        if (isCapturingTapKey) {
-            return;
-        }
-
-        startTapKeyCapture();
-    }
-);
-
-
-/* =========================================================
-   DROPDOWN HELPERS
-   ========================================================= */
-
 
 /**
  * Close all dropdowns.
@@ -1343,9 +558,7 @@ function closeDropdowns() {
  *
  * @param {HTMLElement} control
  */
-function toggleDropdown(
-    control
-) {
+function toggleDropdown(control) {
 
     const isOpen =
         control.classList.contains(
@@ -1461,6 +674,19 @@ sessionMenu
                     );
 
 
+                    tapEngine.configure({
+                        sessionTimeout:
+                            settings.get(
+                                "sessionTimeout"
+                            ),
+
+                        historyLength:
+                            settings.get(
+                                "historyLength"
+                            )
+                    });
+
+
                     updateSessionDisplay();
 
                     closeDropdowns();
@@ -1507,6 +733,19 @@ historyMenu
                     );
 
 
+                    tapEngine.configure({
+                        sessionTimeout:
+                            settings.get(
+                                "sessionTimeout"
+                            ),
+
+                        historyLength:
+                            settings.get(
+                                "historyLength"
+                            )
+                    });
+
+
                     updateHistoryDisplay();
 
                     closeDropdowns();
@@ -1514,113 +753,6 @@ historyMenu
             );
         }
     );
-
-
-/* =========================================================
-   SESSION DISPLAY
-   ========================================================= */
-
-function updateSessionDisplay() {
-
-    const language =
-        getCurrentLanguage();
-
-
-    const text =
-        translations[language];
-
-
-    const value =
-        Number(
-            settings.get(
-                "sessionTimeout"
-            )
-        );
-
-
-    sessionValue.textContent =
-        `${formatDecimal(
-            value,
-            language
-        )} ${text.seconds}`;
-
-
-    updateSelectedOption(
-        sessionMenu,
-        String(value)
-    );
-}
-
-
-/* =========================================================
-   HISTORY DISPLAY
-   ========================================================= */
-
-function updateHistoryDisplay() {
-
-    const language =
-        getCurrentLanguage();
-
-
-    const text =
-        translations[language];
-
-
-    const value =
-        Number(
-            settings.get(
-                "historyLength"
-            )
-        );
-
-
-    historyValue.textContent =
-        `${value} ${text.taps}`;
-
-
-    updateSelectedOption(
-        historyMenu,
-        String(value)
-    );
-}
-
-
-/* =========================================================
-   DROPDOWN SELECTED STATE
-   ========================================================= */
-
-function updateSelectedOption(
-    menu,
-    value
-) {
-
-    const options =
-        menu.querySelectorAll(
-            ".dropdown-option"
-        );
-
-
-    options.forEach(
-        (option) => {
-
-            const isSelected =
-                option.dataset.value ===
-                value;
-
-
-            option.classList.toggle(
-                "is-selected",
-                isSelected
-            );
-
-
-            option.setAttribute(
-                "aria-selected",
-                String(isSelected)
-            );
-        }
-    );
-}
 
 
 /* =========================================================
@@ -1638,12 +770,8 @@ languageSwitcher
                 "click",
                 () => {
 
-                    const language =
-                        button.dataset.language;
-
-
                     setLanguage(
-                        language
+                        button.dataset.language
                     );
                 }
             );
@@ -1665,7 +793,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   ESCAPE CLOSES DROPDOWNS
+   ESCAPE
    ========================================================= */
 
 document.addEventListener(
@@ -1673,11 +801,11 @@ document.addEventListener(
     (event) => {
 
         /*
-         * Tap Key capture has its own Escape handler.
+         * Tap Key capture has its own Escape handling.
          */
 
         if (
-            isCapturingTapKey
+            tapKeyController.isCapturing
         ) {
             return;
         }
@@ -1714,35 +842,31 @@ settingsButton.addEventListener(
    RESET
    ========================================================= */
 
-function resetTapper() {
-
-    /*
-     * Real Tap Tempo state will be implemented later.
-     */
-
-    tapValue.textContent =
-        translations[
-            getCurrentLanguage()
-        ].tap;
-
-
-    averageValue.textContent =
-        "—";
-
-
-    tapHistory.innerHTML =
-        "";
-}
-
-
 resetButton.addEventListener(
     "click",
-    resetTapper
+    () => {
+
+        tapEngine.reset();
+
+
+        tapValue.textContent =
+            getTranslations(
+                getCurrentLanguage()
+            ).tap;
+
+
+        averageValue.textContent =
+            "—";
+
+
+        tapHistory.innerHTML =
+            "";
+    }
 );
 
 
 /* =========================================================
-   TAP BUTTON PLACEHOLDER
+   TAP BUTTON
    ========================================================= */
 
 tapButton.addEventListener(
@@ -1750,7 +874,8 @@ tapButton.addEventListener(
     () => {
 
         /*
-         * Real Tap Tempo Engine comes next.
+         * Real Tap Tempo logic will be connected
+         * to tapEngine.registerTap() next.
          */
     }
 );
@@ -1760,20 +885,13 @@ tapButton.addEventListener(
    PREVENT SPACE SCROLLING
    ========================================================= */
 
-/*
- * Space will later become the configurable Tap Key.
- *
- * For now we prevent the browser from scrolling
- * when Space is pressed.
- */
-
 document.addEventListener(
     "keydown",
     (event) => {
 
         if (
             event.code === "Space" &&
-            !isCapturingTapKey
+            !tapKeyController.isCapturing
         ) {
 
             event.preventDefault();
@@ -1796,12 +914,46 @@ function initialize() {
 
 
     /*
-     * Apply saved language.
+     * Configure Tap Engine with current settings.
+     */
+
+    tapEngine.configure({
+
+        sessionTimeout:
+            settings.get(
+                "sessionTimeout"
+            ),
+
+        historyLength:
+            settings.get(
+                "historyLength"
+            )
+    });
+
+
+    /*
+     * Initialize Tap Key controller.
+     */
+
+    tapKeyController.initialize();
+
+
+    /*
+     * Apply saved language and UI state.
      */
 
     applyLanguage(
         getCurrentLanguage()
     );
+
+
+    /*
+     * The analyzer is instantiated above and
+     * will be connected when Analyze File UI
+     * is introduced.
+     */
+
+    void trackAnalyzer;
 }
 
 
