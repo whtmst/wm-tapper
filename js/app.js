@@ -455,7 +455,7 @@ const audioFileInput =
 
 audioFileInput.addEventListener(
     "change",
-    () => {
+    async () => {
 
         const file =
             audioFileInput.files?.[0];
@@ -497,29 +497,69 @@ audioFileInput.addEventListener(
 
 
         /*
-         * Valid file.
-         *
-         * Real analyzer integration will
-         * be connected in the next step.
+         * Prevent duplicate analysis requests.
          */
 
-        console.log(
-            "WM Tapper: audio file selected.",
-            {
-                name: file.name,
-                type: file.type,
-                size: file.size
-            }
-        );
+        if (
+            trackAnalyzer.isAnalyzing
+        ) {
+
+            audioFileInput.value =
+                "";
+
+            return;
+        }
 
 
-        /*
-         * Allow selecting the exact same file
-         * again later.
-         */
+        try {
 
-        audioFileInput.value =
-            "";
+            analyzeButton.disabled =
+                true;
+
+
+            console.log(
+                "WM Tapper: starting audio analysis.",
+                {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size
+                }
+            );
+
+
+            const result =
+                await trackAnalyzer.analyze(
+                    file
+                );
+
+
+            console.log(
+                "WM Tapper: final analysis result.",
+                result
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "WM Tapper: failed to analyze audio file.",
+                error
+            );
+
+        } finally {
+
+            analyzeButton.disabled =
+                false;
+
+
+            /*
+             * Allow selecting the exact same file
+             * again later.
+             */
+
+            audioFileInput.value =
+                "";
+        }
     }
 );
 
