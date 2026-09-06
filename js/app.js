@@ -932,8 +932,14 @@ function setAnalysisRunning(
 
     analysisBusyOverlay.classList.toggle(
         "is-visible",
-        state
+         state
     );
+
+
+   analysisPanel.classList.toggle(
+        "analysis-panel--busy",
+         state
+   );
 
 
     analysisBusyOverlay.setAttribute(
