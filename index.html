@@ -494,6 +494,246 @@
 
         </section>
 
+        <!-- =================================================
+             AUDIO ANALYSIS PANEL
+             ================================================= -->
+        <section
+            class="analysis-panel"
+            id="analysisPanel"
+            aria-hidden="true"
+        >
+
+            <!-- =============================================
+                 WAVEFORM
+                 ============================================= -->
+            <div class="analysis-waveform" id="analysisWaveform">
+
+                <svg
+                    class="analysis-waveform__svg"
+                    viewBox="0 0 236 52"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                >
+                    <path
+                        class="analysis-waveform__path"
+                        d="
+                            M0 26
+                            L4 24
+                            L8 29
+                            L12 18
+                            L16 22
+                            L20 10
+                            L24 34
+                            L28 27
+                            L32 21
+                            L36 37
+                            L40 24
+                            L44 18
+                            L48 29
+                            L52 14
+                            L56 25
+                            L60 40
+                            L64 28
+                            L68 20
+                            L72 31
+                            L76 17
+                            L80 24
+                            L84 12
+                            L88 35
+                            L92 27
+                            L96 19
+                            L100 31
+                            L104 42
+                            L108 28
+                            L112 17
+                            L116 23
+                            L120 8
+                            L124 35
+                            L128 27
+                            L132 19
+                            L136 30
+                            L140 13
+                            L144 25
+                            L148 38
+                            L152 29
+                            L156 17
+                            L160 23
+                            L164 8
+                            L168 34
+                            L172 25
+                            L176 18
+                            L180 31
+                            L184 43
+                            L188 27
+                            L192 20
+                            L196 29
+                            L200 12
+                            L204 24
+                            L208 38
+                            L212 28
+                            L216 19
+                            L220 32
+                            L224 14
+                            L228 25
+                            L232 21
+                            L236 26
+                        "
+                    ></path>
+                </svg>
+
+
+                <!-- =========================================
+                     UNSELECTED AREA — LEFT
+                     ========================================= -->
+                <div
+                    class="analysis-range-overlay analysis-range-overlay--left"
+                    id="analysisOverlayLeft"
+                ></div>
+
+
+                <!-- =========================================
+                     UNSELECTED AREA — RIGHT
+                     ========================================= -->
+                <div
+                    class="analysis-range-overlay analysis-range-overlay--right"
+                    id="analysisOverlayRight"
+                ></div>
+
+
+                <!-- =========================================
+                     ACTIVE SELECTION
+                     ========================================= -->
+                <div
+                    class="analysis-selection"
+                    id="analysisSelection"
+                ></div>
+
+
+                <!-- =========================================
+                     START HANDLE
+                     ========================================= -->
+                <button
+                    class="analysis-handle analysis-handle--start"
+                    id="analysisStartHandle"
+                    type="button"
+                    aria-label="Analysis start"
+                >
+                    <span></span>
+                </button>
+
+
+                <!-- =========================================
+                     END HANDLE
+                     ========================================= -->
+                <button
+                    class="analysis-handle analysis-handle--end"
+                    id="analysisEndHandle"
+                    type="button"
+                    aria-label="Analysis end"
+                >
+                    <span></span>
+                </button>
+
+            </div>
+
+
+            <!-- =============================================
+                 TIME RANGE
+                 ============================================= -->
+            <div class="analysis-time">
+
+                <span id="analysisStartTime">
+                    00:00.0
+                </span>
+
+                <span class="analysis-time__separator">
+                    —
+                </span>
+
+                <span id="analysisEndTime">
+                    --:--.-
+                </span>
+
+            </div>
+
+
+            <!-- =============================================
+                 MODE DROPDOWN
+                 ============================================= -->
+            <div
+                class="analysis-mode"
+                id="analysisMode"
+            >
+
+                <button
+                    class="analysis-mode__control"
+                    id="analysisModeControl"
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                >
+                    <span id="analysisModeValue">
+                        FULL
+                    </span>
+
+                    <span class="analysis-mode__arrow"></span>
+                </button>
+
+
+                <div
+                    class="analysis-mode__menu"
+                    id="analysisModeMenu"
+                    role="listbox"
+                >
+
+                    <button
+                        class="analysis-mode__option is-selected"
+                        type="button"
+                        data-value="full"
+                        role="option"
+                        aria-selected="true"
+                    >
+                        FULL
+                    </button>
+
+                    <button
+                        class="analysis-mode__option"
+                        type="button"
+                        data-value="selection"
+                        role="option"
+                        aria-selected="false"
+                    >
+                        SELECTION
+                    </button>
+
+                    <button
+                        class="analysis-mode__option"
+                        type="button"
+                        data-value="fast"
+                        role="option"
+                        aria-selected="false"
+                    >
+                        FAST
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 ANALYZE BUTTON
+                 ============================================= -->
+            <button
+                class="analysis-run-button"
+                id="analysisRunButton"
+                type="button"
+            >
+                ANALYZE
+            </button>
+
+        </section>
+
     </main>
 
 
