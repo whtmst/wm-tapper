@@ -502,7 +502,7 @@ const translations = {
 
         taps: "TAPS",
 
-        madeBy: "Made by WHT MST"
+        madeBy: "Made by Wht Mst"
     },
 
 
@@ -529,7 +529,7 @@ const translations = {
 
         taps: "ТАПОВ",
 
-        madeBy: "Сделано WHT MST"
+        madeBy: "Сделано Wht Mst"
     },
 
 
@@ -556,7 +556,7 @@ const translations = {
 
         taps: "TAP",
 
-        madeBy: "WHT MST tərəfindən"
+        madeBy: "Wht Mst tərəfindən"
     }
 };
 
