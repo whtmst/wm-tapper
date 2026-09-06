@@ -10,6 +10,7 @@
 
 @font-face {
     font-family: "Finlandica";
+
     src: url("../../assets/fonts/Finlandica-VariableFont_wght.ttf")
         format("truetype");
 
@@ -20,38 +21,40 @@
 
 
 /* =========================================================
-   ROOT VARIABLES
+   DESIGN TOKENS
    ========================================================= */
 
 :root {
-    /* Application size */
-    --app-width: 250px;
-    --app-height: 300px;
+
+    /* Window */
+    --window-width: 250px;
+    --window-height: 300px;
 
     /* Background */
-    --bg-main: #17191b;
-    --bg-top: #1d2022;
-    --bg-bottom: #141618;
+    --background-page: #101214;
+    --background-window-top: #1d2022;
+    --background-window-bottom: #151719;
+    --background-surface: #191c1e;
 
     /* Borders */
-    --border-main: rgba(255, 255, 255, 0.055);
+    --border-window: rgba(255, 255, 255, 0.055);
     --border-soft: rgba(255, 255, 255, 0.035);
 
     /* Text */
-    --text-main: #f2f3ee;
-    --text-secondary: rgba(242, 243, 238, 0.52);
-    --text-muted: rgba(242, 243, 238, 0.30);
+    --text-primary: #f0f2ec;
+    --text-secondary: rgba(240, 242, 236, 0.56);
+    --text-muted: rgba(240, 242, 236, 0.32);
 
     /* Accent */
-    --accent-main: #c8e957;
-    --accent-light: #e6ff9b;
-    --accent-mid: #b9d84c;
-    --accent-dark: #7f9b31;
+    --accent-light: #e8ff9a;
+    --accent-primary: #c8e957;
+    --accent-medium: #b4d447;
+    --accent-dark: #849f35;
 
     /* Accent glow */
-    --accent-glow-soft: rgba(200, 233, 87, 0.14);
-    --accent-glow-medium: rgba(200, 233, 87, 0.22);
-    --accent-glow-strong: rgba(200, 233, 87, 0.32);
+    --accent-glow-soft: rgba(200, 233, 87, 0.12);
+    --accent-glow-medium: rgba(200, 233, 87, 0.20);
+    --accent-glow-strong: rgba(200, 233, 87, 0.30);
 
     /* Motion */
     --transition-fast: 100ms ease;
@@ -65,6 +68,7 @@
 
 * {
     box-sizing: border-box;
+
     margin: 0;
     padding: 0;
 }
@@ -76,8 +80,9 @@ body {
 }
 
 html {
+    background: var(--background-page);
+
     font-family: "Finlandica", sans-serif;
-    background: #101214;
 }
 
 body {
@@ -90,12 +95,14 @@ body {
     background:
         radial-gradient(
             circle at 50% 45%,
-            rgba(255, 255, 255, 0.028),
+            rgba(255, 255, 255, 0.025),
             transparent 48%
         ),
-        #101214;
+        var(--background-page);
 
-    color: var(--text-main);
+    color: var(--text-primary);
+
+    font-family: "Finlandica", sans-serif;
 
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -103,6 +110,7 @@ body {
 
 button {
     appearance: none;
+
     border: 0;
     outline: 0;
 
@@ -125,31 +133,29 @@ button:focus-visible {
    ========================================================= */
 
 .app-window {
-    width: var(--app-width);
-    height: var(--app-height);
+    width: var(--window-width);
+    height: var(--window-height);
 
     overflow: hidden;
 
     display: flex;
     flex-direction: column;
 
-    border: 1px solid var(--border-main);
+    border: 1px solid var(--border-window);
     border-radius: 12px;
 
     background:
         linear-gradient(
             180deg,
-            var(--bg-top) 0%,
-            var(--bg-main) 52%,
-            var(--bg-bottom) 100%
+            var(--background-window-top) 0%,
+            #1a1d1f 48%,
+            var(--background-window-bottom) 100%
         );
 
     box-shadow:
-        0 18px 45px rgba(0, 0, 0, 0.48),
-        0 4px 14px rgba(0, 0, 0, 0.32),
+        0 22px 50px rgba(0, 0, 0, 0.48),
+        0 5px 16px rgba(0, 0, 0, 0.30),
         inset 0 1px 0 rgba(255, 255, 255, 0.025);
-
-    user-select: none;
 }
 
 
@@ -160,6 +166,7 @@ button:focus-visible {
 .title-bar {
     position: relative;
 
+    width: 100%;
     height: 38px;
     min-height: 38px;
 
@@ -167,48 +174,49 @@ button:focus-visible {
     align-items: center;
     justify-content: space-between;
 
-    padding: 0 8px 0 13px;
+    padding: 0 7px 0 13px;
 
     border-bottom: 1px solid var(--border-soft);
 
     background:
         linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.015),
+            rgba(255, 255, 255, 0.012),
             rgba(255, 255, 255, 0)
         );
 }
 
 
-/* ---------------------------------------------------------
-   TITLE
-   --------------------------------------------------------- */
+/* =========================================================
+   WINDOW TITLE
+   ========================================================= */
 
 .title-bar__title {
-    color: rgba(242, 243, 238, 0.88);
+    color: rgba(240, 242, 236, 0.88);
 
     font-size: 13px;
-    font-weight: 560;
+    font-weight: 570;
+
     line-height: 1;
 
     letter-spacing: 0.02em;
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
    WINDOW CONTROLS
-   --------------------------------------------------------- */
+   ========================================================= */
 
 .title-bar__controls {
     display: flex;
     align-items: center;
 
-    gap: 3px;
+    gap: 2px;
 }
 
 
 /* ---------------------------------------------------------
-   Individual control
+   Control button
    --------------------------------------------------------- */
 
 .window-control {
@@ -225,6 +233,8 @@ button:focus-visible {
 
     background: transparent;
 
+    opacity: 0.82;
+
     transition:
         background-color var(--transition-fast),
         opacity var(--transition-fast);
@@ -232,6 +242,8 @@ button:focus-visible {
 
 .window-control:hover {
     background: rgba(255, 255, 255, 0.055);
+
+    opacity: 1;
 }
 
 .window-control:active {
@@ -239,9 +251,73 @@ button:focus-visible {
 }
 
 
-/* ---------------------------------------------------------
-   Minimize icon
-   --------------------------------------------------------- */
+/* =========================================================
+   SETTINGS ICON
+   ========================================================= */
+
+.settings-icon {
+    position: relative;
+
+    width: 10px;
+    height: 10px;
+
+    display: block;
+
+    border: 1.5px solid rgba(240, 242, 236, 0.58);
+    border-radius: 50%;
+
+    transition:
+        transform 180ms ease,
+        border-color var(--transition-fast);
+}
+
+.settings-icon::before {
+    position: absolute;
+
+    inset: 2px;
+
+    content: "";
+
+    border: 1px solid rgba(240, 242, 236, 0.58);
+    border-radius: 50%;
+}
+
+.settings-icon::after {
+    position: absolute;
+
+    top: -4px;
+    left: 50%;
+
+    width: 2px;
+    height: 18px;
+
+    content: "";
+
+    border-radius: 2px;
+
+    background:
+        linear-gradient(
+            180deg,
+            transparent 0 10%,
+            rgba(240, 242, 236, 0.58) 10% 20%,
+            transparent 20% 80%,
+            rgba(240, 242, 236, 0.58) 80% 90%,
+            transparent 90%
+        );
+
+    transform: translateX(-50%);
+}
+
+.window-control--settings:hover .settings-icon {
+    border-color: rgba(240, 242, 236, 0.85);
+
+    transform: rotate(28deg);
+}
+
+
+/* =========================================================
+   MINIMIZE ICON
+   ========================================================= */
 
 .window-control--minimize span {
     width: 9px;
@@ -249,13 +325,20 @@ button:focus-visible {
 
     display: block;
 
-    background: rgba(242, 243, 238, 0.62);
+    background: rgba(240, 242, 236, 0.60);
+
+    transition:
+        background-color var(--transition-fast);
+}
+
+.window-control--minimize:hover span {
+    background: rgba(240, 242, 236, 0.88);
 }
 
 
-/* ---------------------------------------------------------
-   Close icon
-   --------------------------------------------------------- */
+/* =========================================================
+   CLOSE ICON
+   ========================================================= */
 
 .window-control--close span,
 .window-control--close span::after {
@@ -268,9 +351,9 @@ button:focus-visible {
 
     content: "";
 
-    background: rgba(242, 243, 238, 0.62);
+    border-radius: 1px;
 
-    transform-origin: center;
+    background: rgba(240, 242, 236, 0.60);
 }
 
 .window-control--close span {
@@ -281,19 +364,80 @@ button:focus-visible {
     transform: rotate(90deg);
 }
 
+.window-control--close:hover span,
+.window-control--close:hover span::after {
+    background: rgba(240, 242, 236, 0.90);
+}
+
 
 /* =========================================================
-   MAIN CONTENT
+   FLIP CONTAINER
+   ========================================================= */
+
+.flip-container {
+    position: relative;
+
+    flex: 1;
+
+    perspective: 900px;
+
+    overflow: hidden;
+}
+
+.flip-card {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+
+    transform-style: preserve-3d;
+
+    transition: transform 460ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.flip-card.is-flipped {
+    transform: rotateY(180deg);
+}
+
+
+/* =========================================================
+   FLIP SIDES
+   ========================================================= */
+
+.flip-side {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.flip-side--front {
+    transform: rotateY(0deg);
+}
+
+.flip-side--back {
+    transform: rotateY(180deg);
+}
+
+
+/* =========================================================
+   MAIN FRONT CONTENT
    ========================================================= */
 
 .app-content {
-    flex: 1;
+    width: 100%;
+    height: 100%;
 
     display: flex;
     flex-direction: column;
     align-items: center;
 
-    padding: 12px 12px 11px;
+    padding: 11px 11px 10px;
 }
 
 
@@ -305,7 +449,7 @@ button:focus-visible {
     position: relative;
 
     width: 100%;
-    height: 136px;
+    height: 138px;
 
     flex-shrink: 0;
 
@@ -315,45 +459,38 @@ button:focus-visible {
 
     overflow: hidden;
 
+    border: 1px solid rgba(231, 255, 154, 0.22);
     border-radius: 16px;
 
-    /*
-        Main hardware-style surface.
-
-        The brighter center creates the impression of an
-        illuminated physical pad.
-    */
     background:
         radial-gradient(
-            circle at 50% 44%,
-            var(--accent-light) 0%,
-            var(--accent-main) 26%,
-            var(--accent-mid) 58%,
+            circle at 50% 43%,
+            #eaffad 0%,
+            var(--accent-light) 12%,
+            var(--accent-primary) 33%,
+            var(--accent-medium) 65%,
             var(--accent-dark) 100%
         );
 
-    border: 1px solid rgba(234, 255, 162, 0.22);
+    color: #24291a;
 
     box-shadow:
-        inset 0 1px 1px rgba(255, 255, 255, 0.28),
-        inset 0 -2px 7px rgba(55, 75, 15, 0.28),
-        0 7px 18px rgba(0, 0, 0, 0.25),
-        0 0 0 1px rgba(0, 0, 0, 0.08),
-        0 0 20px var(--accent-glow-soft);
-
-    color: #23291a;
+        inset 0 1px 1px rgba(255, 255, 255, 0.34),
+        inset 0 -3px 8px rgba(45, 62, 10, 0.22),
+        0 8px 18px rgba(0, 0, 0, 0.24),
+        0 0 21px var(--accent-glow-soft);
 
     transform: translateY(0) scale(1);
 
     transition:
         transform 90ms ease,
-        box-shadow 140ms ease,
-        filter 140ms ease;
+        filter 140ms ease,
+        box-shadow 140ms ease;
 }
 
 
 /* ---------------------------------------------------------
-   Inner light layer
+   Light layer
    --------------------------------------------------------- */
 
 .tap-button::before {
@@ -367,10 +504,10 @@ button:focus-visible {
 
     background:
         radial-gradient(
-            circle at 50% 36%,
-            rgba(255, 255, 255, 0.18),
-            rgba(255, 255, 255, 0.055) 34%,
-            transparent 66%
+            circle at 50% 34%,
+            rgba(255, 255, 255, 0.19),
+            rgba(255, 255, 255, 0.06) 34%,
+            transparent 67%
         );
 
     pointer-events: none;
@@ -378,7 +515,7 @@ button:focus-visible {
 
 
 /* ---------------------------------------------------------
-   Soft outer edge
+   Inner edge
    --------------------------------------------------------- */
 
 .tap-button::after {
@@ -391,8 +528,8 @@ button:focus-visible {
     border-radius: 16px;
 
     box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-        inset 0 -10px 22px rgba(35, 50, 10, 0.08);
+        inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+        inset 0 -12px 24px rgba(30, 43, 8, 0.08);
 
     pointer-events: none;
 }
@@ -406,27 +543,27 @@ button:focus-visible {
     filter: brightness(1.035);
 
     box-shadow:
-        inset 0 1px 1px rgba(255, 255, 255, 0.32),
-        inset 0 -2px 7px rgba(55, 75, 15, 0.26),
-        0 8px 20px rgba(0, 0, 0, 0.28),
-        0 0 24px var(--accent-glow-medium);
+        inset 0 1px 1px rgba(255, 255, 255, 0.38),
+        inset 0 -3px 8px rgba(45, 62, 10, 0.21),
+        0 9px 21px rgba(0, 0, 0, 0.27),
+        0 0 25px var(--accent-glow-medium);
 }
 
 
 /* ---------------------------------------------------------
-   Active / pressed state
+   Press
    --------------------------------------------------------- */
 
 .tap-button:active {
-    transform: translateY(2px) scale(0.986);
+    transform: translateY(2px) scale(0.985);
 
     filter: brightness(0.96);
 
     box-shadow:
-        inset 0 3px 7px rgba(52, 70, 14, 0.28),
-        inset 0 -1px 2px rgba(255, 255, 255, 0.12),
-        0 3px 8px rgba(0, 0, 0, 0.28),
-        0 0 13px var(--accent-glow-medium);
+        inset 0 3px 8px rgba(45, 62, 10, 0.26),
+        inset 0 -1px 3px rgba(255, 255, 255, 0.11),
+        0 3px 8px rgba(0, 0, 0, 0.26),
+        0 0 14px var(--accent-glow-medium);
 }
 
 
@@ -442,31 +579,21 @@ button:focus-visible {
     align-items: center;
     justify-content: center;
 
-    min-width: 100px;
+    color: #222718;
 
-    color: #20251a;
+    font-size: 31px;
+    font-weight: 590;
 
-    font-size: 37px;
-    font-weight: 620;
     line-height: 1;
 
-    letter-spacing: -0.035em;
+    letter-spacing: 0.015em;
 
     text-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.16);
+        0 1px 0 rgba(255, 255, 255, 0.15);
 
     transition:
-        opacity 140ms ease,
-        transform 140ms ease;
-}
-
-
-/* Initial TAP label */
-
-.tap-button__value {
-    font-size: 31px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+        opacity 120ms ease,
+        transform 120ms ease;
 }
 
 
@@ -478,31 +605,24 @@ button:focus-visible {
     position: relative;
 
     width: 100%;
-    height: 35px;
+    height: 37px;
 
-    margin-top: 13px;
-
-    display: flex;
-    align-items: center;
+    margin-top: 12px;
 
     overflow: hidden;
 }
 
 
-/*
-    A subtle horizontal guide.
-
-    JavaScript will later populate the actual points
-    and connectors inside this container.
-*/
+/* ---------------------------------------------------------
+   Subtle dashed guide line
+   --------------------------------------------------------- */
 
 .tap-history::before {
     position: absolute;
 
-    left: 8px;
-    right: 8px;
-
     top: 50%;
+    left: 6px;
+    right: 6px;
 
     height: 1px;
 
@@ -512,15 +632,17 @@ button:focus-visible {
         repeating-linear-gradient(
             90deg,
             rgba(255, 255, 255, 0.075) 0 3px,
-            transparent 3px 7px
+            transparent 3px 8px
         );
 
-    opacity: 0.55;
+    opacity: 0.6;
+
+    transform: translateY(-50%);
 }
 
 
 /* =========================================================
-   TAP POINTS
+   TAP POINT
    ========================================================= */
 
 .tap-point {
@@ -531,11 +653,11 @@ button:focus-visible {
 
     border-radius: 50%;
 
-    background: rgba(243, 246, 232, 0.94);
+    background: rgba(242, 245, 236, 0.95);
 
     box-shadow:
-        0 0 5px rgba(243, 246, 232, 0.20),
-        0 1px 2px rgba(0, 0, 0, 0.28);
+        0 0 5px rgba(242, 245, 236, 0.18),
+        0 1px 2px rgba(0, 0, 0, 0.25);
 
     transform: translate(-50%, -50%);
 
@@ -547,25 +669,35 @@ button:focus-visible {
 
 
 @keyframes tap-point-in {
+
     0% {
         opacity: 0;
-        transform: translate(-50%, -50%) scale(0.55);
+
+        transform:
+            translate(-50%, -50%)
+            scale(0.55);
     }
 
-    60% {
+    55% {
         opacity: 1;
-        transform: translate(-50%, -50%) scale(1.08);
+
+        transform:
+            translate(-50%, -50%)
+            scale(1.10);
     }
 
     100% {
         opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
+
+        transform:
+            translate(-50%, -50%)
+            scale(1);
     }
 }
 
 
 /* =========================================================
-   TAP CONNECTORS
+   TAP CONNECTOR
    ========================================================= */
 
 .tap-connector {
@@ -573,7 +705,7 @@ button:focus-visible {
 
     height: 1px;
 
-    background: rgba(243, 246, 232, 0.11);
+    background: rgba(242, 245, 236, 0.10);
 
     transform-origin: left center;
 
@@ -582,19 +714,19 @@ button:focus-visible {
 
 
 /* =========================================================
-   AVERAGE
+   AVERAGE BPM
    ========================================================= */
 
 .average {
     width: 100%;
+
+    min-height: 19px;
 
     margin-top: 3px;
 
     display: flex;
     align-items: baseline;
     justify-content: center;
-
-    min-height: 19px;
 
     color: var(--text-secondary);
 
@@ -603,32 +735,21 @@ button:focus-visible {
 
     line-height: 1;
 
-    letter-spacing: 0.015em;
-}
+    letter-spacing: 0.012em;
 
+    font-variant-numeric: tabular-nums;
+}
 
 .average__label {
     color: var(--text-secondary);
 }
 
-
 .average__value {
-    min-width: 48px;
-
     margin-left: 4px;
 
-    color: rgba(242, 243, 238, 0.80);
+    color: rgba(240, 242, 236, 0.82);
 
     font-variant-numeric: tabular-nums;
-
-    text-align: right;
-}
-
-
-.average__unit {
-    margin-left: 3px;
-
-    color: var(--text-muted);
 }
 
 
@@ -638,7 +759,7 @@ button:focus-visible {
 
 .reset-button {
     margin-top: auto;
-    margin-bottom: 1px;
+    margin-bottom: 0;
 
     padding: 5px 12px;
 
@@ -646,10 +767,10 @@ button:focus-visible {
 
     background: transparent;
 
-    color: rgba(242, 243, 238, 0.38);
+    color: rgba(240, 242, 236, 0.38);
 
     font-size: 10px;
-    font-weight: 570;
+    font-weight: 580;
 
     line-height: 1;
 
@@ -661,16 +782,14 @@ button:focus-visible {
         transform var(--transition-fast);
 }
 
-
 .reset-button:hover {
-    color: rgba(242, 243, 238, 0.68);
+    color: rgba(240, 242, 236, 0.68);
 
     background: rgba(255, 255, 255, 0.035);
 }
 
-
 .reset-button:active {
-    color: rgba(242, 243, 238, 0.50);
+    color: rgba(240, 242, 236, 0.50);
 
     background: rgba(255, 255, 255, 0.055);
 
@@ -679,15 +798,177 @@ button:focus-visible {
 
 
 /* =========================================================
+   SETTINGS SIDE
+   ========================================================= */
+
+.settings-content {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 14px 15px 12px;
+}
+
+
+/* ---------------------------------------------------------
+   Settings heading
+   --------------------------------------------------------- */
+
+.settings-content__header {
+    margin-bottom: 13px;
+
+    color: rgba(240, 242, 236, 0.82);
+
+    font-size: 10px;
+    font-weight: 620;
+
+    line-height: 1;
+
+    letter-spacing: 0.13em;
+}
+
+
+/* =========================================================
+   SETTING ROW
+   ========================================================= */
+
+.setting-row {
+    width: 100%;
+    min-height: 31px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.025);
+}
+
+
+/* ---------------------------------------------------------
+   Setting label
+   --------------------------------------------------------- */
+
+.setting-row__label {
+    color: rgba(240, 242, 236, 0.48);
+
+    font-size: 10px;
+    font-weight: 470;
+
+    letter-spacing: 0.01em;
+}
+
+
+/* ---------------------------------------------------------
+   Setting value
+   --------------------------------------------------------- */
+
+.setting-row__value {
+    padding: 4px 7px;
+
+    border: 1px solid rgba(255, 255, 255, 0.055);
+    border-radius: 4px;
+
+    background: rgba(255, 255, 255, 0.025);
+
+    color: rgba(240, 242, 236, 0.70);
+
+    font-size: 9px;
+    font-weight: 560;
+
+    line-height: 1;
+
+    letter-spacing: 0.055em;
+}
+
+
+/* =========================================================
+   SETTINGS DIVIDER
+   ========================================================= */
+
+.settings-divider {
+    width: 100%;
+    height: 1px;
+
+    margin: 10px 0;
+
+    background: rgba(255, 255, 255, 0.045);
+}
+
+
+/* =========================================================
+   SETTINGS ABOUT
+   ========================================================= */
+
+.settings-about {
+    margin-top: auto;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    text-align: center;
+}
+
+
+/* ---------------------------------------------------------
+   Brand
+   --------------------------------------------------------- */
+
+.settings-about__brand {
+    color: rgba(240, 242, 236, 0.74);
+
+    font-size: 11px;
+    font-weight: 600;
+
+    line-height: 1;
+}
+
+
+/* ---------------------------------------------------------
+   Text
+   --------------------------------------------------------- */
+
+.settings-about__text {
+    margin-top: 4px;
+
+    color: rgba(240, 242, 236, 0.34);
+
+    font-size: 9px;
+    font-weight: 450;
+
+    line-height: 1;
+}
+
+
+/* ---------------------------------------------------------
+   Link
+   --------------------------------------------------------- */
+
+.settings-about__link {
+    margin-top: 8px;
+
+    color: rgba(200, 233, 87, 0.48);
+
+    font-size: 8px;
+    font-weight: 470;
+
+    line-height: 1;
+
+    letter-spacing: 0.01em;
+}
+
+
+/* =========================================================
    REDUCED MOTION
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {
-        scroll-behavior: auto !important;
-
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
 
