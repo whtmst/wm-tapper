@@ -89,6 +89,90 @@ const analyzeButton =
     );
 
 
+const analysisPanel =
+    document.getElementById(
+        "analysisPanel"
+    );
+
+
+const analysisWaveform =
+    document.getElementById(
+        "analysisWaveform"
+    );
+
+
+const analysisOverlayLeft =
+    document.getElementById(
+        "analysisOverlayLeft"
+    );
+
+
+const analysisOverlayRight =
+    document.getElementById(
+        "analysisOverlayRight"
+    );
+
+
+const analysisSelection =
+    document.getElementById(
+        "analysisSelection"
+    );
+
+
+const analysisStartHandle =
+    document.getElementById(
+        "analysisStartHandle"
+    );
+
+
+const analysisEndHandle =
+    document.getElementById(
+        "analysisEndHandle"
+    );
+
+
+const analysisStartTime =
+    document.getElementById(
+        "analysisStartTime"
+    );
+
+
+const analysisEndTime =
+    document.getElementById(
+        "analysisEndTime"
+    );
+
+
+const analysisMode =
+    document.getElementById(
+        "analysisMode"
+    );
+
+
+const analysisModeControl =
+    document.getElementById(
+        "analysisModeControl"
+    );
+
+
+const analysisModeValue =
+    document.getElementById(
+        "analysisModeValue"
+    );
+
+
+const analysisModeMenu =
+    document.getElementById(
+        "analysisModeMenu"
+    );
+
+
+const analysisRunButton =
+    document.getElementById(
+        "analysisRunButton"
+    );
+
+
 const resetButton =
     document.getElementById(
         "resetButton"
@@ -450,6 +534,742 @@ const audioFileInput =
 
 
 /* =========================================================
+   AUDIO ANALYSIS PANEL
+   ========================================================= */
+
+let selectedAudioFile =
+    null;
+
+
+let analysisDuration =
+    0;
+
+
+let analysisStartRatio =
+    0;
+
+
+let analysisEndRatio =
+    1;
+
+
+let analysisModeValueCurrent =
+    "full";
+
+
+let activeAnalysisHandle =
+    null;
+
+
+/**
+ * Format seconds as MM:SS.t
+ *
+ * @param {number} seconds
+ * @returns {string}
+ */
+function formatAnalysisTime(seconds) {
+
+    if (
+        !Number.isFinite(seconds) ||
+        seconds < 0
+    ) {
+
+        return "--:--.-";
+    }
+
+
+    const minutes =
+        Math.floor(
+            seconds / 60
+        );
+
+
+    const remainingSeconds =
+        seconds -
+        minutes * 60;
+
+
+    const wholeSeconds =
+        Math.floor(
+            remainingSeconds
+        );
+
+
+    const tenth =
+        Math.floor(
+            (
+                remainingSeconds -
+                wholeSeconds
+            ) * 10
+        );
+
+
+    return (
+        `${String(minutes).padStart(2, "0")}:` +
+        `${String(wholeSeconds).padStart(2, "0")}.` +
+        `${tenth}`
+    );
+}
+
+
+/**
+ * Update analysis range UI.
+ */
+function updateAnalysisRangeUI() {
+
+    const startPercent =
+        analysisStartRatio * 100;
+
+
+    const endPercent =
+        analysisEndRatio * 100;
+
+
+    analysisStartHandle.style.left =
+        `${startPercent}%`;
+
+
+    analysisEndHandle.style.left =
+        `${endPercent}%`;
+
+
+    analysisSelection.style.left =
+        `${startPercent}%`;
+
+
+    analysisSelection.style.width =
+        `${Math.max(
+            0,
+            endPercent -
+            startPercent
+        )}%`;
+
+
+    analysisOverlayLeft.style.width =
+        `${startPercent}%`;
+
+
+    analysisOverlayRight.style.width =
+        `${Math.max(
+            0,
+            100 -
+            endPercent
+        )}%`;
+
+
+    const startTime =
+        analysisDuration *
+        analysisStartRatio;
+
+
+    const endTime =
+        analysisDuration *
+        analysisEndRatio;
+
+
+    analysisStartTime.textContent =
+        formatAnalysisTime(
+            startTime
+        );
+
+
+    analysisEndTime.textContent =
+        formatAnalysisTime(
+            endTime
+        );
+}
+
+
+/**
+ * Set analysis mode.
+ *
+ * @param {string} mode
+ */
+function setAnalysisMode(mode) {
+
+    if (
+        ![
+            "full",
+            "selection",
+            "fast"
+        ].includes(mode)
+    ) {
+
+        return;
+    }
+
+
+    analysisModeValueCurrent =
+        mode;
+
+
+    analysisModeValue.textContent =
+        mode.toUpperCase();
+
+
+    analysisMode.classList.toggle(
+        "is-open",
+        false
+    );
+
+
+    analysisPanel.classList.toggle(
+        "analysis-panel--fast",
+        mode === "fast"
+    );
+
+
+    analysisModeMenu
+        .querySelectorAll(
+            ".analysis-mode__option"
+        )
+        .forEach(
+            (option) => {
+
+                const isSelected =
+                    option.dataset.value ===
+                    mode;
+
+
+                option.classList.toggle(
+                    "is-selected",
+                    isSelected
+                );
+
+
+                option.setAttribute(
+                    "aria-selected",
+                    String(
+                        isSelected
+                    )
+                );
+            }
+        );
+
+
+    if (
+        mode === "full" ||
+        mode === "fast"
+    ) {
+
+        analysisStartRatio =
+            0;
+
+        analysisEndRatio =
+            1;
+
+
+        updateAnalysisRangeUI();
+    }
+}
+
+
+/**
+ * Open analysis panel.
+ */
+function openAnalysisPanel() {
+
+    analysisPanel.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+
+    document
+        .querySelector(
+            ".app-window"
+        )
+        .classList.add(
+            "analysis-panel-open"
+        );
+}
+
+
+/**
+ * Close analysis panel.
+ */
+function closeAnalysisPanel() {
+
+    analysisPanel.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+
+    document
+        .querySelector(
+            ".app-window"
+        )
+        .classList.remove(
+            "analysis-panel-open"
+        );
+
+
+    analysisMode.classList.remove(
+        "is-open"
+    );
+
+
+    activeAnalysisHandle =
+        null;
+}
+
+
+/**
+ * Load audio duration only.
+ *
+ * This does NOT start Essentia analysis.
+ *
+ * @param {File} file
+ * @returns {Promise<number>}
+ */
+function loadAudioDuration(file) {
+
+    return new Promise(
+        (
+            resolve,
+            reject
+        ) => {
+
+            const objectUrl =
+                URL.createObjectURL(
+                    file
+                );
+
+
+            const audio =
+                new Audio();
+
+
+            audio.preload =
+                "metadata";
+
+
+            const cleanup =
+                () => {
+
+                    URL.revokeObjectURL(
+                        objectUrl
+                    );
+
+                    audio.removeAttribute(
+                        "src"
+                    );
+
+                    audio.load();
+                };
+
+
+            audio.onloadedmetadata =
+                () => {
+
+                    const duration =
+                        Number(
+                            audio.duration
+                        );
+
+
+                    cleanup();
+
+
+                    if (
+                        Number.isFinite(
+                            duration
+                        ) &&
+                        duration > 0
+                    ) {
+
+                        resolve(
+                            duration
+                        );
+
+                        return;
+                    }
+
+
+                    reject(
+                        new Error(
+                            "WM Tapper: could not determine audio duration."
+                        )
+                    );
+                };
+
+
+            audio.onerror =
+                () => {
+
+                    cleanup();
+
+
+                    reject(
+                        new Error(
+                            "WM Tapper: could not load audio metadata."
+                        )
+                    );
+                };
+
+
+            audio.src =
+                objectUrl;
+        }
+    );
+}
+
+
+/**
+ * Start dragging one analysis handle.
+ *
+ * @param {string} handle
+ * @param {PointerEvent} event
+ */
+function startAnalysisHandleDrag(
+    handle,
+    event
+) {
+
+    if (
+        analysisModeValueCurrent ===
+        "fast"
+    ) {
+
+        return;
+    }
+
+
+    activeAnalysisHandle =
+        handle;
+
+
+    event.preventDefault();
+
+
+    document.body.setPointerCapture?.(
+        event.pointerId
+    );
+}
+
+
+/**
+ * Update dragged analysis handle.
+ *
+ * @param {PointerEvent} event
+ */
+function updateAnalysisHandleDrag(
+    event
+) {
+
+    if (
+        !activeAnalysisHandle ||
+        analysisModeValueCurrent ===
+        "fast"
+    ) {
+
+        return;
+    }
+
+
+    const rect =
+        analysisWaveform.getBoundingClientRect();
+
+
+    if (
+        rect.width <= 0
+    ) {
+
+        return;
+    }
+
+
+    let ratio =
+        (
+            event.clientX -
+            rect.left
+        ) /
+        rect.width;
+
+
+    ratio =
+        Math.max(
+            0,
+            Math.min(
+                1,
+                ratio
+            )
+        );
+
+
+    const minimumRange =
+        analysisDuration > 0
+            ? Math.min(
+                0.001,
+                0.5 /
+                analysisDuration
+            )
+            : 0.001;
+
+
+    if (
+        activeAnalysisHandle ===
+        "start"
+    ) {
+
+        analysisStartRatio =
+            Math.min(
+                ratio,
+                analysisEndRatio -
+                minimumRange
+            );
+
+
+        analysisStartRatio =
+            Math.max(
+                0,
+                analysisStartRatio
+            );
+
+
+        setAnalysisMode(
+            "selection"
+        );
+
+        return;
+    }
+
+
+    if (
+        activeAnalysisHandle ===
+        "end"
+    ) {
+
+        analysisEndRatio =
+            Math.max(
+                ratio,
+                analysisStartRatio +
+                minimumRange
+            );
+
+
+        analysisEndRatio =
+            Math.min(
+                1,
+                analysisEndRatio
+            );
+
+
+        setAnalysisMode(
+            "selection"
+        );
+    }
+}
+
+
+/**
+ * Finish dragging analysis handle.
+ */
+function endAnalysisHandleDrag() {
+
+    activeAnalysisHandle =
+        null;
+}
+
+
+analysisStartHandle.addEventListener(
+    "pointerdown",
+    (event) => {
+
+        startAnalysisHandleDrag(
+            "start",
+            event
+        );
+    }
+);
+
+
+analysisEndHandle.addEventListener(
+    "pointerdown",
+    (event) => {
+
+        startAnalysisHandleDrag(
+            "end",
+            event
+        );
+    }
+);
+
+
+document.addEventListener(
+    "pointermove",
+    (event) => {
+
+        updateAnalysisHandleDrag(
+            event
+        );
+    }
+);
+
+
+document.addEventListener(
+    "pointerup",
+    () => {
+
+        endAnalysisHandleDrag();
+    }
+);
+
+
+/* =========================================================
+   ANALYSIS MODE DROPDOWN
+   ========================================================= */
+
+analysisModeControl.addEventListener(
+    "click",
+    (event) => {
+
+        event.stopPropagation();
+
+
+        analysisMode.classList.toggle(
+            "is-open"
+        );
+    }
+);
+
+
+analysisModeMenu
+    .querySelectorAll(
+        ".analysis-mode__option"
+    )
+    .forEach(
+        (option) => {
+
+            option.addEventListener(
+                "click",
+                (event) => {
+
+                    event.stopPropagation();
+
+
+                    setAnalysisMode(
+                        option.dataset.value
+                    );
+                }
+            );
+        }
+    );
+
+
+document.addEventListener(
+    "click",
+    () => {
+
+        analysisMode.classList.remove(
+            "is-open"
+        );
+    }
+);
+
+
+/* =========================================================
+   ANALYSIS BUTTON
+   ========================================================= */
+
+analysisRunButton.addEventListener(
+    "click",
+    () => {
+
+        if (!selectedAudioFile) {
+
+            return;
+        }
+
+
+        const startTime =
+            analysisDuration *
+            analysisStartRatio;
+
+
+        const endTime =
+            analysisDuration *
+            analysisEndRatio;
+
+
+        console.log(
+            "WM Tapper: analysis UI selection.",
+            {
+                file:
+                    selectedAudioFile.name,
+
+                mode:
+                    analysisModeValueCurrent,
+
+                startTime,
+
+                endTime,
+
+                duration:
+                    analysisDuration
+            }
+        );
+    }
+);
+
+
+/* =========================================================
+   ANALYSIS FILE METADATA
+   ========================================================= */
+
+async function prepareAnalysisPanel(
+    file
+) {
+
+    selectedAudioFile =
+        file;
+
+
+    analysisDuration =
+        0;
+
+
+    analysisStartRatio =
+        0;
+
+
+    analysisEndRatio =
+        1;
+
+
+    setAnalysisMode(
+        "full"
+    );
+
+
+    updateAnalysisRangeUI();
+
+
+    openAnalysisPanel();
+
+
+    try {
+
+        analysisDuration =
+            await loadAudioDuration(
+                file
+            );
+
+
+        updateAnalysisRangeUI();
+
+    } catch (error) {
+
+        console.error(
+            "WM Tapper: failed to read audio duration.",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
    AUDIO FILE SELECTION
    ========================================================= */
 
@@ -497,69 +1317,34 @@ audioFileInput.addEventListener(
 
 
         /*
-         * Prevent duplicate analysis requests.
+         * File is selected.
+         *
+         * Do NOT start audio analysis yet.
+         * Prepare the analysis UI instead.
          */
 
-        if (
-            trackAnalyzer.isAnalyzing
-        ) {
-
-            audioFileInput.value =
-                "";
-
-            return;
-        }
-
-
-        try {
-
-            analyzeButton.disabled =
-                true;
+        console.log(
+            "WM Tapper: audio file selected.",
+            {
+                name: file.name,
+                type: file.type,
+                size: file.size
+            }
+        );
 
 
-            console.log(
-                "WM Tapper: starting audio analysis.",
-                {
-                    name: file.name,
-                    type: file.type,
-                    size: file.size
-                }
-            );
+        await prepareAnalysisPanel(
+            file
+        );
 
 
-            const result =
-                await trackAnalyzer.analyze(
-                    file
-                );
+        /*
+         * Allow selecting the exact same file
+         * again later.
+         */
 
-
-            console.log(
-                "WM Tapper: final analysis result.",
-                result
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "WM Tapper: failed to analyze audio file.",
-                error
-            );
-
-        } finally {
-
-            analyzeButton.disabled =
-                false;
-
-
-            /*
-             * Allow selecting the exact same file
-             * again later.
-             */
-
-            audioFileInput.value =
-                "";
-        }
+        audioFileInput.value =
+            "";
     }
 );
 
@@ -831,6 +1616,8 @@ settingsButton.addEventListener(
     "click",
     () => {
 
+        closeAnalysisPanel();
+
         dropdowns.closeAll();
 
 
@@ -859,6 +1646,24 @@ resetButton.addEventListener(
         tapEngine.reset();
 
         tapUI.reset();
+
+        selectedAudioFile =
+            null;
+
+        analysisDuration =
+            0;
+
+        analysisStartRatio =
+            0;
+
+        analysisEndRatio =
+            1;
+
+        setAnalysisMode(
+            "full"
+        );
+
+        closeAnalysisPanel();
     }
 );
 
