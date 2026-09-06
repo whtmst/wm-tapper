@@ -35,6 +35,33 @@ import {
 } from "./analyzer.js";
 
 
+import {
+    createTapUI
+} from "./tap-ui.js";
+
+
+import {
+    createDropdownController
+} from "./dropdowns.js";
+
+
+import {
+    createSessionController
+} from "./session.js";
+
+
+import {
+    createLanguageUI
+} from "./language-ui.js";
+
+
+import {
+    decodeAudioFile,
+    extractPeaks,
+    createWaveformRenderer
+} from "./waveform.js";
+
+
 /* =========================================================
    DOM ELEMENTS
    ========================================================= */
@@ -60,6 +87,12 @@ const tapButton =
 const tapValue =
     document.getElementById(
         "tapValue"
+    );
+
+
+const analyzeButton =
+    document.getElementById(
+        "analyzeButton"
     );
 
 
@@ -141,6 +174,130 @@ const madeByText =
     );
 
 
+const averageLabel =
+    document.querySelector(
+        ".average__label"
+    );
+
+
+const settingsHeader =
+    document.querySelector(
+        ".settings-content__header"
+    );
+
+
+const tapKeyLabel =
+    document.getElementById(
+        "tapKeyLabel"
+    );
+
+
+const sessionLabel =
+    document.getElementById(
+        "sessionLabel"
+    );
+
+
+const historyLabel =
+    document.getElementById(
+        "historyLabel"
+    );
+
+
+const languageLabel =
+    document.getElementById(
+        "languageLabel"
+    );
+
+
+/* =========================================================
+   ANALYSIS PANEL ELEMENTS
+   ========================================================= */
+
+const analysisPanel =
+    document.getElementById(
+        "analysisPanel"
+    );
+
+
+const analysisWaveform =
+    document.getElementById(
+        "analysisWaveform"
+    );
+
+
+const analysisOverlayLeft =
+    document.getElementById(
+        "analysisOverlayLeft"
+    );
+
+
+const analysisOverlayRight =
+    document.getElementById(
+        "analysisOverlayRight"
+    );
+
+
+const analysisSelection =
+    document.getElementById(
+        "analysisSelection"
+    );
+
+
+const analysisStartHandle =
+    document.getElementById(
+        "analysisStartHandle"
+    );
+
+
+const analysisEndHandle =
+    document.getElementById(
+        "analysisEndHandle"
+    );
+
+
+const analysisStartTime =
+    document.getElementById(
+        "analysisStartTime"
+    );
+
+
+const analysisEndTime =
+    document.getElementById(
+        "analysisEndTime"
+    );
+
+
+const analysisMode =
+    document.getElementById(
+        "analysisMode"
+    );
+
+
+const analysisModeControl =
+    document.getElementById(
+        "analysisModeControl"
+    );
+
+
+const analysisModeMenu =
+    document.getElementById(
+        "analysisModeMenu"
+    );
+
+
+const analysisRunButton =
+    document.getElementById(
+        "analysisRunButton"
+    );
+
+
+const analysisWaveformCanvas =
+    document.getElementById(
+        "analysisWaveformCanvas"
+    );
+
+
 /* =========================================================
    APPLICATION MODULES
    ========================================================= */
@@ -160,8 +317,14 @@ const tapKeyController =
     });
 
 
+const waveform =
+    createWaveformRenderer(
+        analysisWaveformCanvas
+    );
+
+
 /* =========================================================
-   LANGUAGE
+   LOCAL HELPERS
    ========================================================= */
 
 /**
@@ -172,7 +335,9 @@ const tapKeyController =
 function getCurrentLanguage() {
 
     const language =
-        settings.get("language");
+        settings.get(
+            "language"
+        );
 
 
     if (
@@ -180,6 +345,7 @@ function getCurrentLanguage() {
             language
         )
     ) {
+
         return language;
     }
 
@@ -189,702 +355,1451 @@ function getCurrentLanguage() {
 
 
 /**
- * Update active language button.
+ * Format BPM with two decimals.
  *
- * @param {string} language
+ * @param {number|null} value
+ * @returns {string}
  */
-function updateLanguageButtons(language) {
+function formatBpm(value) {
 
-    if (!languageSwitcher) {
+    if (
+        !Number.isFinite(value)
+    ) {
+
+        return "-";
+    }
+
+
+    const language =
+        getCurrentLanguage();
+
+
+    return formatDecimal(
+        Number(
+            value.toFixed(2)
+        ),
+        language
+    );
+}
+
+
+/* =========================================================
+   AUDIO FILE PICKER
+   ========================================================= */
+
+const SUPPORTED_AUDIO_EXTENSIONS = [
+    ".mp3",
+    ".wav",
+    ".flac",
+    ".aif",
+    ".aiff"
+];
+
+
+const SUPPORTED_AUDIO_MIME_TYPES = [
+    "audio/mpeg",
+    "audio/wav",
+    "audio/x-wav",
+    "audio/flac",
+    "audio/aiff",
+    "audio/x-aiff"
+];
+
+
+/**
+ * Check whether a file has a supported extension.
+ *
+ * @param {File} file
+ * @returns {boolean}
+ */
+function hasSupportedAudioExtension(file) {
+
+    if (
+        !(file instanceof File)
+    ) {
+
+        return false;
+    }
+
+
+    const fileName =
+        file.name.toLowerCase();
+
+
+    return SUPPORTED_AUDIO_EXTENSIONS
+        .some(
+            (extension) => {
+
+                return fileName.endsWith(
+                    extension
+                );
+            }
+        );
+}
+
+
+/**
+ * Check whether a file has a supported MIME type.
+ *
+ * @param {File} file
+ * @returns {boolean}
+ */
+function hasSupportedAudioMimeType(file) {
+
+    if (
+        !(file instanceof File)
+    ) {
+
+        return false;
+    }
+
+
+    if (
+        !file.type
+    ) {
+
+        return true;
+    }
+
+
+    return SUPPORTED_AUDIO_MIME_TYPES.includes(
+        file.type.toLowerCase()
+    );
+}
+
+
+/**
+ * Validate selected audio file.
+ *
+ * @param {File} file
+ * @returns {boolean}
+ */
+function isSupportedAudioFile(file) {
+
+    return (
+        hasSupportedAudioExtension(file) &&
+        hasSupportedAudioMimeType(file)
+    );
+}
+
+
+/**
+ * Create hidden audio file input.
+ *
+ * @returns {HTMLInputElement}
+ */
+function createAudioFileInput() {
+
+    const input =
+        document.createElement(
+            "input"
+        );
+
+
+    input.type =
+        "file";
+
+
+    input.multiple =
+        false;
+
+
+    input.accept =
+        ".mp3,.wav,.flac,.aif,.aiff," +
+        "audio/mpeg,audio/wav,audio/x-wav," +
+        "audio/flac,audio/aiff,audio/x-aiff";
+
+
+    input.style.display =
+        "none";
+
+
+    document.body.appendChild(
+        input
+    );
+
+
+    return input;
+}
+
+
+const audioFileInput =
+    createAudioFileInput();
+
+
+/* =========================================================
+   AUDIO ANALYSIS PANEL STATE
+   ========================================================= */
+
+let selectedAudioFile =
+    null;
+
+
+let selectedAudioBuffer =
+    null;
+
+
+let analysisDuration =
+    0;
+
+
+let analysisStartRatio =
+    0;
+
+
+let analysisEndRatio =
+    1;
+
+
+let analysisModeValueCurrent =
+    "full";
+
+
+let activeAnalysisHandle =
+    null;
+
+
+let isAnalysisRunning =
+    false;
+
+
+/* =========================================================
+   AUDIO ANALYSIS PANEL HELPERS
+   ========================================================= */
+
+/**
+ * Format seconds as MM:SS.t
+ *
+ * @param {number} seconds
+ * @returns {string}
+ */
+function formatAnalysisTime(
+    seconds
+) {
+
+    if (
+        !Number.isFinite(seconds) ||
+        seconds < 0
+    ) {
+
+        return "--:--.-";
+    }
+
+
+    const minutes =
+        Math.floor(
+            seconds / 60
+        );
+
+
+    const remainingSeconds =
+        seconds -
+        minutes * 60;
+
+
+    const wholeSeconds =
+        Math.floor(
+            remainingSeconds
+        );
+
+
+    const tenth =
+        Math.floor(
+            (
+                remainingSeconds -
+                wholeSeconds
+            ) * 10
+        );
+
+
+    return (
+        `${String(minutes).padStart(2, "0")}:` +
+        `${String(wholeSeconds).padStart(2, "0")}.` +
+        `${tenth}`
+    );
+}
+
+
+/**
+ * Update analysis range UI.
+ */
+function updateAnalysisRangeUI() {
+
+    const startPercent =
+        analysisStartRatio *
+        100;
+
+
+    const endPercent =
+        analysisEndRatio *
+        100;
+
+
+    analysisStartHandle.style.left =
+        `${startPercent}%`;
+
+
+    analysisEndHandle.style.left =
+        `${endPercent}%`;
+
+
+    analysisSelection.style.left =
+        `${startPercent}%`;
+
+
+    analysisSelection.style.width =
+        `${Math.max(
+            0,
+            endPercent -
+            startPercent
+        )}%`;
+
+
+    analysisOverlayLeft.style.width =
+        `${startPercent}%`;
+
+
+    analysisOverlayRight.style.width =
+        `${Math.max(
+            0,
+            100 -
+            endPercent
+        )}%`;
+
+
+    const startTime =
+        analysisDuration *
+        analysisStartRatio;
+
+
+    const endTime =
+        analysisDuration *
+        analysisEndRatio;
+
+
+    analysisStartTime.textContent =
+        formatAnalysisTime(
+            startTime
+        );
+
+
+    analysisEndTime.textContent =
+        formatAnalysisTime(
+            endTime
+        );
+}
+
+
+/**
+ * Apply analysis mode in the application layer.
+ *
+ * @param {string} mode
+ */
+function applyAnalysisMode(
+    mode
+) {
+
+    if (
+        ![
+            "full",
+            "selection",
+            "fast"
+        ].includes(mode)
+    ) {
+
         return;
     }
 
 
-    const buttons =
-        languageSwitcher.querySelectorAll(
-            ".language-button"
+    analysisModeValueCurrent =
+        mode;
+
+
+    analysisPanel.classList.toggle(
+        "analysis-panel--fast",
+        mode === "fast"
+    );
+
+
+    if (
+        mode === "full" ||
+        mode === "fast"
+    ) {
+
+        analysisStartRatio =
+            0;
+
+
+        analysisEndRatio =
+            1;
+
+
+        updateAnalysisRangeUI();
+    }
+}
+
+
+/**
+ * Open analysis panel.
+ */
+function openAnalysisPanel() {
+
+    analysisPanel.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+
+    document
+        .querySelector(
+            ".app-window"
+        )
+        .classList.add(
+            "analysis-panel-open"
+        );
+}
+
+
+/**
+ * Close analysis panel.
+ */
+function closeAnalysisPanel() {
+
+    analysisPanel.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+
+    document
+        .querySelector(
+            ".app-window"
+        )
+        .classList.remove(
+            "analysis-panel-open"
         );
 
 
-    buttons.forEach(
-        (button) => {
+    activeAnalysisHandle =
+        null;
+}
 
-            button.classList.remove(
-                "is-active"
+
+/**
+ * Load audio duration only.
+ *
+ * @param {File} file
+ * @returns {Promise<number>}
+ */
+function loadAudioDuration(
+    file
+) {
+
+    return new Promise(
+        (
+            resolve,
+            reject
+        ) => {
+
+            const objectUrl =
+                URL.createObjectURL(
+                    file
+                );
+
+
+            const audio =
+                new Audio();
+
+
+            audio.preload =
+                "metadata";
+
+
+            const cleanup =
+                () => {
+
+                    URL.revokeObjectURL(
+                        objectUrl
+                    );
+
+
+                    audio.removeAttribute(
+                        "src"
+                    );
+
+
+                    audio.load();
+                };
+
+
+            audio.onloadedmetadata =
+                () => {
+
+                    const duration =
+                        Number(
+                            audio.duration
+                        );
+
+
+                    cleanup();
+
+
+                    if (
+                        Number.isFinite(
+                            duration
+                        ) &&
+                        duration > 0
+                    ) {
+
+                        resolve(
+                            duration
+                        );
+
+
+                        return;
+                    }
+
+
+                    reject(
+                        new Error(
+                            "WM Tapper: could not determine audio duration."
+                        )
+                    );
+                };
+
+
+            audio.onerror =
+                () => {
+
+                    cleanup();
+
+
+                    reject(
+                        new Error(
+                            "WM Tapper: could not load audio metadata."
+                        )
+                    );
+                };
+
+
+            audio.src =
+                objectUrl;
+        }
+    );
+}
+
+
+/**
+ * Set analysis button busy state.
+ *
+ * @param {boolean} state
+ */
+function setAnalysisRunning(
+    state
+) {
+
+    isAnalysisRunning =
+        state;
+
+
+    analysisRunButton.disabled =
+        state;
+
+
+    analysisRunButton.classList.toggle(
+        "is-analyzing",
+        state
+    );
+
+
+    if (
+        state
+    ) {
+
+        analysisRunButton.dataset.previousText =
+            analysisRunButton.textContent;
+
+
+        analysisRunButton.textContent =
+            "ANALYZING...";
+
+        return;
+    }
+
+
+    const previousText =
+        analysisRunButton.dataset.previousText;
+
+
+    if (
+        previousText
+    ) {
+
+        analysisRunButton.textContent =
+            previousText;
+
+
+        delete analysisRunButton.dataset.previousText;
+    }
+}
+
+
+/* =========================================================
+   ANALYSIS HANDLE DRAGGING
+   ========================================================= */
+
+/**
+ * Start dragging one analysis handle.
+ *
+ * @param {string} handle
+ * @param {PointerEvent} event
+ */
+function startAnalysisHandleDrag(
+    handle,
+    event
+) {
+
+    if (
+        isAnalysisRunning ||
+        analysisModeValueCurrent ===
+        "fast"
+    ) {
+
+        return;
+    }
+
+
+    activeAnalysisHandle =
+        handle;
+
+
+    event.preventDefault();
+}
+
+
+/**
+ * Update dragged analysis handle.
+ *
+ * @param {PointerEvent} event
+ */
+function updateAnalysisHandleDrag(
+    event
+) {
+
+    if (
+        isAnalysisRunning ||
+        !activeAnalysisHandle ||
+        analysisModeValueCurrent ===
+        "fast"
+    ) {
+
+        return;
+    }
+
+
+    const rect =
+        analysisWaveform.getBoundingClientRect();
+
+
+    if (
+        rect.width <= 0
+    ) {
+
+        return;
+    }
+
+
+    let ratio =
+        (
+            event.clientX -
+            rect.left
+        ) /
+        rect.width;
+
+
+    ratio =
+        Math.max(
+            0,
+            Math.min(
+                1,
+                ratio
+            )
+        );
+
+
+    const minimumRange =
+        analysisDuration > 0
+            ? Math.min(
+                0.001,
+                0.5 /
+                analysisDuration
+            )
+            : 0.001;
+
+
+    if (
+        activeAnalysisHandle ===
+        "start"
+    ) {
+
+        analysisStartRatio =
+            Math.min(
+                ratio,
+                analysisEndRatio -
+                minimumRange
+            );
+
+
+        analysisStartRatio =
+            Math.max(
+                0,
+                analysisStartRatio
+            );
+
+
+        if (
+            analysisModeValueCurrent !==
+            "selection"
+        ) {
+
+            applyAnalysisMode(
+                "selection"
+            );
+
+
+            dropdowns.setAnalysisMode(
+                "selection"
+            );
+        }
+
+
+        updateAnalysisRangeUI();
+
+        return;
+    }
+
+
+    if (
+        activeAnalysisHandle ===
+        "end"
+    ) {
+
+        analysisEndRatio =
+            Math.max(
+                ratio,
+                analysisStartRatio +
+                minimumRange
+            );
+
+
+        analysisEndRatio =
+            Math.min(
+                1,
+                analysisEndRatio
+            );
+
+
+        if (
+            analysisModeValueCurrent !==
+            "selection"
+        ) {
+
+            applyAnalysisMode(
+                "selection"
+            );
+
+
+            dropdowns.setAnalysisMode(
+                "selection"
+            );
+        }
+
+
+        updateAnalysisRangeUI();
+    }
+}
+
+
+/**
+ * Finish dragging analysis handle.
+ */
+function endAnalysisHandleDrag() {
+
+    activeAnalysisHandle =
+        null;
+}
+
+
+analysisStartHandle.addEventListener(
+    "pointerdown",
+    (event) => {
+
+        startAnalysisHandleDrag(
+            "start",
+            event
+        );
+    }
+);
+
+
+analysisEndHandle.addEventListener(
+    "pointerdown",
+    (event) => {
+
+        startAnalysisHandleDrag(
+            "end",
+            event
+        );
+    }
+);
+
+
+document.addEventListener(
+    "pointermove",
+    (event) => {
+
+        updateAnalysisHandleDrag(
+            event
+        );
+    }
+);
+
+
+document.addEventListener(
+    "pointerup",
+    () => {
+
+        endAnalysisHandleDrag();
+    }
+);
+
+
+/* =========================================================
+   APPLICATION DROPDOWNS
+   ========================================================= */
+
+const dropdowns =
+    createDropdownController(
+        {
+            sessionControl,
+            sessionMenu,
+
+            historyControl,
+            historyMenu,
+
+            analysisMode,
+            analysisModeControl,
+            analysisModeMenu
+        },
+        {
+            onSessionChange: (
+                value
+            ) => {
+
+                settings.set(
+                    "sessionTimeout",
+                    value
+                );
+
+
+                tapEngine.configure({
+
+                    sessionTimeout:
+                        settings.get(
+                            "sessionTimeout"
+                        ),
+
+                    historyLength:
+                        settings.get(
+                            "historyLength"
+                        )
+                });
+
+
+                languageUI.updateSessionDisplay();
+            },
+
+
+            onHistoryChange: (
+                value
+            ) => {
+
+                settings.set(
+                    "historyLength",
+                    value
+                );
+
+
+                tapEngine.configure({
+
+                    sessionTimeout:
+                        settings.get(
+                            "sessionTimeout"
+                        ),
+
+                    historyLength:
+                        settings.get(
+                            "historyLength"
+                        )
+                });
+
+
+                languageUI.updateHistoryDisplay();
+            },
+
+
+            onAnalysisModeChange: (
+                mode
+            ) => {
+
+                if (
+                    isAnalysisRunning
+                ) {
+
+                    return;
+                }
+
+
+                applyAnalysisMode(
+                    mode
+                );
+            }
+        }
+    );
+
+
+/* =========================================================
+   TAP UI
+   ========================================================= */
+
+const tapUI =
+    createTapUI(
+        {
+            tapValue,
+            averageValue,
+            tapHistory
+        },
+        {
+            tapEngine,
+            getCurrentLanguage,
+            formatBpm,
+            getTranslations
+        }
+    );
+
+
+/* =========================================================
+   LANGUAGE UI
+   ========================================================= */
+
+const languageUI =
+    createLanguageUI(
+        {
+            languageSwitcher,
+            averageLabel,
+            resetButton,
+            analyzeButton,
+            analysisRunButton,
+            analysisModeValue,
+            analysisModeMenu,
+            settingsHeader,
+            tapKeyLabel,
+            sessionLabel,
+            historyLabel,
+            languageLabel,
+            madeByText,
+            sessionValue,
+            sessionMenu,
+            historyValue,
+            historyMenu
+        },
+        {
+            settings,
+            supportedLanguages,
+            getTranslations,
+            formatDecimal,
+            tapKeyController,
+            tapUI,
+            dropdowns
+        }
+    );
+
+
+/* =========================================================
+   AUDIO FILE SELECTION
+   ========================================================= */
+
+audioFileInput.addEventListener(
+    "change",
+    async () => {
+
+        const file =
+            audioFileInput.files?.[0];
+
+
+        if (!file) {
+
+            audioFileInput.value =
+                "";
+
+            return;
+        }
+
+
+        if (
+            !isSupportedAudioFile(
+                file
+            )
+        ) {
+
+            console.warn(
+                "WM Tapper: unsupported audio file.",
+                file.name,
+                file.type
+            );
+
+
+            audioFileInput.value =
+                "";
+
+            return;
+        }
+
+
+        console.log(
+            "WM Tapper: audio file selected.",
+            {
+                name:
+                    file.name,
+
+                type:
+                    file.type,
+
+                size:
+                    file.size
+            }
+        );
+
+
+        await prepareAnalysisPanel(
+            file
+        );
+
+
+        audioFileInput.value =
+            "";
+    }
+);
+
+
+/* =========================================================
+   ANALYZE FILE BUTTON
+   ========================================================= */
+
+analyzeButton.addEventListener(
+    "click",
+    () => {
+
+        if (
+            isAnalysisRunning
+        ) {
+
+            return;
+        }
+
+
+        audioFileInput.click();
+    }
+);
+
+
+/* =========================================================
+   ANALYSIS PANEL PREPARATION
+   ========================================================= */
+
+/**
+ * Prepare analysis panel for selected file.
+ *
+ * No Essentia analysis is started here.
+ *
+ * @param {File} file
+ * @returns {Promise<void>}
+ */
+async function prepareAnalysisPanel(
+    file
+) {
+
+    selectedAudioFile =
+        file;
+
+
+    selectedAudioBuffer =
+        null;
+
+
+    analysisDuration =
+        0;
+
+
+    analysisStartRatio =
+        0;
+
+
+    analysisEndRatio =
+        1;
+
+
+    applyAnalysisMode(
+        "full"
+    );
+
+
+    dropdowns.setAnalysisMode(
+        "full"
+    );
+
+
+    waveform.clear();
+
+
+    updateAnalysisRangeUI();
+
+
+    openAnalysisPanel();
+
+
+    try {
+
+        console.log(
+            "WM Tapper: decoding waveform..."
+        );
+
+
+        selectedAudioBuffer =
+            await decodeAudioFile(
+                file
+            );
+
+
+        analysisDuration =
+            selectedAudioBuffer.duration;
+
+
+        const peaks =
+            extractPeaks(
+                selectedAudioBuffer,
+                120
+            );
+
+
+        waveform.setPeaks(
+            peaks
+        );
+
+
+        updateAnalysisRangeUI();
+
+
+        console.log(
+            "WM Tapper: waveform ready.",
+            {
+                duration:
+                    selectedAudioBuffer.duration,
+
+                sampleRate:
+                    selectedAudioBuffer.sampleRate,
+
+                channels:
+                    selectedAudioBuffer.numberOfChannels,
+
+                peaks:
+                    peaks.length
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "WM Tapper: failed to prepare waveform.",
+            error
+        );
+
+
+        try {
+
+            analysisDuration =
+                await loadAudioDuration(
+                    file
+                );
+
+
+            updateAnalysisRangeUI();
+
+        } catch (durationError) {
+
+            console.error(
+                "WM Tapper: failed to read audio duration.",
+                durationError
+            );
+        }
+    }
+}
+
+
+/* =========================================================
+   ANALYSIS RUN BUTTON
+   ========================================================= */
+
+analysisRunButton.addEventListener(
+    "click",
+    async () => {
+
+        if (
+            isAnalysisRunning ||
+            !selectedAudioFile
+        ) {
+
+            return;
+        }
+
+
+        if (
+            !Number.isFinite(
+                analysisDuration
+            ) ||
+            analysisDuration <= 0
+        ) {
+
+            console.error(
+                "WM Tapper: analysis duration is unavailable."
+            );
+
+            return;
+        }
+
+
+        const startTime =
+            analysisDuration *
+            analysisStartRatio;
+
+
+        const endTime =
+            analysisDuration *
+            analysisEndRatio;
+
+
+        console.log(
+            "WM Tapper: starting analysis.",
+            {
+                file:
+                    selectedAudioFile.name,
+
+                mode:
+                    analysisModeValueCurrent,
+
+                startTime,
+
+                endTime,
+
+                duration:
+                    analysisDuration
+            }
+        );
+
+
+        setAnalysisRunning(
+            true
+        );
+
+
+        try {
+
+            /*
+             * Give the browser one frame so the
+             * ANALYZING state is painted before
+             * the heavy synchronous work begins.
+             */
+
+            await new Promise(
+                (resolve) => {
+
+                    requestAnimationFrame(
+                        () => resolve()
+                    );
+                }
+            );
+
+
+            const result =
+                await trackAnalyzer.analyze(
+                    selectedAudioFile,
+                    {
+                        mode:
+                            analysisModeValueCurrent,
+
+                        startTime,
+
+                        endTime,
+
+                        duration:
+                            analysisDuration,
+
+                        audioBuffer:
+                            selectedAudioBuffer
+                    }
+                );
+
+
+            console.log(
+                "WM Tapper: analysis result.",
+                result
             );
 
 
             if (
-                button.dataset.language === language
+                result &&
+                Number.isFinite(
+                    result.bpm
+                )
             ) {
 
-                button.classList.add(
-                    "is-active"
-                );
+                tapValue.textContent =
+                    `${formatBpm(
+                        result.bpm
+                    )} BPM`;
             }
+
+
+            /*
+             * Keep the result available for the
+             * next UI stage.
+             */
+
+            window.WMTapperLastAnalysis =
+                result;
+
+
+            closeAnalysisPanel();
+
+        } catch (error) {
+
+            console.error(
+                "WM Tapper: analysis failed.",
+                error
+            );
+
+        } finally {
+
+            setAnalysisRunning(
+                false
+            );
         }
-    );
-}
+    }
+);
 
 
-/**
- * Set language and save immediately.
- *
- * @param {string} language
- */
-function setLanguage(language) {
+/* =========================================================
+   SESSION
+   ========================================================= */
+
+const session =
+    createSessionController({
+
+        tapEngine,
+
+        onSessionFinished: (
+            averageBpm
+        ) => {
+
+            tapUI.showFinalBpm(
+                averageBpm
+            );
+        }
+    });
+
+
+/* =========================================================
+   TAP RESULT
+   ========================================================= */
+
+function handleTap() {
 
     if (
-        !supportedLanguages.includes(
-            language
+        isAnalysisRunning
+    ) {
+
+        return;
+    }
+
+
+    session.clear();
+
+
+    const result =
+        tapEngine.registerTap();
+
+
+    if (
+        result.isNewSession
+    ) {
+
+        tapUI.showTap();
+
+        tapUI.showAverageBpm(
+            null
+        );
+    }
+
+
+    if (
+        Number.isFinite(
+            result.bpm
         )
     ) {
-        return;
-    }
 
-
-    settings.set(
-        "language",
-        language
-    );
-
-
-    applyLanguage(
-        language
-    );
-
-
-    updateLanguageButtons(
-        language
-    );
-}
-
-
-/**
- * Apply language to the UI.
- *
- * @param {string} language
- */
-function applyLanguage(language) {
-
-    const text =
-        getTranslations(
-            language
+        tapUI.showCurrentBpm(
+            result.bpm
         );
-
-
-    /* -----------------------------------------
-       Front side
-       ----------------------------------------- */
-
-    const currentTapText =
-        tapValue.textContent.trim();
-
-
-    const initialTapState =
-        currentTapText === "TAP" ||
-        currentTapText === "ТАП";
-
-
-    if (initialTapState) {
-
-        tapValue.textContent =
-            text.tap;
     }
 
 
-    document.querySelector(
-        ".average__label"
-    ).textContent =
-        text.average;
-
-
-    resetButton.textContent =
-        text.reset;
-
-
-    /* -----------------------------------------
-       Settings header
-       ----------------------------------------- */
-
-    document.querySelector(
-        ".settings-content__header"
-    ).textContent =
-        text.settings;
-
-
-    /* -----------------------------------------
-       Labels
-       ----------------------------------------- */
-
-    document.getElementById(
-        "tapKeyLabel"
-    ).textContent =
-        text.tapKey;
-
-
-    document.getElementById(
-        "sessionLabel"
-    ).textContent =
-        text.newSession;
-
-
-    document.getElementById(
-        "historyLabel"
-    ).textContent =
-        text.history;
-
-
-    document.getElementById(
-        "languageLabel"
-    ).textContent =
-        text.language;
-
-
-    /* -----------------------------------------
-       Footer
-       ----------------------------------------- */
-
-    if (madeByText) {
-
-        madeByText.textContent =
-            text.madeBy;
-    }
-
-
-    /* -----------------------------------------
-       Tap Key
-       ----------------------------------------- */
-
-    tapKeyController.updateDisplay();
-
-
-    /* -----------------------------------------
-       Session
-       ----------------------------------------- */
-
-    updateSessionDisplay();
-
-
-    /* -----------------------------------------
-       History
-       ----------------------------------------- */
-
-    updateHistoryDisplay();
-
-
-    /* -----------------------------------------
-       Dropdown translations
-       ----------------------------------------- */
-
-    updateDropdownTranslations(
-        language
+    tapUI.showAverageBpm(
+        result.averageBpm
     );
 
 
-    /* -----------------------------------------
-       Language buttons
-       ----------------------------------------- */
+    if (
+        Array.isArray(
+            result.history
+        ) &&
+        result.history.length > 0
+    ) {
 
-    updateLanguageButtons(
-        language
-    );
-}
-
-
-/* =========================================================
-   SELECTED DROPDOWN OPTION
-   ========================================================= */
-
-/**
- * Update selected state inside a dropdown.
- *
- * @param {HTMLElement} menu
- * @param {string} value
- */
-function updateSelectedOption(
-    menu,
-    value
-) {
-
-    if (!menu) {
-        return;
-    }
-
-
-    menu
-        .querySelectorAll(
-            ".dropdown-option"
-        )
-        .forEach(
-            (option) => {
-
-                const isSelected =
-                    option.dataset.value === value;
-
-
-                option.classList.toggle(
-                    "is-selected",
-                    isSelected
-                );
-
-
-                option.setAttribute(
-                    "aria-selected",
-                    String(isSelected)
-                );
-            }
-        );
-}
-
-
-/* =========================================================
-   SESSION DISPLAY
-   ========================================================= */
-
-function updateSessionDisplay() {
-
-    const language =
-        getCurrentLanguage();
-
-
-    const text =
-        getTranslations(
-            language
-        );
-
-
-    const value =
-        Number(
-            settings.get(
-                "sessionTimeout"
+        session.restart(
+            Number(
+                settings.get(
+                    "sessionTimeout"
+                )
             )
         );
-
-
-    sessionValue.textContent =
-        `${formatDecimal(
-            value,
-            language
-        )} ${text.seconds}`;
-
-
-    updateSelectedOption(
-        sessionMenu,
-        String(value)
-    );
-}
-
-
-/* =========================================================
-   HISTORY DISPLAY
-   ========================================================= */
-
-function updateHistoryDisplay() {
-
-    const language =
-        getCurrentLanguage();
-
-
-    const text =
-        getTranslations(
-            language
-        );
-
-
-    const value =
-        Number(
-            settings.get(
-                "historyLength"
-            )
-        );
-
-
-    historyValue.textContent =
-        `${value} ${text.taps}`;
-
-
-    updateSelectedOption(
-        historyMenu,
-        String(value)
-    );
-}
-
-
-/* =========================================================
-   DROPDOWN TRANSLATIONS
-   ========================================================= */
-
-function updateDropdownTranslations(
-    language = getCurrentLanguage()
-) {
-
-    const text =
-        getTranslations(
-            language
-        );
-
-
-    /* -----------------------------------------
-       Session options
-       ----------------------------------------- */
-
-    sessionMenu
-        .querySelectorAll(
-            ".dropdown-option"
-        )
-        .forEach(
-            (option) => {
-
-                const value =
-                    Number(
-                        option.dataset.value
-                    );
-
-
-                if (
-                    Number.isNaN(value)
-                ) {
-                    return;
-                }
-
-
-                option.textContent =
-                    `${formatDecimal(
-                        value,
-                        language
-                    )} ${text.seconds}`;
-            }
-        );
-
-
-    /* -----------------------------------------
-       History options
-       ----------------------------------------- */
-
-    historyMenu
-        .querySelectorAll(
-            ".dropdown-option"
-        )
-        .forEach(
-            (option) => {
-
-                const value =
-                    Number(
-                        option.dataset.value
-                    );
-
-
-                if (
-                    Number.isNaN(value)
-                ) {
-                    return;
-                }
-
-
-                option.textContent =
-                    `${value} ${text.taps}`;
-            }
-        );
-}
-
-
-/* =========================================================
-   DROPDOWNS
-   ========================================================= */
-
-/**
- * Close all dropdowns.
- */
-function closeDropdowns() {
-
-    sessionControl.classList.remove(
-        "is-open"
-    );
-
-    historyControl.classList.remove(
-        "is-open"
-    );
-
-    sessionControl.setAttribute(
-        "aria-expanded",
-        "false"
-    );
-
-    historyControl.setAttribute(
-        "aria-expanded",
-        "false"
-    );
-}
-
-
-/**
- * Toggle dropdown.
- *
- * @param {HTMLElement} control
- */
-function toggleDropdown(control) {
-
-    const isOpen =
-        control.classList.contains(
-            "is-open"
-        );
-
-
-    closeDropdowns();
-
-
-    if (!isOpen) {
-
-        control.classList.add(
-            "is-open"
-        );
-
-        control.setAttribute(
-            "aria-expanded",
-            "true"
-        );
     }
+
+
+    tapUI.renderTapHistory(
+        result.history
+    );
 }
 
 
 /* =========================================================
-   SESSION DROPDOWN
+   TAP BUTTON
    ========================================================= */
 
-sessionControl.addEventListener(
-    "click",
-    (event) => {
-
-        if (
-            event.target.closest(
-                ".dropdown-option"
-            )
-        ) {
-            return;
-        }
-
-
-        event.stopPropagation();
-
-
-        toggleDropdown(
-            sessionControl
-        );
-    }
-);
-
-
-/* =========================================================
-   HISTORY DROPDOWN
-   ========================================================= */
-
-historyControl.addEventListener(
-    "click",
-    (event) => {
-
-        if (
-            event.target.closest(
-                ".dropdown-option"
-            )
-        ) {
-            return;
-        }
-
-
-        event.stopPropagation();
-
-
-        toggleDropdown(
-            historyControl
-        );
-    }
-);
-
-
-/* =========================================================
-   SESSION OPTIONS
-   ========================================================= */
-
-sessionMenu
-    .querySelectorAll(
-        ".dropdown-option"
-    )
-    .forEach(
-        (option) => {
-
-            option.addEventListener(
-                "click",
-                (event) => {
-
-                    event.stopPropagation();
-
-
-                    const value =
-                        Number(
-                            option.dataset.value
-                        );
-
-
-                    if (
-                        Number.isNaN(value)
-                    ) {
-                        return;
-                    }
-
-
-                    settings.set(
-                        "sessionTimeout",
-                        value
-                    );
-
-
-                    tapEngine.configure({
-                        sessionTimeout:
-                            settings.get(
-                                "sessionTimeout"
-                            ),
-
-                        historyLength:
-                            settings.get(
-                                "historyLength"
-                            )
-                    });
-
-
-                    updateSessionDisplay();
-
-                    closeDropdowns();
-                }
-            );
-        }
-    );
-
-
-/* =========================================================
-   HISTORY OPTIONS
-   ========================================================= */
-
-historyMenu
-    .querySelectorAll(
-        ".dropdown-option"
-    )
-    .forEach(
-        (option) => {
-
-            option.addEventListener(
-                "click",
-                (event) => {
-
-                    event.stopPropagation();
-
-
-                    const value =
-                        Number(
-                            option.dataset.value
-                        );
-
-
-                    if (
-                        Number.isNaN(value)
-                    ) {
-                        return;
-                    }
-
-
-                    settings.set(
-                        "historyLength",
-                        value
-                    );
-
-
-                    tapEngine.configure({
-                        sessionTimeout:
-                            settings.get(
-                                "sessionTimeout"
-                            ),
-
-                        historyLength:
-                            settings.get(
-                                "historyLength"
-                            )
-                    });
-
-
-                    updateHistoryDisplay();
-
-                    closeDropdowns();
-                }
-            );
-        }
-    );
-
-
-/* =========================================================
-   LANGUAGE SWITCHER
-   ========================================================= */
-
-languageSwitcher
-    .querySelectorAll(
-        ".language-button"
-    )
-    .forEach(
-        (button) => {
-
-            button.addEventListener(
-                "click",
-                (event) => {
-
-                    event.stopPropagation();
-
-
-                    setLanguage(
-                        button.dataset.language
-                    );
-                }
-            );
-        }
-    );
-
-
-/* =========================================================
-   CLOSE DROPDOWNS OUTSIDE
-   ========================================================= */
-
-document.addEventListener(
+tapButton.addEventListener(
     "click",
     () => {
 
-        closeDropdowns();
-    }
-);
-
-
-/* =========================================================
-   ESCAPE
-   ========================================================= */
-
-document.addEventListener(
-    "keydown",
-    (event) => {
-
-        /*
-         * Tap Key capture has its own Escape handling.
-         */
-
-        if (
-            tapKeyController.isCapturing
-        ) {
-            return;
-        }
-
-
-        if (
-            event.code === "Escape"
-        ) {
-
-            closeDropdowns();
-        }
+        handleTap();
     }
 );
 
@@ -897,7 +1812,17 @@ settingsButton.addEventListener(
     "click",
     () => {
 
-        closeDropdowns();
+        if (
+            isAnalysisRunning
+        ) {
+
+            return;
+        }
+
+
+        closeAnalysisPanel();
+
+        dropdowns.closeAll();
 
 
         flipCard.classList.toggle(
@@ -905,8 +1830,8 @@ settingsButton.addEventListener(
         );
 
 
-        updateLanguageButtons(
-            getCurrentLanguage()
+        languageUI.updateLanguageButtons(
+            languageUI.getCurrentLanguage()
         );
     }
 );
@@ -920,37 +1845,58 @@ resetButton.addEventListener(
     "click",
     () => {
 
+        if (
+            isAnalysisRunning
+        ) {
+
+            return;
+        }
+
+
+        session.reset();
+
         tapEngine.reset();
 
-
-        tapValue.textContent =
-            getTranslations(
-                getCurrentLanguage()
-            ).tap;
+        tapUI.reset();
 
 
-        averageValue.textContent =
-            "—";
+        selectedAudioFile =
+            null;
 
 
-        tapHistory.innerHTML =
-            "";
-    }
-);
+        selectedAudioBuffer =
+            null;
 
 
-/* =========================================================
-   TAP BUTTON
-   ========================================================= */
+        analysisDuration =
+            0;
 
-tapButton.addEventListener(
-    "click",
-    () => {
 
-        /*
-         * Real Tap Tempo logic will be connected
-         * to tapEngine.registerTap() next.
-         */
+        analysisStartRatio =
+            0;
+
+
+        analysisEndRatio =
+            1;
+
+
+        applyAnalysisMode(
+            "full"
+        );
+
+
+        dropdowns.setAnalysisMode(
+            "full"
+        );
+
+
+        waveform.clear();
+
+
+        updateAnalysisRangeUI();
+
+
+        closeAnalysisPanel();
     }
 );
 
@@ -980,16 +1926,8 @@ document.addEventListener(
 
 function initialize() {
 
-    /*
-     * Load persistent settings.
-     */
-
     settings.load();
 
-
-    /*
-     * Configure Tap Engine with current settings.
-     */
 
     tapEngine.configure({
 
@@ -1005,42 +1943,27 @@ function initialize() {
     });
 
 
-    /*
-     * Initialize Tap Key controller.
-     */
-
     tapKeyController.initialize();
 
 
-    /*
-     * Apply saved language and UI state.
-     */
-
-    const language =
-        getCurrentLanguage();
-
-
-    applyLanguage(
-        language
+    languageUI.applyLanguage(
+        languageUI.getCurrentLanguage()
     );
 
 
-    /*
-     * Final synchronization.
-     */
-
-    updateLanguageButtons(
-        language
+    languageUI.updateLanguageButtons(
+        languageUI.getCurrentLanguage()
     );
 
 
-    /*
-     * The analyzer is instantiated above and
-     * will be connected when Analyze File UI
-     * is introduced.
-     */
+    applyAnalysisMode(
+        "full"
+    );
 
-    void trackAnalyzer;
+
+    dropdowns.setAnalysisMode(
+        "full"
+    );
 }
 
 

@@ -293,65 +293,23 @@ a:focus-visible {
    ========================================================= */
 
 .settings-icon {
-    position: relative;
-
-    width: 11px;
-    height: 11px;
+    width: 13px;
+    height: 13px;
 
     display: block;
 
-    border: 1.5px solid rgba(240, 242, 236, 0.60);
-    border-radius: 50%;
+    object-fit: contain;
+
+    opacity: 0.68;
 
     transition:
-        transform 180ms ease,
-        border-color var(--transition-fast);
-}
-
-
-.settings-icon::before {
-    position: absolute;
-
-    inset: 2px;
-
-    content: "";
-
-    border: 1px solid rgba(240, 242, 236, 0.56);
-    border-radius: 50%;
-}
-
-
-.settings-icon::after {
-    position: absolute;
-
-    top: 50%;
-    left: 50%;
-
-    width: 17px;
-    height: 2px;
-
-    content: "";
-
-    border-radius: 2px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent 0 8%,
-            rgba(240, 242, 236, 0.60) 8% 19%,
-            transparent 19% 81%,
-            rgba(240, 242, 236, 0.60) 81% 92%,
-            transparent 92%
-        );
-
-    transform:
-        translate(-50%, -50%)
-        rotate(45deg);
+        opacity var(--transition-fast),
+        transform 180ms ease;
 }
 
 
 .window-control--settings:hover .settings-icon {
-    border-color: rgba(240, 242, 236, 0.88);
+    opacity: 1;
 
     transform: rotate(30deg);
 }
@@ -773,7 +731,7 @@ a:focus-visible {
 
     color: var(--text-secondary);
 
-    font-size: 11px;
+    font-size: 15px;
 
     line-height: 1;
 
@@ -785,19 +743,92 @@ a:focus-visible {
 
 .average__label {
     color: var(--text-secondary);
-
-    font-weight: 570;
+    font-weight: 400;
+    text-transform: uppercase;
 }
 
 
 .average__value {
     margin-left: 4px;
-
     color: rgba(240, 242, 236, 0.56);
-
     font-weight: 400;
-
     font-variant-numeric: tabular-nums;
+}
+
+
+/* =========================================================
+   BOTTOM ACTIONS
+   ========================================================= */
+
+.bottom-actions {
+    width: 100%;
+
+    margin-top: auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+}
+
+
+/* =========================================================
+   ANALYZE FILE BUTTON
+   ========================================================= */
+
+.analyze-button {
+    padding: 5px 12px;
+
+    border-radius: 5px;
+
+    background: transparent;
+
+    color: rgba(200, 233, 87, 0.78);
+
+    font-size: 10px;
+    font-weight: 580;
+
+    line-height: 1;
+
+    letter-spacing: 0.10em;
+
+    transition:
+        color var(--transition-fast),
+        background-color var(--transition-fast),
+        transform var(--transition-fast),
+        text-shadow var(--transition-fast);
+}
+
+
+.analyze-button:hover {
+    color: var(--accent-light);
+
+    background: rgba(200, 233, 87, 0.055);
+
+    text-shadow:
+        0 0 7px rgba(200, 233, 87, 0.20);
+}
+
+
+.analyze-button:active {
+    color: var(--accent-light);
+
+    background: rgba(200, 233, 87, 0.08);
+
+    transform: translateY(1px);
+
+    text-shadow:
+        0 0 8px rgba(200, 233, 87, 0.24);
+}
+
+
+.analyze-button:disabled {
+    cursor: default;
+
+    opacity: 0.48;
+
+    text-shadow: none;
 }
 
 
@@ -806,9 +837,6 @@ a:focus-visible {
    ========================================================= */
 
 .reset-button {
-    margin-top: auto;
-    margin-bottom: 0;
-
     padding: 5px 12px;
 
     border-radius: 5px;
@@ -1375,6 +1403,627 @@ a:focus-visible {
 
         animation-iteration-count: 1 !important;
 
+        transition-duration: 0.01ms !important;
+    }
+}
+
+
+/* =========================================================
+   AUDIO ANALYSIS PANEL
+   ========================================================= */
+
+.app-window {
+    position: relative;
+}
+
+
+/* ---------------------------------------------------------
+   Panel
+   --------------------------------------------------------- */
+
+.analysis-panel {
+    position: absolute;
+
+    top: calc(100% + 1px);
+    left: 50%;
+
+    width: calc(100% - 24px);
+    height: 143px;
+
+    z-index: 100;
+
+    padding: 10px 9px 9px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    border: 1px solid rgba(255, 255, 255, 0.065);
+    border-top: 0;
+    border-radius: 0 0 10px 10px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #202426 0%,
+            #181b1d 100%
+        );
+
+    box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.42),
+        0 4px 10px rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.018);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transform:
+        translateX(-50%)
+        translateY(-8px)
+        scaleY(0.92);
+
+    transform-origin: top center;
+
+    transition:
+        opacity 180ms ease,
+        visibility 180ms ease,
+        transform 220ms cubic-bezier(
+            0.22,
+            0.61,
+            0.36,
+            1
+        );
+}
+
+
+.app-window.analysis-panel-open {
+    overflow: visible;
+}
+
+
+.app-window.analysis-panel-open .analysis-panel {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transform:
+        translateX(-50%)
+        translateY(0)
+        scaleY(1);
+}
+
+
+/* =========================================================
+   WAVEFORM
+   ========================================================= */
+
+.analysis-waveform {
+    position: relative;
+
+    width: 100%;
+    height: 45px;
+
+    flex-shrink: 0;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(255, 255, 255, 0.045);
+    border-radius: 5px;
+
+    background:
+        #141619;
+}
+
+
+/* ---------------------------------------------------------
+   Waveform Canvas
+   --------------------------------------------------------- */
+
+.analysis-waveform__canvas {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    pointer-events: none;
+
+    color: rgba(222, 238, 176, 0.66);
+}
+
+
+/* =========================================================
+   RANGE OVERLAYS
+   ========================================================= */
+
+.analysis-range-overlay {
+    position: absolute;
+
+    top: 0;
+    bottom: 0;
+
+    background:
+        rgba(8, 10, 11, 0.68);
+
+    pointer-events: none;
+
+    transition:
+        left 70ms ease,
+        width 70ms ease;
+}
+
+
+.analysis-range-overlay--left {
+    left: 0;
+
+    width: 0;
+}
+
+
+.analysis-range-overlay--right {
+    right: 0;
+
+    width: 0;
+}
+
+
+/* =========================================================
+   ACTIVE SELECTION
+   ========================================================= */
+
+.analysis-selection {
+    position: absolute;
+
+    top: 0;
+    bottom: 0;
+
+    left: 0;
+    width: 100%;
+
+    border-top: 1px solid rgba(200, 233, 87, 0.10);
+    border-bottom: 1px solid rgba(200, 233, 87, 0.08);
+
+    background:
+        rgba(200, 233, 87, 0.025);
+
+    pointer-events: none;
+
+    transition:
+        left 70ms ease,
+        width 70ms ease;
+}
+
+
+/* =========================================================
+   RANGE HANDLES
+   ========================================================= */
+
+.analysis-handle {
+    position: absolute;
+
+    top: -1px;
+
+    width: 11px;
+    height: calc(100% + 2px);
+
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    z-index: 5;
+
+    cursor: ew-resize;
+
+    touch-action: none;
+
+    transform:
+        translateX(-50%);
+}
+
+
+.analysis-handle span {
+    position: absolute;
+
+    top: 0;
+    bottom: 0;
+
+    left: 50%;
+
+    width: 1px;
+
+    background: var(--accent-primary);
+
+    box-shadow:
+        0 0 6px rgba(200, 233, 87, 0.28);
+
+    transform: translateX(-50%);
+
+    transition:
+        width var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+
+.analysis-handle::before,
+.analysis-handle::after {
+    position: absolute;
+
+    left: 50%;
+
+    width: 7px;
+    height: 1px;
+
+    content: "";
+
+    border-radius: 1px;
+
+    background: var(--accent-primary);
+
+    transform:
+        translateX(-50%);
+}
+
+
+.analysis-handle::before {
+    top: 4px;
+}
+
+
+.analysis-handle::after {
+    bottom: 4px;
+}
+
+
+.analysis-handle:hover span {
+    width: 2px;
+
+    box-shadow:
+        0 0 9px rgba(200, 233, 87, 0.42);
+}
+
+
+.analysis-handle:active span {
+    width: 2px;
+
+    box-shadow:
+        0 0 11px rgba(200, 233, 87, 0.52);
+}
+
+
+.analysis-handle--start {
+    left: 0;
+}
+
+
+.analysis-handle--end {
+    left: 100%;
+}
+
+
+/* ---------------------------------------------------------
+   Fast mode handle state
+   --------------------------------------------------------- */
+
+.analysis-panel.analysis-panel--fast
+    .analysis-handle {
+    opacity: 0.34;
+
+    cursor: default;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   TIME RANGE
+   ========================================================= */
+
+.analysis-time {
+    width: 100%;
+
+    margin-top: 4px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: rgba(240, 242, 236, 0.48);
+
+    font-size: 10px;
+    font-weight: 500;
+
+    line-height: 1;
+
+    letter-spacing: 0.035em;
+
+    font-variant-numeric: tabular-nums;
+}
+
+
+.analysis-time__separator {
+    margin: 0 5px;
+
+    color: rgba(240, 242, 236, 0.22);
+}
+
+
+/* =========================================================
+   MODE DROPDOWN
+   ========================================================= */
+
+.analysis-mode {
+    position: relative;
+
+    width: 86px;
+
+    margin-top: 7px;
+}
+
+
+.analysis-mode__control {
+    position: relative;
+
+    width: 100%;
+    height: 21px;
+
+    padding: 0 19px 0 7px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(255, 255, 255, 0.055);
+    border-radius: 4px;
+
+    background: rgba(255, 255, 255, 0.025);
+
+    color: rgba(240, 242, 236, 0.67);
+
+    font-size: 9.5px;
+    font-weight: 570;
+
+    line-height: 1;
+
+    letter-spacing: 0.06em;
+
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+
+.analysis-mode__control:hover,
+.analysis-mode.is-open .analysis-mode__control {
+    background: rgba(255, 255, 255, 0.055);
+
+    border-color: rgba(255, 255, 255, 0.095);
+
+    color: rgba(240, 242, 236, 0.84);
+}
+
+
+.analysis-mode__arrow {
+    position: absolute;
+
+    top: 50%;
+    right: 7px;
+
+    width: 5px;
+    height: 5px;
+
+    border-right: 1px solid rgba(240, 242, 236, 0.44);
+    border-bottom: 1px solid rgba(240, 242, 236, 0.44);
+
+    transform:
+        translateY(-65%)
+        rotate(45deg);
+
+    transition:
+        transform var(--transition-fast);
+}
+
+
+.analysis-mode.is-open .analysis-mode__arrow {
+    transform:
+        translateY(-25%)
+        rotate(225deg);
+}
+
+
+/* ---------------------------------------------------------
+   Mode menu
+   --------------------------------------------------------- */
+
+.analysis-mode__menu {
+    position: absolute;
+
+    top: calc(100% + 3px);
+    left: 0;
+    right: 0;
+
+    z-index: 20;
+
+    padding: 3px;
+
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid rgba(255, 255, 255, 0.075);
+    border-radius: 5px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #25292b 0%,
+            #1b1e20 100%
+        );
+
+    box-shadow:
+        0 9px 19px rgba(0, 0, 0, 0.40),
+        0 2px 7px rgba(0, 0, 0, 0.25);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transform:
+        translateY(-3px)
+        scale(0.98);
+
+    transform-origin: top center;
+
+    transition:
+        opacity 100ms ease,
+        visibility 100ms ease,
+        transform 100ms ease;
+}
+
+
+.analysis-mode.is-open .analysis-mode__menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transform:
+        translateY(0)
+        scale(1);
+}
+
+
+/* ---------------------------------------------------------
+   Mode option
+   --------------------------------------------------------- */
+
+.analysis-mode__option {
+    width: 100%;
+    min-height: 19px;
+
+    padding: 0 6px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 3px;
+
+    background: transparent;
+
+    color: rgba(240, 242, 236, 0.52);
+
+    font-size: 9.5px;
+    font-weight: 520;
+
+    line-height: 1;
+
+    letter-spacing: 0.045em;
+
+    transition:
+        background-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+
+.analysis-mode__option:hover {
+    background: rgba(255, 255, 255, 0.055);
+
+    color: rgba(240, 242, 236, 0.86);
+}
+
+
+.analysis-mode__option.is-selected {
+    color: var(--accent-light);
+
+    background: rgba(200, 233, 87, 0.075);
+}
+
+
+/* =========================================================
+   ANALYSIS RUN BUTTON
+   ========================================================= */
+
+.analysis-run-button {
+    width: 100%;
+    height: 24px;
+
+    margin-top: 7px;
+
+    flex-shrink: 0;
+
+    border: 1px solid rgba(200, 233, 87, 0.16);
+    border-radius: 5px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(200, 233, 87, 0.105),
+            rgba(200, 233, 87, 0.055)
+        );
+
+    color: rgba(200, 233, 87, 0.82);
+
+    font-size: 10px;
+    font-weight: 620;
+
+    line-height: 1;
+
+    letter-spacing: 0.11em;
+
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+
+.analysis-run-button:hover {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(200, 233, 87, 0.15),
+            rgba(200, 233, 87, 0.075)
+        );
+
+    border-color: rgba(200, 233, 87, 0.25);
+
+    color: var(--accent-light);
+
+    box-shadow:
+        0 0 12px rgba(200, 233, 87, 0.07);
+}
+
+
+.analysis-run-button:active {
+    transform: translateY(1px);
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(200, 233, 87, 0.10),
+            rgba(200, 233, 87, 0.05)
+        );
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .analysis-panel,
+    .analysis-mode__menu,
+    .analysis-waveform,
+    .analysis-selection,
+    .analysis-range-overlay {
         transition-duration: 0.01ms !important;
     }
 }

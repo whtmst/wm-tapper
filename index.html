@@ -84,7 +84,7 @@
             >
 
                 <!-- =========================================
-                     FRONT — TAPPER
+                     FRONT - TAPPER
                      ========================================= -->
                 <div class="flip-side flip-side--front">
 
@@ -131,22 +131,34 @@
                                 class="average__value"
                                 id="averageValue"
                             >
-                                —
+                                -
                             </span>
 
                         </div>
 
 
                         <!-- =================================
-                             RESET
+                             BOTTOM ACTIONS
                              ================================= -->
-                        <button
-                            class="reset-button"
-                            id="resetButton"
-                            type="button"
-                        >
-                            RESET
-                        </button>
+                        <div class="bottom-actions">
+                        
+                            <button
+                                class="analyze-button"
+                                id="analyzeButton"
+                                type="button"
+                            >
+                                ANALYZE FILE
+                            </button>
+                        
+                            <button
+                                class="reset-button"
+                                id="resetButton"
+                                type="button"
+                            >
+                                RESET
+                            </button>
+                        
+                        </div>
 
                     </div>
 
@@ -154,7 +166,7 @@
 
 
                 <!-- =========================================
-                     BACK — SETTINGS
+                     BACK - SETTINGS
                      ========================================= -->
                 <div class="flip-side flip-side--back">
 
@@ -479,6 +491,179 @@
                 </div>
 
             </div>
+
+        </section>
+
+        <!-- =================================================
+             AUDIO ANALYSIS PANEL
+             ================================================= -->
+        <section
+            class="analysis-panel"
+            id="analysisPanel"
+            aria-hidden="true"
+        >
+
+            <!-- =============================================
+                 WAVEFORM
+                 ============================================= -->
+                <div class="analysis-waveform" id="analysisWaveform">
+                
+                    <canvas
+                        class="analysis-waveform__canvas"
+                        id="analysisWaveformCanvas"
+                        aria-hidden="true"
+                    ></canvas>
+
+
+                <!-- =========================================
+                     UNSELECTED AREA - LEFT
+                     ========================================= -->
+                <div
+                    class="analysis-range-overlay analysis-range-overlay--left"
+                    id="analysisOverlayLeft"
+                ></div>
+
+
+                <!-- =========================================
+                     UNSELECTED AREA - RIGHT
+                     ========================================= -->
+                <div
+                    class="analysis-range-overlay analysis-range-overlay--right"
+                    id="analysisOverlayRight"
+                ></div>
+
+
+                <!-- =========================================
+                     ACTIVE SELECTION
+                     ========================================= -->
+                <div
+                    class="analysis-selection"
+                    id="analysisSelection"
+                ></div>
+
+
+                <!-- =========================================
+                     START HANDLE
+                     ========================================= -->
+                <button
+                    class="analysis-handle analysis-handle--start"
+                    id="analysisStartHandle"
+                    type="button"
+                    aria-label="Analysis start"
+                >
+                    <span></span>
+                </button>
+
+
+                <!-- =========================================
+                     END HANDLE
+                     ========================================= -->
+                <button
+                    class="analysis-handle analysis-handle--end"
+                    id="analysisEndHandle"
+                    type="button"
+                    aria-label="Analysis end"
+                >
+                    <span></span>
+                </button>
+
+            </div>
+
+
+            <!-- =============================================
+                 TIME RANGE
+                 ============================================= -->
+            <div class="analysis-time">
+
+                <span id="analysisStartTime">
+                    00:00.0
+                </span>
+
+                <span class="analysis-time__separator">
+                    -
+                </span>
+
+                <span id="analysisEndTime">
+                    --:--.-
+                </span>
+
+            </div>
+
+
+            <!-- =============================================
+                 MODE DROPDOWN
+                 ============================================= -->
+            <div
+                class="analysis-mode"
+                id="analysisMode"
+            >
+
+                <button
+                    class="analysis-mode__control"
+                    id="analysisModeControl"
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                >
+                    <span id="analysisModeValue">
+                        FULL
+                    </span>
+
+                    <span class="analysis-mode__arrow"></span>
+                </button>
+
+
+                <div
+                    class="analysis-mode__menu"
+                    id="analysisModeMenu"
+                    role="listbox"
+                >
+
+                    <button
+                        class="analysis-mode__option is-selected"
+                        type="button"
+                        data-value="full"
+                        role="option"
+                        aria-selected="true"
+                    >
+                        FULL
+                    </button>
+
+                    <button
+                        class="analysis-mode__option"
+                        type="button"
+                        data-value="selection"
+                        role="option"
+                        aria-selected="false"
+                    >
+                        SELECTION
+                    </button>
+
+                    <button
+                        class="analysis-mode__option"
+                        type="button"
+                        data-value="fast"
+                        role="option"
+                        aria-selected="false"
+                    >
+                        FAST
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 ANALYZE BUTTON
+                 ============================================= -->
+            <button
+                class="analysis-run-button"
+                id="analysisRunButton"
+                type="button"
+            >
+                ANALYZE
+            </button>
 
         </section>
 

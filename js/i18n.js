@@ -31,6 +31,10 @@ export const translations = {
 
         average: "Average BPM:",
 
+        analyzeFile: "ANALYZE FILE",
+
+        analyze: "ANALYZE",
+
         reset: "RESET",
 
         settings: "SETTINGS",
@@ -49,6 +53,12 @@ export const translations = {
 
         taps: "TAPS",
 
+        full: "FULL",
+
+        selection: "SELECTION",
+
+        fast: "FAST",
+
         madeBy: "Made by Wht Mst"
     },
 
@@ -62,6 +72,10 @@ export const translations = {
         tap: "ТАП",
 
         average: "Средний BPM:",
+
+        analyzeFile: "АНАЛИЗ ФАЙЛА",
+
+        analyze: "АНАЛИЗ",
 
         reset: "СБРОС",
 
@@ -81,6 +95,12 @@ export const translations = {
 
         taps: "ТАПОВ",
 
+        full: "ВЕСЬ ТРЕК",
+
+        selection: "ФРАГМЕНТ",
+
+        fast: "БЫСТРЫЙ",
+
         madeBy: "Сделано Wht Mst"
     },
 
@@ -94,6 +114,10 @@ export const translations = {
         tap: "TAP",
 
         average: "Orta BPM:",
+
+        analyzeFile: "FAYLI TƏHLİL ET",
+
+        analyze: "TƏHLİL ET",
 
         reset: "SIFIRLA",
 
@@ -112,6 +136,12 @@ export const translations = {
         seconds: "SAN",
 
         taps: "TAP",
+
+        full: "BÜTÖV TREK",
+
+        selection: "SEÇİM",
+
+        fast: "SÜRƏTLİ",
 
         madeBy: "Wht Mst tərəfindən"
     }
