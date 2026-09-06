@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -9,7 +10,6 @@
 
     <title>WM Tapper</title>
 
-    <!-- Main stylesheet -->
     <link
         rel="stylesheet"
         href="src/css/main.css"
@@ -18,16 +18,14 @@
 
 <body>
 
-    <!--
-        Main application window.
-        At this stage it is only a visual container.
-        Tauri will later turn this into a real frameless window.
-    -->
+    <!-- =====================================================
+         APPLICATION WINDOW
+         ===================================================== -->
     <main class="app-window">
 
-        <!-- ==========================================
-             TOP BAR
-             ========================================== -->
+        <!-- =================================================
+             TITLE BAR
+             ================================================= -->
         <header class="title-bar">
 
             <div class="title-bar__title">
@@ -36,18 +34,30 @@
 
             <div class="title-bar__controls">
 
-                <!-- Visual minimize button for now -->
+                <!-- Settings -->
+                <button
+                    class="window-control window-control--settings"
+                    id="settingsButton"
+                    type="button"
+                    aria-label="Settings"
+                >
+                    <span class="settings-icon"></span>
+                </button>
+
+                <!-- Minimize -->
                 <button
                     class="window-control window-control--minimize"
+                    id="minimizeButton"
                     type="button"
                     aria-label="Minimize"
                 >
                     <span></span>
                 </button>
 
-                <!-- Visual close button for now -->
+                <!-- Close -->
                 <button
                     class="window-control window-control--close"
+                    id="closeButton"
                     type="button"
                     aria-label="Close"
                 >
@@ -59,102 +69,187 @@
         </header>
 
 
-        <!-- ==========================================
-             MAIN CONTENT
-             ========================================== -->
-        <section class="app-content">
+        <!-- =================================================
+             FLIP CONTAINER
+             ================================================= -->
+        <section class="flip-container">
 
-            <!-- ======================================
-                 TAP BUTTON
-                 ====================================== -->
-            <button
-                class="tap-button"
-                id="tapButton"
-                type="button"
-                aria-label="Tap tempo"
-            >
+            <div class="flip-card" id="flipCard">
 
-                <!--
-                    Initial state:
-                    "TAP"
+                <!-- =========================================
+                     FRONT — TAPPER
+                     ========================================= -->
+                <div class="flip-side flip-side--front">
 
-                    JavaScript will later replace this
-                    with the rounded BPM value.
-                -->
-                <span
-                    class="tap-button__value"
-                    id="tapValue"
-                >
-                    TAP
-                </span>
+                    <div class="app-content">
 
-            </button>
+                        <!-- =================================
+                             TAP BUTTON
+                             ================================= -->
+                        <button
+                            class="tap-button"
+                            id="tapButton"
+                            type="button"
+                            aria-label="Tap tempo"
+                        >
+                            <span
+                                class="tap-button__value"
+                                id="tapValue"
+                            >
+                                TAP
+                            </span>
+                        </button>
 
 
-            <!-- ======================================
-                 TAP HISTORY
-                 ====================================== -->
-            <div
-                class="tap-history"
-                id="tapHistory"
-                aria-label="Tap history"
-            >
+                        <!-- =================================
+                             TAP HISTORY
+                             ================================= -->
+                        <div
+                            class="tap-history"
+                            id="tapHistory"
+                            aria-label="Tap history"
+                        ></div>
 
-                <!--
-                    Tap points will be generated by JavaScript.
 
-                    Example later:
+                        <!-- =================================
+                             AVERAGE BPM
+                             ================================= -->
+                        <div class="average">
 
-                    <span class="tap-point"></span>
-                    <span class="tap-connector"></span>
-                    <span class="tap-point"></span>
+                            <span class="average__label">
+                                Average BPM:
+                            </span>
 
-                    For now the container is empty.
-                -->
+                            <span
+                                class="average__value"
+                                id="averageValue"
+                            >
+                                —
+                            </span>
+
+                        </div>
+
+
+                        <!-- =================================
+                             RESET
+                             ================================= -->
+                        <button
+                            class="reset-button"
+                            id="resetButton"
+                            type="button"
+                        >
+                            RESET
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     BACK — SETTINGS
+                     ========================================= -->
+                <div class="flip-side flip-side--back">
+
+                    <div class="settings-content">
+
+                        <!-- Settings heading -->
+                        <div class="settings-content__header">
+                            SETTINGS
+                        </div>
+
+
+                        <!-- =================================
+                             TAP KEY
+                             ================================= -->
+                        <div class="setting-row">
+
+                            <div class="setting-row__label">
+                                Tap Key
+                            </div>
+
+                            <div class="setting-row__value">
+                                SPACE
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================
+                             NEW SESSION
+                             ================================= -->
+                        <div class="setting-row">
+
+                            <div class="setting-row__label">
+                                New Session
+                            </div>
+
+                            <div class="setting-row__value">
+                                3.0 SEC
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================
+                             HISTORY
+                             ================================= -->
+                        <div class="setting-row">
+
+                            <div class="setting-row__label">
+                                History
+                            </div>
+
+                            <div class="setting-row__value">
+                                12 TAPS
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================
+                             DIVIDER
+                             ================================= -->
+                        <div class="settings-divider"></div>
+
+
+                        <!-- =================================
+                             ABOUT
+                             ================================= -->
+                        <div class="settings-about">
+
+                            <div class="settings-about__brand">
+                                WhiteMist
+                            </div>
+
+                            <div class="settings-about__text">
+                                WM Tapper
+                            </div>
+
+                            <div class="settings-about__text">
+                                Made by WhiteMist
+                            </div>
+
+                            <div class="settings-about__link">
+                                github.com/whtmst/wm-tapper
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
             </div>
-
-
-            <!-- ======================================
-                 AVERAGE BPM
-                 ====================================== -->
-            <div class="average">
-
-                <span class="average__label">
-                    Average:
-                </span>
-
-                <span
-                    class="average__value"
-                    id="averageValue"
-                >
-                    —
-                </span>
-
-                <span class="average__unit">
-                    BPM
-                </span>
-
-            </div>
-
-
-            <!-- ======================================
-                 RESET BUTTON
-                 ====================================== -->
-            <button
-                class="reset-button"
-                id="resetButton"
-                type="button"
-            >
-                RESET
-            </button>
 
         </section>
 
     </main>
 
 
-    <!-- Main application script -->
+    <!-- =====================================================
+         APPLICATION SCRIPT
+         ===================================================== -->
     <script
         src="js/app.js"
         defer
