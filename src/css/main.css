@@ -1124,7 +1124,7 @@ a:focus-visible {
 
 .dropdown-option {
     width: 100%;
-    min-height: 22px;
+    min-height: 18px;
 
     display: flex;
     align-items: center;
