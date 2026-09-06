@@ -55,6 +55,12 @@ import {
 } from "./language-ui.js";
 
 
+import {
+    decodeAudioFile,
+    extractPeaks,
+    createWaveformRenderer
+} from "./waveform.js";
+
 /* =========================================================
    DOM ELEMENTS
    ========================================================= */
@@ -285,6 +291,12 @@ const analysisRunButton =
     );
 
 
+const analysisWaveformCanvas =
+    document.getElementById(
+        "analysisWaveformCanvas"
+    );
+
+
 /* =========================================================
    APPLICATION MODULES
    ========================================================= */
@@ -302,6 +314,11 @@ const tapKeyController =
         control: tapKeyControl,
         value: tapKeyValue
     });
+
+const waveform =
+    createWaveformRenderer(
+        analysisWaveformCanvas
+    );
 
 
 /* =========================================================
@@ -515,6 +532,7 @@ const audioFileInput =
 let selectedAudioFile =
     null;
 
+let selectedAudioBuffer = null;
 
 let analysisDuration =
     0;
@@ -1340,6 +1358,10 @@ async function prepareAnalysisPanel(
         file;
 
 
+    selectedAudioBuffer =
+        null;
+
+
     analysisDuration =
         0;
 
@@ -1362,6 +1384,9 @@ async function prepareAnalysisPanel(
     );
 
 
+    waveform.clear();
+
+
     updateAnalysisRangeUI();
 
 
@@ -1370,20 +1395,83 @@ async function prepareAnalysisPanel(
 
     try {
 
-        analysisDuration =
-            await loadAudioDuration(
+        console.log(
+            "WM Tapper: decoding waveform..."
+        );
+
+
+        selectedAudioBuffer =
+            await decodeAudioFile(
                 file
             );
 
 
+        analysisDuration =
+            selectedAudioBuffer.duration;
+
+
+        const peaks =
+            extractPeaks(
+                selectedAudioBuffer,
+                120
+            );
+
+
+        waveform.setPeaks(
+            peaks
+        );
+
+
         updateAnalysisRangeUI();
+
+
+        console.log(
+            "WM Tapper: waveform ready.",
+            {
+                duration:
+                    selectedAudioBuffer.duration,
+
+                sampleRate:
+                    selectedAudioBuffer.sampleRate,
+
+                channels:
+                    selectedAudioBuffer.numberOfChannels,
+
+                peaks:
+                    peaks.length
+            }
+        );
 
     } catch (error) {
 
         console.error(
-            "WM Tapper: failed to read audio duration.",
+            "WM Tapper: failed to prepare waveform.",
             error
         );
+
+
+        /*
+         * Fallback to metadata duration
+         * if Web Audio decoding fails.
+         */
+
+        try {
+
+            analysisDuration =
+                await loadAudioDuration(
+                    file
+                );
+
+
+            updateAnalysisRangeUI();
+
+        } catch (durationError) {
+
+            console.error(
+                "WM Tapper: failed to read audio duration.",
+                durationError
+            );
+        }
     }
 }
 
