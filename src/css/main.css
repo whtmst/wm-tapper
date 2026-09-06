@@ -52,6 +52,7 @@
 
     --border-window: rgba(255, 255, 255, 0.055);
     --border-soft: rgba(255, 255, 255, 0.035);
+    --border-footer: rgba(255, 255, 255, 0.055);
 
 
     /* ---------------------------------------------
@@ -651,10 +652,6 @@ button:focus-visible {
 }
 
 
-/* ---------------------------------------------------------
-   Subtle dashed guide
-   --------------------------------------------------------- */
-
 .tap-history::before {
     position: absolute;
 
@@ -779,11 +776,6 @@ button:focus-visible {
 }
 
 
-/*
- * The label is intentionally slightly heavier
- * than the value placeholder.
- */
-
 .average__label {
     color: var(--text-secondary);
 
@@ -859,7 +851,7 @@ button:focus-visible {
     display: flex;
     flex-direction: column;
 
-    padding: 12px 15px 10px;
+    padding: 11px 15px 10px;
 }
 
 
@@ -870,7 +862,7 @@ button:focus-visible {
 .settings-content__header {
     width: 100%;
 
-    margin-bottom: 10px;
+    margin-bottom: 9px;
 
     color: rgba(240, 242, 236, 0.84);
 
@@ -886,7 +878,7 @@ button:focus-visible {
 
 
 /* =========================================================
-   SETTING ROW
+   SETTINGS ROWS
    ========================================================= */
 
 .setting-row {
@@ -897,29 +889,21 @@ button:focus-visible {
     align-items: center;
     justify-content: space-between;
 
-    border-bottom: 1px solid rgba(255, 255, 255, 0.025);
+    border-bottom: none;
 }
 
 
-/* ---------------------------------------------------------
-   Setting label
-   --------------------------------------------------------- */
-
 .setting-row__label {
-    color: rgba(240, 242, 236, 0.44);
+    color: rgba(240, 242, 236, 0.50);
 
-    font-size: 9px;
-    font-weight: 470;
+    font-size: 10.5px;
+    font-weight: 480;
 
     line-height: 1.1;
 
     letter-spacing: 0.01em;
 }
 
-
-/* ---------------------------------------------------------
-   Setting value
-   --------------------------------------------------------- */
 
 .setting-row__value {
     min-width: 43px;
@@ -1028,26 +1012,26 @@ button:focus-visible {
 
 
 /* =========================================================
-   SETTINGS DIVIDER
+   FOOTER DIVIDER
    ========================================================= */
 
 .settings-divider {
     width: 100%;
     height: 1px;
 
-    margin: 9px 0 8px;
+    margin: auto 0 9px;
 
-    background: rgba(255, 255, 255, 0.045);
+    background: var(--border-footer);
+
+    opacity: 0.8;
 }
 
 
 /* =========================================================
-   SETTINGS ABOUT
+   SETTINGS FOOTER
    ========================================================= */
 
 .settings-about {
-    margin-top: auto;
-
     display: flex;
     flex-direction: column;
     align-items: center;
