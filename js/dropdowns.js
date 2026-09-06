@@ -12,13 +12,22 @@
  * Create dropdown controller.
  *
  * @param {Object} elements
+ *
  * @param {HTMLElement} elements.sessionControl
  * @param {HTMLElement} elements.sessionMenu
+ *
  * @param {HTMLElement} elements.historyControl
  * @param {HTMLElement} elements.historyMenu
+ *
+ * @param {HTMLElement} elements.analysisMode
+ * @param {HTMLElement} elements.analysisModeControl
+ * @param {HTMLElement} elements.analysisModeMenu
+ *
  * @param {Object} callbacks
  * @param {Function} callbacks.onSessionChange
  * @param {Function} callbacks.onHistoryChange
+ * @param {Function} callbacks.onAnalysisModeChange
+ *
  * @returns {Object}
  */
 export function createDropdownController(
@@ -26,11 +35,15 @@ export function createDropdownController(
         sessionControl,
         sessionMenu,
         historyControl,
-        historyMenu
+        historyMenu,
+        analysisMode,
+        analysisModeControl,
+        analysisModeMenu
     },
     {
         onSessionChange,
-        onHistoryChange
+        onHistoryChange,
+        onAnalysisModeChange
     }
 ) {
 
@@ -51,13 +64,14 @@ export function createDropdownController(
 
         menu
             .querySelectorAll(
-                ".dropdown-option"
+                ".dropdown-option, .analysis-mode__option"
             )
             .forEach(
                 (option) => {
 
                     const isSelected =
-                        option.dataset.value === value;
+                        option.dataset.value ===
+                        String(value);
 
 
                     option.classList.toggle(
@@ -76,7 +90,7 @@ export function createDropdownController(
 
 
     /* =====================================================
-       CLOSE
+       CLOSE ALL
        ===================================================== */
 
     function closeAll() {
@@ -86,6 +100,10 @@ export function createDropdownController(
         );
 
         historyControl.classList.remove(
+            "is-open"
+        );
+
+        analysisMode.classList.remove(
             "is-open"
         );
 
@@ -100,6 +118,12 @@ export function createDropdownController(
             "aria-expanded",
             "false"
         );
+
+
+        analysisModeControl.setAttribute(
+            "aria-expanded",
+            "false"
+        );
     }
 
 
@@ -107,7 +131,9 @@ export function createDropdownController(
        TOGGLE
        ===================================================== */
 
-    function toggle(control) {
+    function toggle(
+        control
+    ) {
 
         const isOpen =
             control.classList.contains(
@@ -129,6 +155,51 @@ export function createDropdownController(
                 "aria-expanded",
                 "true"
             );
+        }
+    }
+
+
+    /* =====================================================
+       ANALYSIS MODE VALUE
+       ===================================================== */
+
+    function setAnalysisMode(
+        value
+    ) {
+
+        const normalizedValue =
+            String(value);
+
+
+        updateSelectedOption(
+            analysisModeMenu,
+            normalizedValue
+        );
+
+
+        const selectedOption =
+            analysisModeMenu.querySelector(
+                `[data-value="${normalizedValue}"]`
+            );
+
+
+        if (
+            selectedOption
+        ) {
+
+            const valueElement =
+                analysisModeControl.querySelector(
+                    "#analysisModeValue"
+                );
+
+
+            if (
+                valueElement
+            ) {
+
+                valueElement.textContent =
+                    selectedOption.textContent.trim();
+            }
         }
     }
 
@@ -188,6 +259,24 @@ export function createDropdownController(
 
 
     /* =====================================================
+       ANALYSIS MODE DROPDOWN
+       ===================================================== */
+
+    analysisModeControl.addEventListener(
+        "click",
+        (event) => {
+
+            event.stopPropagation();
+
+
+            toggle(
+                analysisMode
+            );
+        }
+    );
+
+
+    /* =====================================================
        SESSION OPTIONS
        ===================================================== */
 
@@ -212,10 +301,18 @@ export function createDropdownController(
 
 
                         if (
-                            Number.isNaN(value)
+                            Number.isNaN(
+                                value
+                            )
                         ) {
                             return;
                         }
+
+
+                        updateSelectedOption(
+                            sessionMenu,
+                            option.dataset.value
+                        );
 
 
                         onSessionChange(
@@ -255,15 +352,75 @@ export function createDropdownController(
 
 
                         if (
-                            Number.isNaN(value)
+                            Number.isNaN(
+                                value
+                            )
                         ) {
                             return;
                         }
 
 
+                        updateSelectedOption(
+                            historyMenu,
+                            option.dataset.value
+                        );
+
+
                         onHistoryChange(
                             value
                         );
+
+
+                        closeAll();
+                    }
+                );
+            }
+        );
+
+
+    /* =====================================================
+       ANALYSIS MODE OPTIONS
+       ===================================================== */
+
+    analysisModeMenu
+        .querySelectorAll(
+            ".analysis-mode__option"
+        )
+        .forEach(
+            (option) => {
+
+                option.addEventListener(
+                    "click",
+                    (event) => {
+
+                        event.stopPropagation();
+
+
+                        const value =
+                            option.dataset.value;
+
+
+                        if (
+                            !value
+                        ) {
+                            return;
+                        }
+
+
+                        setAnalysisMode(
+                            value
+                        );
+
+
+                        if (
+                            typeof onAnalysisModeChange ===
+                            "function"
+                        ) {
+
+                            onAnalysisModeChange(
+                                value
+                            );
+                        }
 
 
                         closeAll();
@@ -309,7 +466,11 @@ export function createDropdownController(
        ===================================================== */
 
     return {
+
         closeAll,
-        updateSelectedOption
+
+        updateSelectedOption,
+
+        setAnalysisMode
     };
 }
