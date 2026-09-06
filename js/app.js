@@ -35,6 +35,26 @@ import {
 } from "./analyzer.js";
 
 
+import {
+    createTapUI
+} from "./tap-ui.js";
+
+
+import {
+    createDropdownController
+} from "./dropdowns.js";
+
+
+import {
+    createSessionController
+} from "./session.js";
+
+
+import {
+    createLanguageUI
+} from "./language-ui.js";
+
+
 /* =========================================================
    DOM ELEMENTS
    ========================================================= */
@@ -141,6 +161,42 @@ const madeByText =
     );
 
 
+const averageLabel =
+    document.querySelector(
+        ".average__label"
+    );
+
+
+const settingsHeader =
+    document.querySelector(
+        ".settings-content__header"
+    );
+
+
+const tapKeyLabel =
+    document.getElementById(
+        "tapKeyLabel"
+    );
+
+
+const sessionLabel =
+    document.getElementById(
+        "sessionLabel"
+    );
+
+
+const historyLabel =
+    document.getElementById(
+        "historyLabel"
+    );
+
+
+const languageLabel =
+    document.getElementById(
+        "languageLabel"
+    );
+
+
 /* =========================================================
    APPLICATION MODULES
    ========================================================= */
@@ -161,113 +217,23 @@ const tapKeyController =
 
 
 /* =========================================================
-   SESSION TIMER
-   ========================================================= */
-
-/*
- * This timer marks the end of the current
- * tap session after the configured period
- * of inactivity.
- */
-
-let sessionTimer = null;
-
-
-/**
- * Clear the current session timer.
- */
-function clearSessionTimer() {
-
-    if (
-        sessionTimer !== null
-    ) {
-
-        clearTimeout(
-            sessionTimer
-        );
-
-        sessionTimer = null;
-    }
-}
-
-
-/**
- * Start / restart the session timer.
- *
- * @param {number} delaySeconds
- */
-function restartSessionTimer(
-    delaySeconds
-) {
-
-    clearSessionTimer();
-
-
-    sessionTimer =
-        setTimeout(
-            () => {
-
-                sessionTimer = null;
-
-                finishTapSession();
-
-            },
-            delaySeconds * 1000
-        );
-}
-
-
-/**
- * Finish the current tap session.
- *
- * The final average BPM is rounded and
- * moved to the main button.
- */
-function finishTapSession() {
-
-    const averageBpm =
-        tapEngine.getAverageBpm();
-
-
-    /*
-     * Do nothing when the session contains
-     * fewer than two valid taps.
-     */
-
-    if (
-        !Number.isFinite(
-            averageBpm
-        )
-    ) {
-        return;
-    }
-
-
-    /*
-     * The final result shown on the main
-     * button is the rounded session average.
-     */
-
-    tapValue.textContent =
-        `${Math.round(
-            averageBpm
-        )} BPM`;
-}
-
-
-/* =========================================================
-   LANGUAGE
+   LOCAL HELPERS
    ========================================================= */
 
 /**
  * Get current language.
+ *
+ * This helper is intentionally defined
+ * before language UI initialization.
  *
  * @returns {string}
  */
 function getCurrentLanguage() {
 
     const language =
-        settings.get("language");
+        settings.get(
+            "language"
+        );
 
 
     if (
@@ -275,6 +241,7 @@ function getCurrentLanguage() {
             language
         )
     ) {
+
         return language;
     }
 
@@ -284,421 +251,7 @@ function getCurrentLanguage() {
 
 
 /**
- * Update active language button.
- *
- * @param {string} language
- */
-function updateLanguageButtons(language) {
-
-    if (!languageSwitcher) {
-        return;
-    }
-
-
-    const buttons =
-        languageSwitcher.querySelectorAll(
-            ".language-button"
-        );
-
-
-    buttons.forEach(
-        (button) => {
-
-            button.classList.remove(
-                "is-active"
-            );
-
-
-            if (
-                button.dataset.language === language
-            ) {
-
-                button.classList.add(
-                    "is-active"
-                );
-            }
-        }
-    );
-}
-
-
-/**
- * Set language and save immediately.
- *
- * @param {string} language
- */
-function setLanguage(language) {
-
-    if (
-        !supportedLanguages.includes(
-            language
-        )
-    ) {
-        return;
-    }
-
-
-    settings.set(
-        "language",
-        language
-    );
-
-
-    applyLanguage(
-        language
-    );
-
-
-    updateLanguageButtons(
-        language
-    );
-}
-
-
-/**
- * Apply language to the UI.
- *
- * @param {string} language
- */
-function applyLanguage(language) {
-
-    const text =
-        getTranslations(
-            language
-        );
-
-
-    /* -----------------------------------------
-       Front side
-       ----------------------------------------- */
-
-    const currentTapText =
-        tapValue.textContent.trim();
-
-
-    const initialTapState =
-        currentTapText === "TAP" ||
-        currentTapText === "ТАП";
-
-
-    if (initialTapState) {
-
-        tapValue.textContent =
-            text.tap;
-    }
-
-
-    document.querySelector(
-        ".average__label"
-    ).textContent =
-        text.average;
-
-
-    resetButton.textContent =
-        text.reset;
-
-
-    /* -----------------------------------------
-       Settings header
-       ----------------------------------------- */
-
-    document.querySelector(
-        ".settings-content__header"
-    ).textContent =
-        text.settings;
-
-
-    /* -----------------------------------------
-       Labels
-       ----------------------------------------- */
-
-    document.getElementById(
-        "tapKeyLabel"
-    ).textContent =
-        text.tapKey;
-
-
-    document.getElementById(
-        "sessionLabel"
-    ).textContent =
-        text.newSession;
-
-
-    document.getElementById(
-        "historyLabel"
-    ).textContent =
-        text.history;
-
-
-    document.getElementById(
-        "languageLabel"
-    ).textContent =
-        text.language;
-
-
-    /* -----------------------------------------
-       Footer
-       ----------------------------------------- */
-
-    if (madeByText) {
-
-        madeByText.textContent =
-            text.madeBy;
-    }
-
-
-    /* -----------------------------------------
-       Tap Key
-       ----------------------------------------- */
-
-    tapKeyController.updateDisplay();
-
-
-    /* -----------------------------------------
-       Session
-       ----------------------------------------- */
-
-    updateSessionDisplay();
-
-
-    /* -----------------------------------------
-       History
-       ----------------------------------------- */
-
-    updateHistoryDisplay();
-
-
-    /* -----------------------------------------
-       Dropdown translations
-       ----------------------------------------- */
-
-    updateDropdownTranslations(
-        language
-    );
-
-
-    /* -----------------------------------------
-       Language buttons
-       ----------------------------------------- */
-
-    updateLanguageButtons(
-        language
-    );
-
-
-    /* -----------------------------------------
-       Current BPM display
-       ----------------------------------------- */
-
-    updateTapDisplayLanguage(
-        language
-    );
-}
-
-
-/* =========================================================
-   SELECTED DROPDOWN OPTION
-   ========================================================= */
-
-/**
- * Update selected state inside a dropdown.
- *
- * @param {HTMLElement} menu
- * @param {string} value
- */
-function updateSelectedOption(
-    menu,
-    value
-) {
-
-    if (!menu) {
-        return;
-    }
-
-
-    menu
-        .querySelectorAll(
-            ".dropdown-option"
-        )
-        .forEach(
-            (option) => {
-
-                const isSelected =
-                    option.dataset.value === value;
-
-
-                option.classList.toggle(
-                    "is-selected",
-                    isSelected
-                );
-
-
-                option.setAttribute(
-                    "aria-selected",
-                    String(isSelected)
-                );
-            }
-        );
-}
-
-
-/* =========================================================
-   SESSION DISPLAY
-   ========================================================= */
-
-function updateSessionDisplay() {
-
-    const language =
-        getCurrentLanguage();
-
-
-    const text =
-        getTranslations(
-            language
-        );
-
-
-    const value =
-        Number(
-            settings.get(
-                "sessionTimeout"
-            )
-        );
-
-
-    sessionValue.textContent =
-        `${formatDecimal(
-            value,
-            language
-        )} ${text.seconds}`;
-
-
-    updateSelectedOption(
-        sessionMenu,
-        String(value)
-    );
-}
-
-
-/* =========================================================
-   HISTORY DISPLAY
-   ========================================================= */
-
-function updateHistoryDisplay() {
-
-    const language =
-        getCurrentLanguage();
-
-
-    const text =
-        getTranslations(
-            language
-        );
-
-
-    const value =
-        Number(
-            settings.get(
-                "historyLength"
-            )
-        );
-
-
-    historyValue.textContent =
-        `${value} ${text.taps}`;
-
-
-    updateSelectedOption(
-        historyMenu,
-        String(value)
-    );
-}
-
-
-/* =========================================================
-   DROPDOWN TRANSLATIONS
-   ========================================================= */
-
-function updateDropdownTranslations(
-    language = getCurrentLanguage()
-) {
-
-    const text =
-        getTranslations(
-            language
-        );
-
-
-    /* -----------------------------------------
-       Session options
-       ----------------------------------------- */
-
-    sessionMenu
-        .querySelectorAll(
-            ".dropdown-option"
-        )
-        .forEach(
-            (option) => {
-
-                const value =
-                    Number(
-                        option.dataset.value
-                    );
-
-
-                if (
-                    Number.isNaN(value)
-                ) {
-                    return;
-                }
-
-
-                option.textContent =
-                    `${formatDecimal(
-                        value,
-                        language
-                    )} ${text.seconds}`;
-            }
-        );
-
-
-    /* -----------------------------------------
-       History options
-       ----------------------------------------- */
-
-    historyMenu
-        .querySelectorAll(
-            ".dropdown-option"
-        )
-        .forEach(
-            (option) => {
-
-                const value =
-                    Number(
-                        option.dataset.value
-                    );
-
-
-                if (
-                    Number.isNaN(value)
-                ) {
-                    return;
-                }
-
-
-                option.textContent =
-                    `${value} ${text.taps}`;
-            }
-        );
-}
-
-
-/* =========================================================
-   BPM FORMATTING
-   ========================================================= */
-
-/**
- * Format average BPM with two decimals.
+ * Format BPM with two decimals.
  *
  * @param {number|null} value
  * @returns {string}
@@ -708,6 +261,7 @@ function formatBpm(value) {
     if (
         !Number.isFinite(value)
     ) {
+
         return "—";
     }
 
@@ -726,367 +280,184 @@ function formatBpm(value) {
 
 
 /* =========================================================
-   TAP DISPLAY
+   DROPDOWNS
    ========================================================= */
 
-/**
- * Update the BPM display after language change.
- *
- * Keeps the numeric BPM intact while refreshing
- * the TAP text when no BPM is available.
- *
- * @param {string} language
- */
-function updateTapDisplayLanguage(language) {
+const dropdowns =
+    createDropdownController(
+        {
+            sessionControl,
+            sessionMenu,
+            historyControl,
+            historyMenu
+        },
+        {
+            onSessionChange: (
+                value
+            ) => {
 
-    const text =
-        getTranslations(
-            language
-        );
-
-
-    const currentValue =
-        tapValue.textContent.trim();
-
-
-    const isTapState =
-        currentValue === "TAP" ||
-        currentValue === "ТАП";
-
-
-    if (isTapState) {
-
-        tapValue.textContent =
-            text.tap;
-    }
-
-
-    const average =
-        tapEngine.getAverageBpm();
-
-
-    if (
-        average === null
-    ) {
-
-        averageValue.textContent =
-            "—";
-
-    } else {
-
-        averageValue.textContent =
-            formatBpm(
-                average
-            );
-    }
-}
-
-
-/* =========================================================
-   TAP HISTORY RENDERING
-   ========================================================= */
-
-/**
- * Render tap history points.
- *
- * Horizontal position represents real time
- * between taps.
- *
- * @param {number[]} timestamps
- */
-function renderTapHistory(timestamps) {
-
-    tapHistory.innerHTML =
-        "";
-
-
-    if (
-        !Array.isArray(timestamps) ||
-        timestamps.length === 0
-    ) {
-        return;
-    }
-
-
-    const firstTime =
-        timestamps[0];
-
-
-    const lastTime =
-        timestamps[
-            timestamps.length - 1
-        ];
-
-
-    const timeRange =
-        lastTime -
-        firstTime;
-
-
-    const leftPadding = 6;
-    const rightPadding = 6;
-
-
-    const historyWidth =
-        tapHistory.clientWidth;
-
-
-    const usableWidth =
-        Math.max(
-            0,
-            historyWidth -
-            leftPadding -
-            rightPadding
-        );
-
-
-    /*
-     * With only one tap there is no interval
-     * to visualize, so put the point in the center.
-     */
-
-    if (
-        timestamps.length === 1 ||
-        timeRange <= 0
-    ) {
-
-        createTapPoint(
-            50
-        );
-
-        return;
-    }
-
-
-    timestamps.forEach(
-        (timestamp) => {
-
-            const normalized =
-                (
-                    timestamp -
-                    firstTime
-                ) /
-                timeRange;
-
-
-            const x =
-                leftPadding +
-                (
-                    normalized *
-                    usableWidth
+                settings.set(
+                    "sessionTimeout",
+                    value
                 );
 
 
-            const percent =
-                historyWidth > 0
-                    ? (
-                        x /
-                        historyWidth
-                    ) * 100
-                    : 50;
+                tapEngine.configure({
+                    sessionTimeout:
+                        settings.get(
+                            "sessionTimeout"
+                        ),
+
+                    historyLength:
+                        settings.get(
+                            "historyLength"
+                        )
+                });
 
 
-            createTapPoint(
-                percent
-            );
+                languageUI.updateSessionDisplay();
+            },
+
+
+            onHistoryChange: (
+                value
+            ) => {
+
+                settings.set(
+                    "historyLength",
+                    value
+                );
+
+
+                tapEngine.configure({
+                    sessionTimeout:
+                        settings.get(
+                            "sessionTimeout"
+                        ),
+
+                    historyLength:
+                        settings.get(
+                            "historyLength"
+                        )
+                });
+
+
+                languageUI.updateHistoryDisplay();
+            }
         }
     );
 
 
-    renderTapConnectors(
-        timestamps,
-        leftPadding,
-        usableWidth,
-        historyWidth
+/* =========================================================
+   TAP UI
+   ========================================================= */
+
+const tapUI =
+    createTapUI(
+        {
+            tapValue,
+            averageValue,
+            tapHistory
+        },
+        {
+            tapEngine,
+            getCurrentLanguage,
+            formatBpm,
+            getTranslations
+        }
     );
-}
 
 
-/**
- * Create one tap point.
- *
- * @param {number} leftPercent
- */
-function createTapPoint(leftPercent) {
+/* =========================================================
+   LANGUAGE UI
+   ========================================================= */
 
-    const point =
-        document.createElement(
-            "div"
-        );
-
-
-    point.className =
-        "tap-point";
-
-
-    point.style.left =
-        `${leftPercent}%`;
-
-
-    point.style.top =
-        "50%";
-
-
-    tapHistory.appendChild(
-        point
+const languageUI =
+    createLanguageUI(
+        {
+            languageSwitcher,
+            averageLabel,
+            resetButton,
+            settingsHeader,
+            tapKeyLabel,
+            sessionLabel,
+            historyLabel,
+            languageLabel,
+            madeByText,
+            sessionValue,
+            sessionMenu,
+            historyValue,
+            historyMenu
+        },
+        {
+            settings,
+            supportedLanguages,
+            getTranslations,
+            formatDecimal,
+            tapKeyController,
+            tapUI,
+            dropdowns
+        }
     );
-}
 
 
-/**
- * Render connectors between points.
- *
- * @param {number[]} timestamps
- * @param {number} leftPadding
- * @param {number} usableWidth
- * @param {number} historyWidth
- */
-function renderTapConnectors(
-    timestamps,
-    leftPadding,
-    usableWidth,
-    historyWidth
-) {
+/* =========================================================
+   SESSION
+   ========================================================= */
 
-    const firstTime =
-        timestamps[0];
+const session =
+    createSessionController({
 
+        tapEngine,
 
-    const lastTime =
-        timestamps[
-            timestamps.length - 1
-        ];
+        onSessionFinished: (
+            averageBpm
+        ) => {
 
-
-    const timeRange =
-        lastTime -
-        firstTime;
-
-
-    if (
-        timeRange <= 0 ||
-        historyWidth <= 0
-    ) {
-        return;
-    }
-
-
-    for (
-        let index = 0;
-        index < timestamps.length - 1;
-        index += 1
-    ) {
-
-        const startNormalized =
-            (
-                timestamps[index] -
-                firstTime
-            ) /
-            timeRange;
-
-
-        const endNormalized =
-            (
-                timestamps[index + 1] -
-                firstTime
-            ) /
-            timeRange;
-
-
-        const startX =
-            leftPadding +
-            (
-                startNormalized *
-                usableWidth
+            tapUI.showFinalBpm(
+                averageBpm
             );
-
-
-        const endX =
-            leftPadding +
-            (
-                endNormalized *
-                usableWidth
-            );
-
-
-        const connector =
-            document.createElement(
-                "div"
-            );
-
-
-        connector.className =
-            "tap-connector";
-
-
-        connector.style.left =
-            `${startX}px`;
-
-
-        connector.style.width =
-            `${Math.max(
-                0,
-                endX - startX
-            )}px`;
-
-
-        connector.style.top =
-            "50%";
-
-
-        tapHistory.appendChild(
-            connector
-        );
-    }
-}
+        }
+    });
 
 
 /* =========================================================
    TAP RESULT
    ========================================================= */
 
-/**
- * Process one tap.
- */
 function handleTap() {
 
     /*
-     * A new tap means the current session
-     * is still active, so reset the timeout.
+     * Every new tap means that the current
+     * session is still active.
      */
 
-    clearSessionTimer();
+    session.clear();
 
 
     const result =
         tapEngine.registerTap();
 
 
-    /*
-     * New session:
-     * this tap is the first tap of the
-     * new series and therefore has no BPM.
-     */
+    /* -----------------------------------------
+       New session
+       ----------------------------------------- */
 
     if (
         result.isNewSession
     ) {
 
-        tapValue.textContent =
-            getTranslations(
-                getCurrentLanguage()
-            ).tap;
+        tapUI.showTap();
 
-
-        averageValue.textContent =
-            "—";
+        tapUI.showAverageBpm(
+            null
+        );
     }
 
 
-    /*
-     * Display the current measured BPM
-     * while the user is actively tapping.
-     */
+    /* -----------------------------------------
+       Current BPM
+       ----------------------------------------- */
 
     if (
         Number.isFinite(
@@ -1094,39 +465,24 @@ function handleTap() {
         )
     ) {
 
-        tapValue.textContent =
-            `${Math.round(
-                result.bpm
-            )} BPM`;
+        tapUI.showCurrentBpm(
+            result.bpm
+        );
     }
 
 
-    /*
-     * Display average BPM.
-     */
+    /* -----------------------------------------
+       Average BPM
+       ----------------------------------------- */
 
-    if (
-        Number.isFinite(
-            result.averageBpm
-        )
-    ) {
-
-        averageValue.textContent =
-            formatBpm(
-                result.averageBpm
-            );
-
-    } else {
-
-        averageValue.textContent =
-            "—";
-    }
+    tapUI.showAverageBpm(
+        result.averageBpm
+    );
 
 
-    /*
-     * Restart the session timeout after
-     * every accepted tap.
-     */
+    /* -----------------------------------------
+       Session timer
+       ----------------------------------------- */
 
     if (
         Array.isArray(
@@ -1135,7 +491,7 @@ function handleTap() {
         result.history.length > 0
     ) {
 
-        restartSessionTimer(
+        session.restart(
             Number(
                 settings.get(
                     "sessionTimeout"
@@ -1145,312 +501,25 @@ function handleTap() {
     }
 
 
-    /*
-     * Update visual history.
-     */
+    /* -----------------------------------------
+       History
+       ----------------------------------------- */
 
-    renderTapHistory(
+    tapUI.renderTapHistory(
         result.history
     );
 }
 
 
 /* =========================================================
-   DROPDOWNS
+   TAP BUTTON
    ========================================================= */
 
-/**
- * Close all dropdowns.
- */
-function closeDropdowns() {
-
-    sessionControl.classList.remove(
-        "is-open"
-    );
-
-    historyControl.classList.remove(
-        "is-open"
-    );
-
-    sessionControl.setAttribute(
-        "aria-expanded",
-        "false"
-    );
-
-    historyControl.setAttribute(
-        "aria-expanded",
-        "false"
-    );
-}
-
-
-/**
- * Toggle dropdown.
- *
- * @param {HTMLElement} control
- */
-function toggleDropdown(control) {
-
-    const isOpen =
-        control.classList.contains(
-            "is-open"
-        );
-
-
-    closeDropdowns();
-
-
-    if (!isOpen) {
-
-        control.classList.add(
-            "is-open"
-        );
-
-        control.setAttribute(
-            "aria-expanded",
-            "true"
-        );
-    }
-}
-
-
-/* =========================================================
-   SESSION DROPDOWN
-   ========================================================= */
-
-sessionControl.addEventListener(
-    "click",
-    (event) => {
-
-        if (
-            event.target.closest(
-                ".dropdown-option"
-            )
-        ) {
-            return;
-        }
-
-
-        event.stopPropagation();
-
-
-        toggleDropdown(
-            sessionControl
-        );
-    }
-);
-
-
-/* =========================================================
-   HISTORY DROPDOWN
-   ========================================================= */
-
-historyControl.addEventListener(
-    "click",
-    (event) => {
-
-        if (
-            event.target.closest(
-                ".dropdown-option"
-            )
-        ) {
-            return;
-        }
-
-
-        event.stopPropagation();
-
-
-        toggleDropdown(
-            historyControl
-        );
-    }
-);
-
-
-/* =========================================================
-   SESSION OPTIONS
-   ========================================================= */
-
-sessionMenu
-    .querySelectorAll(
-        ".dropdown-option"
-    )
-    .forEach(
-        (option) => {
-
-            option.addEventListener(
-                "click",
-                (event) => {
-
-                    event.stopPropagation();
-
-
-                    const value =
-                        Number(
-                            option.dataset.value
-                        );
-
-
-                    if (
-                        Number.isNaN(value)
-                    ) {
-                        return;
-                    }
-
-
-                    settings.set(
-                        "sessionTimeout",
-                        value
-                    );
-
-
-                    tapEngine.configure({
-                        sessionTimeout:
-                            settings.get(
-                                "sessionTimeout"
-                            ),
-
-                        historyLength:
-                            settings.get(
-                                "historyLength"
-                            )
-                    });
-
-
-                    updateSessionDisplay();
-
-                    closeDropdowns();
-                }
-            );
-        }
-    );
-
-
-/* =========================================================
-   HISTORY OPTIONS
-   ========================================================= */
-
-historyMenu
-    .querySelectorAll(
-        ".dropdown-option"
-    )
-    .forEach(
-        (option) => {
-
-            option.addEventListener(
-                "click",
-                (event) => {
-
-                    event.stopPropagation();
-
-
-                    const value =
-                        Number(
-                            option.dataset.value
-                        );
-
-
-                    if (
-                        Number.isNaN(value)
-                    ) {
-                        return;
-                    }
-
-
-                    settings.set(
-                        "historyLength",
-                        value
-                    );
-
-
-                    tapEngine.configure({
-                        sessionTimeout:
-                            settings.get(
-                                "sessionTimeout"
-                            ),
-
-                        historyLength:
-                            settings.get(
-                                "historyLength"
-                            )
-                    });
-
-
-                    updateHistoryDisplay();
-
-                    closeDropdowns();
-                }
-            );
-        }
-    );
-
-
-/* =========================================================
-   LANGUAGE SWITCHER
-   ========================================================= */
-
-languageSwitcher
-    .querySelectorAll(
-        ".language-button"
-    )
-    .forEach(
-        (button) => {
-
-            button.addEventListener(
-                "click",
-                (event) => {
-
-                    event.stopPropagation();
-
-
-                    setLanguage(
-                        button.dataset.language
-                    );
-                }
-            );
-        }
-    );
-
-
-/* =========================================================
-   CLOSE DROPDOWNS OUTSIDE
-   ========================================================= */
-
-document.addEventListener(
+tapButton.addEventListener(
     "click",
     () => {
 
-        closeDropdowns();
-    }
-);
-
-
-/* =========================================================
-   ESCAPE
-   ========================================================= */
-
-document.addEventListener(
-    "keydown",
-    (event) => {
-
-        /*
-         * Tap Key capture has its own Escape handling.
-         */
-
-        if (
-            tapKeyController.isCapturing
-        ) {
-            return;
-        }
-
-
-        if (
-            event.code === "Escape"
-        ) {
-
-            closeDropdowns();
-        }
+        handleTap();
     }
 );
 
@@ -1463,7 +532,7 @@ settingsButton.addEventListener(
     "click",
     () => {
 
-        closeDropdowns();
+        dropdowns.closeAll();
 
 
         flipCard.classList.toggle(
@@ -1471,8 +540,8 @@ settingsButton.addEventListener(
         );
 
 
-        updateLanguageButtons(
-            getCurrentLanguage()
+        languageUI.updateLanguageButtons(
+            languageUI.getCurrentLanguage()
         );
     }
 );
@@ -1486,37 +555,11 @@ resetButton.addEventListener(
     "click",
     () => {
 
-        clearSessionTimer();
-
+        session.reset();
 
         tapEngine.reset();
 
-
-        tapValue.textContent =
-            getTranslations(
-                getCurrentLanguage()
-            ).tap;
-
-
-        averageValue.textContent =
-            "—";
-
-
-        tapHistory.innerHTML =
-            "";
-    }
-);
-
-
-/* =========================================================
-   TAP BUTTON
-   ========================================================= */
-
-tapButton.addEventListener(
-    "click",
-    () => {
-
-        handleTap();
+        tapUI.reset();
     }
 );
 
@@ -1554,7 +597,7 @@ function initialize() {
 
 
     /*
-     * Configure Tap Engine with current settings.
+     * Configure Tap Engine.
      */
 
     tapEngine.configure({
@@ -1579,31 +622,25 @@ function initialize() {
 
 
     /*
-     * Apply saved language and UI state.
+     * Apply saved language.
      */
 
-    const language =
-        getCurrentLanguage();
-
-
-    applyLanguage(
-        language
+    languageUI.applyLanguage(
+        languageUI.getCurrentLanguage()
     );
 
 
     /*
-     * Final synchronization.
+     * Final language button synchronization.
      */
 
-    updateLanguageButtons(
-        language
+    languageUI.updateLanguageButtons(
+        languageUI.getCurrentLanguage()
     );
 
 
     /*
-     * The analyzer is instantiated above and
-     * will be connected when Analyze File UI
-     * is introduced.
+     * Analyzer will be connected later.
      */
 
     void trackAnalyzer;
