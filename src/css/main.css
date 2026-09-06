@@ -1064,7 +1064,7 @@ a:focus-visible {
 .dropdown-menu {
     position: absolute;
 
-    top: calc(100% + 4px);
+    bottom: calc(100% + 4px);
     right: -1px;
 
     z-index: 50;
@@ -1095,10 +1095,10 @@ a:focus-visible {
     pointer-events: none;
 
     transform:
-        translateY(-3px)
+        translateY(3px)
         scale(0.98);
 
-    transform-origin: top right;
+    transform-origin: bottom right;
 
     transition:
         opacity 110ms ease,
@@ -1194,9 +1194,18 @@ a:focus-visible {
 .language-switcher {
     min-width: auto;
 
-    gap: 2px;
+    width: auto;
 
     padding: 2px;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 2px;
 
     border: 0;
 
@@ -1211,6 +1220,8 @@ a:focus-visible {
    --------------------------------------------------------- */
 
 .language-button {
+    flex: 0 0 25px;
+
     width: 25px;
     height: 20px;
 
