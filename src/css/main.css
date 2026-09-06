@@ -1422,11 +1422,12 @@ a:focus-visible {
    --------------------------------------------------------- */
 
 .analysis-panel {
+    position: absolute;
+
     top: calc(100% + 1px);
     left: 50%;
 
     width: calc(100% - 24px);
-
     height: 143px;
 
     z-index: 100;
@@ -1473,6 +1474,23 @@ a:focus-visible {
             0.36,
             1
         );
+}
+
+
+.app-window.analysis-panel-open {
+    overflow: visible;
+}
+
+
+.app-window.analysis-panel-open .analysis-panel {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transform:
+        translateX(-50%)
+        translateY(0)
+        scaleY(1);
 }
 
 
