@@ -1,1 +1,696 @@
+/* =========================================================
+   WM TAPPER
+   Main stylesheet
+   ========================================================= */
 
+
+/* =========================================================
+   FONT
+   ========================================================= */
+
+@font-face {
+    font-family: "Finlandica";
+    src: url("../../assets/fonts/Finlandica-VariableFont_wght.ttf")
+        format("truetype");
+
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+}
+
+
+/* =========================================================
+   ROOT VARIABLES
+   ========================================================= */
+
+:root {
+    /* Application size */
+    --app-width: 250px;
+    --app-height: 300px;
+
+    /* Background */
+    --bg-main: #17191b;
+    --bg-top: #1d2022;
+    --bg-bottom: #141618;
+
+    /* Borders */
+    --border-main: rgba(255, 255, 255, 0.055);
+    --border-soft: rgba(255, 255, 255, 0.035);
+
+    /* Text */
+    --text-main: #f2f3ee;
+    --text-secondary: rgba(242, 243, 238, 0.52);
+    --text-muted: rgba(242, 243, 238, 0.30);
+
+    /* Accent */
+    --accent-main: #c8e957;
+    --accent-light: #e6ff9b;
+    --accent-mid: #b9d84c;
+    --accent-dark: #7f9b31;
+
+    /* Accent glow */
+    --accent-glow-soft: rgba(200, 233, 87, 0.14);
+    --accent-glow-medium: rgba(200, 233, 87, 0.22);
+    --accent-glow-strong: rgba(200, 233, 87, 0.32);
+
+    /* Motion */
+    --transition-fast: 100ms ease;
+    --transition-normal: 180ms ease;
+}
+
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+html {
+    font-family: "Finlandica", sans-serif;
+    background: #101214;
+}
+
+body {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(
+            circle at 50% 45%,
+            rgba(255, 255, 255, 0.028),
+            transparent 48%
+        ),
+        #101214;
+
+    color: var(--text-main);
+
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+button {
+    appearance: none;
+    border: 0;
+    outline: 0;
+
+    font: inherit;
+    color: inherit;
+
+    cursor: pointer;
+
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible {
+    outline: 1px solid rgba(200, 233, 87, 0.55);
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   APPLICATION WINDOW
+   ========================================================= */
+
+.app-window {
+    width: var(--app-width);
+    height: var(--app-height);
+
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid var(--border-main);
+    border-radius: 12px;
+
+    background:
+        linear-gradient(
+            180deg,
+            var(--bg-top) 0%,
+            var(--bg-main) 52%,
+            var(--bg-bottom) 100%
+        );
+
+    box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.48),
+        0 4px 14px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+
+    user-select: none;
+}
+
+
+/* =========================================================
+   TITLE BAR
+   ========================================================= */
+
+.title-bar {
+    position: relative;
+
+    height: 38px;
+    min-height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 8px 0 13px;
+
+    border-bottom: 1px solid var(--border-soft);
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.015),
+            rgba(255, 255, 255, 0)
+        );
+}
+
+
+/* ---------------------------------------------------------
+   TITLE
+   --------------------------------------------------------- */
+
+.title-bar__title {
+    color: rgba(242, 243, 238, 0.88);
+
+    font-size: 13px;
+    font-weight: 560;
+    line-height: 1;
+
+    letter-spacing: 0.02em;
+}
+
+
+/* ---------------------------------------------------------
+   WINDOW CONTROLS
+   --------------------------------------------------------- */
+
+.title-bar__controls {
+    display: flex;
+    align-items: center;
+
+    gap: 3px;
+}
+
+
+/* ---------------------------------------------------------
+   Individual control
+   --------------------------------------------------------- */
+
+.window-control {
+    position: relative;
+
+    width: 23px;
+    height: 23px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 5px;
+
+    background: transparent;
+
+    transition:
+        background-color var(--transition-fast),
+        opacity var(--transition-fast);
+}
+
+.window-control:hover {
+    background: rgba(255, 255, 255, 0.055);
+}
+
+.window-control:active {
+    background: rgba(255, 255, 255, 0.085);
+}
+
+
+/* ---------------------------------------------------------
+   Minimize icon
+   --------------------------------------------------------- */
+
+.window-control--minimize span {
+    width: 9px;
+    height: 1px;
+
+    display: block;
+
+    background: rgba(242, 243, 238, 0.62);
+}
+
+
+/* ---------------------------------------------------------
+   Close icon
+   --------------------------------------------------------- */
+
+.window-control--close span,
+.window-control--close span::after {
+    position: absolute;
+
+    width: 10px;
+    height: 1px;
+
+    display: block;
+
+    content: "";
+
+    background: rgba(242, 243, 238, 0.62);
+
+    transform-origin: center;
+}
+
+.window-control--close span {
+    transform: rotate(45deg);
+}
+
+.window-control--close span::after {
+    transform: rotate(90deg);
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+.app-content {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    padding: 12px 12px 11px;
+}
+
+
+/* =========================================================
+   TAP BUTTON
+   ========================================================= */
+
+.tap-button {
+    position: relative;
+
+    width: 100%;
+    height: 136px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    border-radius: 16px;
+
+    /*
+        Main hardware-style surface.
+
+        The brighter center creates the impression of an
+        illuminated physical pad.
+    */
+    background:
+        radial-gradient(
+            circle at 50% 44%,
+            var(--accent-light) 0%,
+            var(--accent-main) 26%,
+            var(--accent-mid) 58%,
+            var(--accent-dark) 100%
+        );
+
+    border: 1px solid rgba(234, 255, 162, 0.22);
+
+    box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.28),
+        inset 0 -2px 7px rgba(55, 75, 15, 0.28),
+        0 7px 18px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(0, 0, 0, 0.08),
+        0 0 20px var(--accent-glow-soft);
+
+    color: #23291a;
+
+    transform: translateY(0) scale(1);
+
+    transition:
+        transform 90ms ease,
+        box-shadow 140ms ease,
+        filter 140ms ease;
+}
+
+
+/* ---------------------------------------------------------
+   Inner light layer
+   --------------------------------------------------------- */
+
+.tap-button::before {
+    position: absolute;
+
+    inset: 1px;
+
+    content: "";
+
+    border-radius: 15px;
+
+    background:
+        radial-gradient(
+            circle at 50% 36%,
+            rgba(255, 255, 255, 0.18),
+            rgba(255, 255, 255, 0.055) 34%,
+            transparent 66%
+        );
+
+    pointer-events: none;
+}
+
+
+/* ---------------------------------------------------------
+   Soft outer edge
+   --------------------------------------------------------- */
+
+.tap-button::after {
+    position: absolute;
+
+    inset: 0;
+
+    content: "";
+
+    border-radius: 16px;
+
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 -10px 22px rgba(35, 50, 10, 0.08);
+
+    pointer-events: none;
+}
+
+
+/* ---------------------------------------------------------
+   Hover
+   --------------------------------------------------------- */
+
+.tap-button:hover {
+    filter: brightness(1.035);
+
+    box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.32),
+        inset 0 -2px 7px rgba(55, 75, 15, 0.26),
+        0 8px 20px rgba(0, 0, 0, 0.28),
+        0 0 24px var(--accent-glow-medium);
+}
+
+
+/* ---------------------------------------------------------
+   Active / pressed state
+   --------------------------------------------------------- */
+
+.tap-button:active {
+    transform: translateY(2px) scale(0.986);
+
+    filter: brightness(0.96);
+
+    box-shadow:
+        inset 0 3px 7px rgba(52, 70, 14, 0.28),
+        inset 0 -1px 2px rgba(255, 255, 255, 0.12),
+        0 3px 8px rgba(0, 0, 0, 0.28),
+        0 0 13px var(--accent-glow-medium);
+}
+
+
+/* =========================================================
+   TAP BUTTON VALUE
+   ========================================================= */
+
+.tap-button__value {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 100px;
+
+    color: #20251a;
+
+    font-size: 37px;
+    font-weight: 620;
+    line-height: 1;
+
+    letter-spacing: -0.035em;
+
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.16);
+
+    transition:
+        opacity 140ms ease,
+        transform 140ms ease;
+}
+
+
+/* Initial TAP label */
+
+.tap-button__value {
+    font-size: 31px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+
+/* =========================================================
+   TAP HISTORY
+   ========================================================= */
+
+.tap-history {
+    position: relative;
+
+    width: 100%;
+    height: 35px;
+
+    margin-top: 13px;
+
+    display: flex;
+    align-items: center;
+
+    overflow: hidden;
+}
+
+
+/*
+    A subtle horizontal guide.
+
+    JavaScript will later populate the actual points
+    and connectors inside this container.
+*/
+
+.tap-history::before {
+    position: absolute;
+
+    left: 8px;
+    right: 8px;
+
+    top: 50%;
+
+    height: 1px;
+
+    content: "";
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.075) 0 3px,
+            transparent 3px 7px
+        );
+
+    opacity: 0.55;
+}
+
+
+/* =========================================================
+   TAP POINTS
+   ========================================================= */
+
+.tap-point {
+    position: absolute;
+
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: rgba(243, 246, 232, 0.94);
+
+    box-shadow:
+        0 0 5px rgba(243, 246, 232, 0.20),
+        0 1px 2px rgba(0, 0, 0, 0.28);
+
+    transform: translate(-50%, -50%);
+
+    z-index: 2;
+
+    animation:
+        tap-point-in 160ms ease-out both;
+}
+
+
+@keyframes tap-point-in {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.55);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.08);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+
+/* =========================================================
+   TAP CONNECTORS
+   ========================================================= */
+
+.tap-connector {
+    position: absolute;
+
+    height: 1px;
+
+    background: rgba(243, 246, 232, 0.11);
+
+    transform-origin: left center;
+
+    z-index: 1;
+}
+
+
+/* =========================================================
+   AVERAGE
+   ========================================================= */
+
+.average {
+    width: 100%;
+
+    margin-top: 3px;
+
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+
+    min-height: 19px;
+
+    color: var(--text-secondary);
+
+    font-size: 11px;
+    font-weight: 470;
+
+    line-height: 1;
+
+    letter-spacing: 0.015em;
+}
+
+
+.average__label {
+    color: var(--text-secondary);
+}
+
+
+.average__value {
+    min-width: 48px;
+
+    margin-left: 4px;
+
+    color: rgba(242, 243, 238, 0.80);
+
+    font-variant-numeric: tabular-nums;
+
+    text-align: right;
+}
+
+
+.average__unit {
+    margin-left: 3px;
+
+    color: var(--text-muted);
+}
+
+
+/* =========================================================
+   RESET BUTTON
+   ========================================================= */
+
+.reset-button {
+    margin-top: auto;
+    margin-bottom: 1px;
+
+    padding: 5px 12px;
+
+    border-radius: 5px;
+
+    background: transparent;
+
+    color: rgba(242, 243, 238, 0.38);
+
+    font-size: 10px;
+    font-weight: 570;
+
+    line-height: 1;
+
+    letter-spacing: 0.10em;
+
+    transition:
+        color var(--transition-fast),
+        background-color var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+
+.reset-button:hover {
+    color: rgba(242, 243, 238, 0.68);
+
+    background: rgba(255, 255, 255, 0.035);
+}
+
+
+.reset-button:active {
+    color: rgba(242, 243, 238, 0.50);
+
+    background: rgba(255, 255, 255, 0.055);
+
+    transform: translateY(1px);
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+
+        transition-duration: 0.01ms !important;
+    }
+}
