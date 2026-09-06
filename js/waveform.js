@@ -398,12 +398,15 @@ export function createWaveformRenderer(
                 );
 
 
+            context.fillStyle =
+                "rgba(222, 238, 176, 0.66)";
+            
             context.fillRect(
                 x,
                 y,
                 barWidth,
                 barHeight
-            );
+            );   
         }
     }
 
