@@ -503,24 +503,36 @@ function updateDropdownTranslations(
    LANGUAGE BUTTONS
    ========================================================= */
 
-function updateLanguageButtons(
-    language
-) {
+function updateLanguageButtons(language) {
 
-    languageSwitcher
-        .querySelectorAll(
+    const buttons =
+        languageSwitcher.querySelectorAll(
             ".language-button"
-        )
-        .forEach(
-            (button) => {
+        );
 
-                button.classList.toggle(
-                    "is-active",
-                    button.dataset.language ===
-                    language
+
+    buttons.forEach(
+        (button) => {
+
+            const buttonLanguage =
+                button.dataset.language;
+
+            if (
+                buttonLanguage === language
+            ) {
+
+                button.classList.add(
+                    "is-active"
+                );
+
+            } else {
+
+                button.classList.remove(
+                    "is-active"
                 );
             }
-        );
+        }
+    );
 }
 
 
@@ -833,6 +845,10 @@ settingsButton.addEventListener(
 
         flipCard.classList.toggle(
             "is-flipped"
+        );
+
+        updateLanguageButtons(
+            getCurrentLanguage()
         );
     }
 );
