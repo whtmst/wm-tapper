@@ -61,6 +61,7 @@ import {
     createWaveformRenderer
 } from "./waveform.js";
 
+
 /* =========================================================
    DOM ELEMENTS
    ========================================================= */
@@ -315,6 +316,7 @@ const tapKeyController =
         value: tapKeyValue
     });
 
+
 const waveform =
     createWaveformRenderer(
         analysisWaveformCanvas
@@ -532,7 +534,10 @@ const audioFileInput =
 let selectedAudioFile =
     null;
 
-let selectedAudioBuffer = null;
+
+let selectedAudioBuffer =
+    null;
+
 
 let analysisDuration =
     0;
@@ -552,6 +557,10 @@ let analysisModeValueCurrent =
 
 let activeAnalysisHandle =
     null;
+
+
+let isAnalysisRunning =
+    false;
 
 
 /* =========================================================
@@ -683,8 +692,6 @@ function updateAnalysisRangeUI() {
 
 /**
  * Apply analysis mode in the application layer.
- *
- * Dropdown state itself is managed by dropdowns.js.
  *
  * @param {string} mode
  */
@@ -882,6 +889,61 @@ function loadAudioDuration(
 }
 
 
+/**
+ * Set analysis button busy state.
+ *
+ * @param {boolean} state
+ */
+function setAnalysisRunning(
+    state
+) {
+
+    isAnalysisRunning =
+        state;
+
+
+    analysisRunButton.disabled =
+        state;
+
+
+    analysisRunButton.classList.toggle(
+        "is-analyzing",
+        state
+    );
+
+
+    if (
+        state
+    ) {
+
+        analysisRunButton.dataset.previousText =
+            analysisRunButton.textContent;
+
+
+        analysisRunButton.textContent =
+            "ANALYZING...";
+
+        return;
+    }
+
+
+    const previousText =
+        analysisRunButton.dataset.previousText;
+
+
+    if (
+        previousText
+    ) {
+
+        analysisRunButton.textContent =
+            previousText;
+
+
+        delete analysisRunButton.dataset.previousText;
+    }
+}
+
+
 /* =========================================================
    ANALYSIS HANDLE DRAGGING
    ========================================================= */
@@ -898,6 +960,7 @@ function startAnalysisHandleDrag(
 ) {
 
     if (
+        isAnalysisRunning ||
         analysisModeValueCurrent ===
         "fast"
     ) {
@@ -924,6 +987,7 @@ function updateAnalysisHandleDrag(
 ) {
 
     if (
+        isAnalysisRunning ||
         !activeAnalysisHandle ||
         analysisModeValueCurrent ===
         "fast"
@@ -992,11 +1056,6 @@ function updateAnalysisHandleDrag(
                 analysisStartRatio
             );
 
-
-        /*
-         * Moving a handle always means
-         * that we are working with a selection.
-         */
 
         if (
             analysisModeValueCurrent !==
@@ -1193,6 +1252,14 @@ const dropdowns =
                 mode
             ) => {
 
+                if (
+                    isAnalysisRunning
+                ) {
+
+                    return;
+                }
+
+
                 applyAnalysisMode(
                     mode
                 );
@@ -1333,6 +1400,14 @@ analyzeButton.addEventListener(
     "click",
     () => {
 
+        if (
+            isAnalysisRunning
+        ) {
+
+            return;
+        }
+
+
         audioFileInput.click();
     }
 );
@@ -1450,11 +1525,6 @@ async function prepareAnalysisPanel(
         );
 
 
-        /*
-         * Fallback to metadata duration
-         * if Web Audio decoding fails.
-         */
-
         try {
 
             analysisDuration =
@@ -1482,11 +1552,27 @@ async function prepareAnalysisPanel(
 
 analysisRunButton.addEventListener(
     "click",
-    () => {
+    async () => {
 
         if (
+            isAnalysisRunning ||
             !selectedAudioFile
         ) {
+
+            return;
+        }
+
+
+        if (
+            !Number.isFinite(
+                analysisDuration
+            ) ||
+            analysisDuration <= 0
+        ) {
+
+            console.error(
+                "WM Tapper: analysis duration is unavailable."
+            );
 
             return;
         }
@@ -1503,7 +1589,7 @@ analysisRunButton.addEventListener(
 
 
         console.log(
-            "WM Tapper: analysis UI selection.",
+            "WM Tapper: starting analysis.",
             {
                 file:
                     selectedAudioFile.name,
@@ -1519,6 +1605,95 @@ analysisRunButton.addEventListener(
                     analysisDuration
             }
         );
+
+
+        setAnalysisRunning(
+            true
+        );
+
+
+        try {
+
+            /*
+             * Give the browser one frame so the
+             * ANALYZING state is painted before
+             * the heavy synchronous work begins.
+             */
+
+            await new Promise(
+                (resolve) => {
+
+                    requestAnimationFrame(
+                        () => resolve()
+                    );
+                }
+            );
+
+
+            const result =
+                await trackAnalyzer.analyze(
+                    selectedAudioFile,
+                    {
+                        mode:
+                            analysisModeValueCurrent,
+
+                        startTime,
+
+                        endTime,
+
+                        duration:
+                            analysisDuration,
+
+                        audioBuffer:
+                            selectedAudioBuffer
+                    }
+                );
+
+
+            console.log(
+                "WM Tapper: analysis result.",
+                result
+            );
+
+
+            if (
+                result &&
+                Number.isFinite(
+                    result.bpm
+                )
+            ) {
+
+                tapValue.textContent =
+                    `${formatBpm(
+                        result.bpm
+                    )} BPM`;
+            }
+
+
+            /*
+             * Keep the result available for the
+             * next UI stage.
+             */
+
+            window.WMTapperLastAnalysis =
+                result;
+
+
+            closeAnalysisPanel();
+
+        } catch (error) {
+
+            console.error(
+                "WM Tapper: analysis failed.",
+                error
+            );
+
+        } finally {
+
+            setAnalysisRunning(
+                false
+            );
+        }
     }
 );
 
@@ -1548,6 +1723,14 @@ const session =
    ========================================================= */
 
 function handleTap() {
+
+    if (
+        isAnalysisRunning
+    ) {
+
+        return;
+    }
+
 
     session.clear();
 
@@ -1629,6 +1812,14 @@ settingsButton.addEventListener(
     "click",
     () => {
 
+        if (
+            isAnalysisRunning
+        ) {
+
+            return;
+        }
+
+
         closeAnalysisPanel();
 
         dropdowns.closeAll();
@@ -1653,6 +1844,14 @@ settingsButton.addEventListener(
 resetButton.addEventListener(
     "click",
     () => {
+
+        if (
+            isAnalysisRunning
+        ) {
+
+            return;
+        }
+
 
         session.reset();
 
