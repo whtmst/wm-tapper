@@ -1422,12 +1422,11 @@ a:focus-visible {
    --------------------------------------------------------- */
 
 .analysis-panel {
-    position: absolute;
+    top: calc(100% + 1px);
+    left: 50%;
 
-    top: calc(100% - 1px);
-    left: 6px;
+    width: calc(100% - 24px);
 
-    width: calc(100% - 12px);
     height: 143px;
 
     z-index: 100;
@@ -1459,6 +1458,7 @@ a:focus-visible {
     pointer-events: none;
 
     transform:
+        translateX(-50%)
         translateY(-8px)
         scaleY(0.92);
 
