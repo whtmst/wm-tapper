@@ -110,7 +110,7 @@ export function createTapUI(
         } else {
 
             averageValue.textContent =
-                "—";
+                "-";
         }
     }
 
@@ -427,7 +427,7 @@ export function createTapUI(
 
 
         averageValue.textContent =
-            "—";
+            "-";
 
 
         tapHistory.innerHTML =
