@@ -191,10 +191,6 @@ function getCurrentLanguage() {
 /**
  * Update active language button.
  *
- * This function always clears the active
- * state from every button first, then
- * applies it only to the current language.
- *
  * @param {string} language
  */
 function updateLanguageButtons(language) {
@@ -213,18 +209,10 @@ function updateLanguageButtons(language) {
     buttons.forEach(
         (button) => {
 
-            /*
-             * Always remove the old state first.
-             */
-
             button.classList.remove(
                 "is-active"
             );
 
-
-            /*
-             * Then explicitly apply the new state.
-             */
 
             if (
                 button.dataset.language === language
@@ -255,32 +243,19 @@ function setLanguage(language) {
     }
 
 
-    /*
-     * Save the new language.
-     */
-
     settings.set(
         "language",
         language
     );
 
 
-    /*
-     * Update all translated UI.
-     */
-
     applyLanguage(
         language
     );
 
 
-    /*
-     * Force the language button state
-     * after all UI updates are complete.
-     */
-
     updateLanguageButtons(
-        getCurrentLanguage()
+        language
     );
 }
 
@@ -414,6 +389,52 @@ function applyLanguage(language) {
     updateLanguageButtons(
         language
     );
+}
+
+
+/* =========================================================
+   SELECTED DROPDOWN OPTION
+   ========================================================= */
+
+/**
+ * Update selected state inside a dropdown.
+ *
+ * @param {HTMLElement} menu
+ * @param {string} value
+ */
+function updateSelectedOption(
+    menu,
+    value
+) {
+
+    if (!menu) {
+        return;
+    }
+
+
+    menu
+        .querySelectorAll(
+            ".dropdown-option"
+        )
+        .forEach(
+            (option) => {
+
+                const isSelected =
+                    option.dataset.value === value;
+
+
+                option.classList.toggle(
+                    "is-selected",
+                    isSelected
+                );
+
+
+                option.setAttribute(
+                    "aria-selected",
+                    String(isSelected)
+                );
+            }
+        );
 }
 
 
@@ -817,12 +838,8 @@ languageSwitcher
                     event.stopPropagation();
 
 
-                    const language =
-                        button.dataset.language;
-
-
                     setLanguage(
-                        language
+                        button.dataset.language
                     );
                 }
             );
@@ -887,11 +904,6 @@ settingsButton.addEventListener(
             "is-flipped"
         );
 
-
-        /*
-         * Always synchronize the language
-         * button when Settings becomes visible.
-         */
 
         updateLanguageButtons(
             getCurrentLanguage()
@@ -1014,7 +1026,7 @@ function initialize() {
 
 
     /*
-     * Explicit final synchronization.
+     * Final synchronization.
      */
 
     updateLanguageButtons(
