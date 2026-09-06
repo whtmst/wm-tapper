@@ -100,11 +100,21 @@
                             aria-label="Tap tempo"
                         >
                             <span
+                                class="tap-button__confidence"
+                                id="tapConfidence"
+                            ></span>
+                        
+                            <span
                                 class="tap-button__value"
                                 id="tapValue"
                             >
                                 TAP
                             </span>
+                        
+                            <span
+                                class="tap-button__key"
+                                id="tapKey"
+                            ></span>
                         </button>
 
 
@@ -494,6 +504,17 @@
 
         </section>
 
+
+        <!-- =================================================
+             ANALYSIS BUSY OVERLAY
+             ================================================= -->
+        <div
+            class="analysis-busy-overlay"
+            id="analysisBusyOverlay"
+            aria-hidden="true"
+        ></div>
+        
+        
         <!-- =================================================
              AUDIO ANALYSIS PANEL
              ================================================= -->
