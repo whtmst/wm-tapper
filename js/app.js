@@ -189,6 +189,57 @@ function getCurrentLanguage() {
 
 
 /**
+ * Update active language button.
+ *
+ * This function always clears the active
+ * state from every button first, then
+ * applies it only to the current language.
+ *
+ * @param {string} language
+ */
+function updateLanguageButtons(language) {
+
+    if (!languageSwitcher) {
+        return;
+    }
+
+
+    const buttons =
+        languageSwitcher.querySelectorAll(
+            ".language-button"
+        );
+
+
+    buttons.forEach(
+        (button) => {
+
+            /*
+             * Always remove the old state first.
+             */
+
+            button.classList.remove(
+                "is-active"
+            );
+
+
+            /*
+             * Then explicitly apply the new state.
+             */
+
+            if (
+                button.dataset.language === language
+            ) {
+
+                button.classList.add(
+                    "is-active"
+                );
+            }
+        }
+    );
+}
+
+
+/**
  * Set language and save immediately.
  *
  * @param {string} language
@@ -204,11 +255,19 @@ function setLanguage(language) {
     }
 
 
+    /*
+     * Save the new language.
+     */
+
     settings.set(
         "language",
         language
     );
 
+
+    /*
+     * Update all translated UI.
+     */
 
     applyLanguage(
         language
@@ -216,16 +275,12 @@ function setLanguage(language) {
 
 
     /*
-     * Explicitly synchronize the active
-     * language button immediately.
-     *
-     * This prevents the previous language
-     * from remaining highlighted until the
-     * Settings panel is reopened.
+     * Force the language button state
+     * after all UI updates are complete.
      */
 
     updateLanguageButtons(
-        language
+        getCurrentLanguage()
     );
 }
 
@@ -514,34 +569,6 @@ function updateDropdownTranslations(
 
 
 /* =========================================================
-   LANGUAGE BUTTONS
-   ========================================================= */
-
-function updateLanguageButtons(language) {
-
-    const buttons =
-        languageSwitcher.querySelectorAll(
-            ".language-button"
-        );
-
-
-    buttons.forEach(
-        (button) => {
-
-            const isActive =
-                button.dataset.language === language;
-
-
-            button.classList.toggle(
-                "is-active",
-                isActive
-            );
-        }
-    );
-}
-
-
-/* =========================================================
    DROPDOWNS
    ========================================================= */
 
@@ -785,10 +812,17 @@ languageSwitcher
 
             button.addEventListener(
                 "click",
-                () => {
+                (event) => {
+
+                    event.stopPropagation();
+
+
+                    const language =
+                        button.dataset.language;
+
 
                     setLanguage(
-                        button.dataset.language
+                        language
                     );
                 }
             );
@@ -848,9 +882,16 @@ settingsButton.addEventListener(
 
         closeDropdowns();
 
+
         flipCard.classList.toggle(
             "is-flipped"
         );
+
+
+        /*
+         * Always synchronize the language
+         * button when Settings becomes visible.
+         */
 
         updateLanguageButtons(
             getCurrentLanguage()
@@ -963,8 +1004,21 @@ function initialize() {
      * Apply saved language and UI state.
      */
 
+    const language =
+        getCurrentLanguage();
+
+
     applyLanguage(
-        getCurrentLanguage()
+        language
+    );
+
+
+    /*
+     * Explicit final synchronization.
+     */
+
+    updateLanguageButtons(
+        language
     );
 
 
