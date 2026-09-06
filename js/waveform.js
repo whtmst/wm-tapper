@@ -74,8 +74,10 @@ export async function decodeAudioFile(file) {
 /**
  * Extract normalized amplitude peaks from AudioBuffer.
  *
- * Uses the same basic approach as the WM Tagger waveform:
- * average absolute amplitude over equally sized blocks.
+ * For stereo and multichannel audio, all available channels
+ * are analyzed together. Each channel contributes its average
+ * absolute amplitude to the current block, and the final peak
+ * value is the average across all channels.
  *
  * @param {AudioBuffer} audioBuffer
  * @param {number} peakCount
@@ -88,15 +90,16 @@ export function extractPeaks(
 
     if (
         !audioBuffer ||
-        !audioBuffer.length
+        !audioBuffer.length ||
+        !audioBuffer.numberOfChannels
     ) {
 
         return [];
     }
 
 
-    const channelData =
-        audioBuffer.getChannelData(0);
+    const channelCount =
+        audioBuffer.numberOfChannels;
 
 
     const safePeakCount =
@@ -104,7 +107,7 @@ export function extractPeaks(
             1,
             Math.min(
                 peakCount,
-                channelData.length
+                audioBuffer.length
             )
         );
 
@@ -113,10 +116,27 @@ export function extractPeaks(
         Math.max(
             1,
             Math.floor(
-                channelData.length /
+                audioBuffer.length /
                 safePeakCount
             )
         );
+
+
+    const channelData = [];
+
+
+    for (
+        let channelIndex = 0;
+        channelIndex < channelCount;
+        channelIndex += 1
+    ) {
+
+        channelData.push(
+            audioBuffer.getChannelData(
+                channelIndex
+            )
+        );
+    }
 
 
     const peaks = [];
@@ -135,14 +155,14 @@ export function extractPeaks(
 
         const end =
             index === safePeakCount - 1
-                ? channelData.length
+                ? audioBuffer.length
                 : Math.min(
-                    channelData.length,
+                    audioBuffer.length,
                     start + blockSize
                 );
 
 
-        let sum =
+        let totalAmplitude =
             0;
 
 
@@ -156,9 +176,31 @@ export function extractPeaks(
             sampleIndex += 1
         ) {
 
-            sum += Math.abs(
-                channelData[sampleIndex]
-            );
+            let sampleAmplitude =
+                0;
+
+
+            for (
+                let channelIndex = 0;
+                channelIndex < channelData.length;
+                channelIndex += 1
+            ) {
+
+                sampleAmplitude +=
+                    Math.abs(
+                        channelData[channelIndex][
+                            sampleIndex
+                        ]
+                    );
+            }
+
+
+            sampleAmplitude /=
+                channelData.length;
+
+
+            totalAmplitude +=
+                sampleAmplitude;
 
 
             sampleCount += 1;
@@ -167,7 +209,7 @@ export function extractPeaks(
 
         peaks.push(
             sampleCount > 0
-                ? sum / sampleCount
+                ? totalAmplitude / sampleCount
                 : 0
         );
     }
@@ -218,6 +260,16 @@ export function createWaveformRenderer(
     let peaks = [];
 
 
+    /**
+     * Resize Canvas for the current CSS size
+     * and device pixel ratio.
+     *
+     * @returns {{
+     *     context: CanvasRenderingContext2D,
+     *     width: number,
+     *     height: number
+     * }}
+     */
     function resizeCanvas() {
 
         const rect =
@@ -287,6 +339,9 @@ export function createWaveformRenderer(
     }
 
 
+    /**
+     * Render waveform bars.
+     */
     function render() {
 
         const {
@@ -400,17 +455,23 @@ export function createWaveformRenderer(
 
             context.fillStyle =
                 "rgba(222, 238, 176, 0.66)";
-            
+
+
             context.fillRect(
                 x,
                 y,
                 barWidth,
                 barHeight
-            );   
+            );
         }
     }
 
 
+    /**
+     * Replace current waveform peaks.
+     *
+     * @param {number[]} nextPeaks
+     */
     function setPeaks(
         nextPeaks
     ) {
@@ -427,6 +488,9 @@ export function createWaveformRenderer(
     }
 
 
+    /**
+     * Clear waveform.
+     */
     function clear() {
 
         peaks =
@@ -437,6 +501,9 @@ export function createWaveformRenderer(
     }
 
 
+    /**
+     * Re-render waveform after resize.
+     */
     function handleResize() {
 
         render();
@@ -468,6 +535,7 @@ export function createWaveformRenderer(
                 "resize",
                 handleResize
             );
+
 
             clear();
         }
