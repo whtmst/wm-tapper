@@ -2,14 +2,26 @@
    WM TAPPER
    Main application script
 
-   Current stage:
-   - Settings flip
-   - Language switcher
-   - Language persistence
-   - Reset UI
-   - Space is reserved for future Tap Tempo logic
+   Architecture:
+   UI
+    ↓
+   Settings Manager
+    ↓
+   Storage Adapter
+    ↓
+   localStorage (browser)
 
-   Tap Tempo calculation will be added later.
+   Later in Tauri:
+   UI
+    ↓
+   Settings Manager
+    ↓
+   Storage Adapter
+    ↓
+   Tauri Store / JSON
+
+   The rest of the application will not need to know
+   where the settings are physically stored.
    ========================================================= */
 
 
@@ -30,53 +42,353 @@ const tapHistory = document.getElementById("tapHistory");
 
 
 /* =========================================================
+   APPLICATION CONSTANTS
+   ========================================================= */
+
+const APP_NAME = "wm-tapper";
+
+const SETTINGS_STORAGE_KEY = `${APP_NAME}:settings`;
+
+
+/* =========================================================
+   DEFAULT SETTINGS
+   ========================================================= */
+
+const DEFAULT_SETTINGS = {
+    version: 1,
+
+    language: "en",
+
+    sessionTimeout: 3,
+
+    historyLength: 12,
+
+    tapKey: "Space"
+};
+
+
+/* =========================================================
+   STORAGE ADAPTER
+   ========================================================= */
+
+/*
+ * This is the only place that directly talks to
+ * localStorage.
+ *
+ * When the project moves to Tauri, this object can
+ * be replaced with a Tauri-based implementation.
+ *
+ * The rest of the application should use storage.get(),
+ * storage.set() and storage.remove() only.
+ */
+
+const storage = {
+
+    /**
+     * Read a value from persistent storage.
+     *
+     * @param {string} key
+     * @returns {any|null}
+     */
+    get(key) {
+
+        try {
+            const rawValue = localStorage.getItem(key);
+
+            if (rawValue === null) {
+                return null;
+            }
+
+            return JSON.parse(rawValue);
+
+        } catch (error) {
+
+            console.error(
+                "WM Tapper: failed to read storage.",
+                error
+            );
+
+            return null;
+        }
+    },
+
+
+    /**
+     * Save a value to persistent storage.
+     *
+     * @param {string} key
+     * @param {any} value
+     */
+    set(key, value) {
+
+        try {
+
+            localStorage.setItem(
+                key,
+                JSON.stringify(value)
+            );
+
+        } catch (error) {
+
+            console.error(
+                "WM Tapper: failed to write storage.",
+                error
+            );
+        }
+    },
+
+
+    /**
+     * Remove a value from persistent storage.
+     *
+     * @param {string} key
+     */
+    remove(key) {
+
+        try {
+
+            localStorage.removeItem(key);
+
+        } catch (error) {
+
+            console.error(
+                "WM Tapper: failed to remove storage.",
+                error
+            );
+        }
+    }
+};
+
+
+/* =========================================================
+   SETTINGS MANAGER
+   ========================================================= */
+
+/*
+ * Settings Manager is deliberately independent from
+ * the storage implementation.
+ *
+ * The rest of the application interacts with settings
+ * through:
+ *
+ *     settings.get("language")
+ *     settings.set("language", "ru")
+ *
+ * It does not care whether the data is stored in
+ * localStorage, JSON, Tauri Store, etc.
+ */
+
+const settings = {
+
+    data: null,
+
+
+    /**
+     * Load settings from persistent storage.
+     *
+     * Missing values automatically fall back to defaults.
+     */
+    load() {
+
+        const savedSettings = storage.get(
+            SETTINGS_STORAGE_KEY
+        );
+
+
+        if (
+            !savedSettings ||
+            typeof savedSettings !== "object"
+        ) {
+
+            this.data = {
+                ...DEFAULT_SETTINGS
+            };
+
+            this.save();
+
+            return;
+        }
+
+
+        /*
+         * Merge saved values over defaults.
+         *
+         * This is important for future updates:
+         *
+         * If version 2 adds a new setting, an old
+         * settings file can still receive the default.
+         */
+
+        this.data = {
+            ...DEFAULT_SETTINGS,
+            ...savedSettings
+        };
+
+
+        /*
+         * Persist the merged structure in case
+         * new defaults were introduced.
+         */
+
+        this.save();
+    },
+
+
+    /**
+     * Save the current settings object.
+     */
+    save() {
+
+        storage.set(
+            SETTINGS_STORAGE_KEY,
+            this.data
+        );
+    },
+
+
+    /**
+     * Get a single setting.
+     *
+     * @param {string} key
+     * @returns {any}
+     */
+    get(key) {
+
+        if (!this.data) {
+            this.load();
+        }
+
+        return this.data[key];
+    },
+
+
+    /**
+     * Update a single setting.
+     *
+     * @param {string} key
+     * @param {any} value
+     */
+    set(key, value) {
+
+        if (!this.data) {
+            this.load();
+        }
+
+        this.data[key] = value;
+
+        this.save();
+    },
+
+
+    /**
+     * Replace several settings at once.
+     *
+     * @param {Object} values
+     */
+    update(values) {
+
+        if (!this.data) {
+            this.load();
+        }
+
+        this.data = {
+            ...this.data,
+            ...values
+        };
+
+        this.save();
+    },
+
+
+    /**
+     * Reset all settings to defaults.
+     */
+    reset() {
+
+        this.data = {
+            ...DEFAULT_SETTINGS
+        };
+
+        this.save();
+    }
+};
+
+
+/* =========================================================
    LANGUAGE DATA
    ========================================================= */
 
 const translations = {
+
     en: {
         tap: "TAP",
+
         average: "Average BPM:",
+
         reset: "RESET",
+
         settings: "SETTINGS",
 
+        language: "LANGUAGE",
+
         tapKey: "Tap Key",
+
         newSession: "New Session",
+
         history: "History",
 
         seconds: "3.0 SEC",
+
         taps: "12 TAPS",
 
         madeBy: "Made by WhiteMist"
     },
 
+
     ru: {
         tap: "ТАП",
+
         average: "Средний BPM:",
+
         reset: "СБРОС",
+
         settings: "НАСТРОЙКИ",
 
+        language: "ЯЗЫК",
+
         tapKey: "Клавиша тапа",
+
         newSession: "Новая серия",
+
         history: "История",
 
         seconds: "3,0 СЕК",
+
         taps: "12 ТАПОВ",
 
         madeBy: "Сделано WhiteMist"
     },
 
+
     az: {
         tap: "TAP",
+
         average: "Orta BPM:",
+
         reset: "SIFIRLA",
+
         settings: "AYARLAR",
 
+        language: "DİL",
+
         tapKey: "Tap düyməsi",
+
         newSession: "Yeni seriya",
+
         history: "Tarixçə",
 
         seconds: "3,0 SAN",
+
         taps: "12 TAP",
 
         madeBy: "WhiteMist tərəfindən"
@@ -85,36 +397,75 @@ const translations = {
 
 
 /* =========================================================
-   LANGUAGE STORAGE
+   SUPPORTED LANGUAGES
    ========================================================= */
 
-const LANGUAGE_STORAGE_KEY = "wm-tapper-language";
-
-const supportedLanguages = ["en", "ru", "az"];
-
-
-/**
- * Returns the saved language if it is valid.
- * Otherwise English is used.
- */
-function getSavedLanguage() {
-    const savedLanguage = localStorage.getItem(
-        LANGUAGE_STORAGE_KEY
-    );
-
-    if (supportedLanguages.includes(savedLanguage)) {
-        return savedLanguage;
-    }
-
-    return "en";
-}
+const supportedLanguages = [
+    "en",
+    "ru",
+    "az"
+];
 
 
 /* =========================================================
-   CURRENT STATE
+   LANGUAGE HELPERS
    ========================================================= */
 
-let currentLanguage = getSavedLanguage();
+
+/**
+ * Return the currently configured language.
+ *
+ * If the saved value is invalid, English is used.
+ *
+ * @returns {string}
+ */
+function getCurrentLanguage() {
+
+    const savedLanguage =
+        settings.get("language");
+
+
+    if (
+        supportedLanguages.includes(
+            savedLanguage
+        )
+    ) {
+        return savedLanguage;
+    }
+
+
+    settings.set(
+        "language",
+        DEFAULT_SETTINGS.language
+    );
+
+
+    return DEFAULT_SETTINGS.language;
+}
+
+
+/**
+ * Change the current language.
+ *
+ * @param {string} language
+ */
+function setLanguage(language) {
+
+    if (
+        !supportedLanguages.includes(language)
+    ) {
+        return;
+    }
+
+
+    settings.set(
+        "language",
+        language
+    );
+
+
+    applyLanguage(language);
+}
 
 
 /* =========================================================
@@ -122,39 +473,52 @@ let currentLanguage = getSavedLanguage();
    ========================================================= */
 
 function applyLanguage(language) {
-    if (!supportedLanguages.includes(language)) {
-        language = "en";
+
+    if (
+        !supportedLanguages.includes(language)
+    ) {
+        language = DEFAULT_SETTINGS.language;
     }
 
-    currentLanguage = language;
 
-    localStorage.setItem(
-        LANGUAGE_STORAGE_KEY,
-        currentLanguage
-    );
+    const text =
+        translations[language];
 
-    const text = translations[currentLanguage];
 
     /* ---------------------------------------------
        Front side
        --------------------------------------------- */
 
+    const currentTapText =
+        tapValue.textContent.trim();
+
+
     /*
-     * Do not overwrite a real BPM value here.
-     * At this stage the button only contains "TAP".
+     * Only replace the button text while it still
+     * represents the initial TAP state.
+     *
+     * We do not want a language change to overwrite
+     * an already calculated BPM.
      */
-    if (
-        tapValue.textContent.trim() === "TAP" ||
-        tapValue.textContent.trim() === "ТАП"
-    ) {
-        tapValue.textContent = text.tap;
+
+    const isInitialTapState =
+        currentTapText === "TAP" ||
+        currentTapText === "ТАП";
+
+
+    if (isInitialTapState) {
+        tapValue.textContent =
+            text.tap;
     }
+
 
     document.querySelector(
         ".average__label"
     ).textContent = text.average;
 
-    resetButton.textContent = text.reset;
+
+    resetButton.textContent =
+        text.reset;
 
 
     /* ---------------------------------------------
@@ -165,15 +529,19 @@ function applyLanguage(language) {
         ".settings-content__header"
     ).textContent = text.settings;
 
-    const settingRows = document.querySelectorAll(
-        ".setting-row"
-    );
+
+    const settingRows =
+        document.querySelectorAll(
+            ".setting-row"
+        );
+
 
     if (settingRows.length >= 3) {
 
         settingRows[0].querySelector(
             ".setting-row__label"
         ).textContent = text.tapKey;
+
 
         settingRows[0].querySelector(
             ".setting-row__value"
@@ -184,6 +552,7 @@ function applyLanguage(language) {
             ".setting-row__label"
         ).textContent = text.newSession;
 
+
         settingRows[1].querySelector(
             ".setting-row__value"
         ).textContent = text.seconds;
@@ -193,22 +562,39 @@ function applyLanguage(language) {
             ".setting-row__label"
         ).textContent = text.history;
 
+
         settingRows[2].querySelector(
             ".setting-row__value"
         ).textContent = text.taps;
     }
 
 
+    /*
+     * Language label is created dynamically.
+     * Do not assume that it already exists.
+     */
+
+    const languageLabel =
+        document.querySelector(
+            ".language-switcher__label"
+        );
+
+
+    if (languageLabel) {
+        languageLabel.textContent =
+            text.language;
+    }
+
+
     document.querySelector(
         ".settings-about__text:last-of-type"
-    ).textContent = text.madeBy;
+    ).textContent =
+        text.madeBy;
 
 
-    /* ---------------------------------------------
-       Update language buttons
-       --------------------------------------------- */
-
-    updateLanguageButtons();
+    updateLanguageButtons(
+        language
+    );
 }
 
 
@@ -217,7 +603,10 @@ function applyLanguage(language) {
    ========================================================= */
 
 function toggleSettings() {
-    flipCard.classList.toggle("is-flipped");
+
+    flipCard.classList.toggle(
+        "is-flipped"
+    );
 }
 
 
@@ -235,20 +624,19 @@ settingsButton.addEventListener(
    LANGUAGE SWITCHER
    ========================================================= */
 
-/*
- * The language buttons are generated here so that
- * adding another language later is straightforward.
- */
-
 function createLanguageSwitcher() {
 
-    const settingsContent = document.querySelector(
-        ".settings-content"
-    );
+    const settingsContent =
+        document.querySelector(
+            ".settings-content"
+        );
 
-    const existingSwitcher = document.getElementById(
-        "languageSwitcher"
-    );
+
+    const existingSwitcher =
+        document.getElementById(
+            "languageSwitcher"
+        );
+
 
     if (existingSwitcher) {
         existingSwitcher.remove();
@@ -259,72 +647,101 @@ function createLanguageSwitcher() {
        Wrapper
        --------------------------------------------- */
 
-    const wrapper = document.createElement("div");
+    const wrapper =
+        document.createElement("div");
 
-    wrapper.className = "language-switcher";
-    wrapper.id = "languageSwitcher";
+
+    wrapper.className =
+        "language-switcher";
+
+    wrapper.id =
+        "languageSwitcher";
 
 
     /* ---------------------------------------------
        Label
        --------------------------------------------- */
 
-    const label = document.createElement("div");
+    const label =
+        document.createElement("div");
 
-    label.className = "language-switcher__label";
-    label.textContent = "LANGUAGE";
+
+    label.className =
+        "language-switcher__label";
 
 
     /* ---------------------------------------------
        Buttons
        --------------------------------------------- */
 
-    const buttons = document.createElement(
-        "div"
+    const buttons =
+        document.createElement("div");
+
+
+    buttons.className =
+        "language-switcher__buttons";
+
+
+    supportedLanguages.forEach(
+        (language) => {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.type =
+                "button";
+
+
+            button.className =
+                "language-button";
+
+
+            button.dataset.language =
+                language;
+
+
+            button.textContent =
+                language.toUpperCase();
+
+
+            button.addEventListener(
+                "click",
+                () => {
+                    setLanguage(language);
+                }
+            );
+
+
+            buttons.appendChild(
+                button
+            );
+        }
     );
 
-    buttons.className = "language-switcher__buttons";
+
+    wrapper.appendChild(
+        label
+    );
 
 
-    supportedLanguages.forEach((language) => {
+    wrapper.appendChild(
+        buttons
+    );
 
-        const button = document.createElement(
-            "button"
-        );
-
-        button.type = "button";
-
-        button.className =
-            "language-button";
-
-        button.dataset.language = language;
-
-        button.textContent =
-            language.toUpperCase();
-
-
-        button.addEventListener(
-            "click",
-            () => {
-                applyLanguage(language);
-            }
-        );
-
-
-        buttons.appendChild(button);
-    });
-
-
-    wrapper.appendChild(label);
-    wrapper.appendChild(buttons);
 
     /*
-     * Insert the language selector before
-     * the divider.
+     * Insert the language switcher before
+     * the existing divider.
      */
-    const divider = document.querySelector(
-        ".settings-divider"
-    );
+
+    const divider =
+        document.querySelector(
+            ".settings-divider"
+        );
+
 
     settingsContent.insertBefore(
         wrapper,
@@ -337,23 +754,30 @@ function createLanguageSwitcher() {
    LANGUAGE BUTTON STATE
    ========================================================= */
 
-function updateLanguageButtons() {
+function updateLanguageButtons(
+    language = getCurrentLanguage()
+) {
 
-    const buttons = document.querySelectorAll(
-        ".language-button"
-    );
-
-    buttons.forEach((button) => {
-
-        const isActive =
-            button.dataset.language ===
-            currentLanguage;
-
-        button.classList.toggle(
-            "is-active",
-            isActive
+    const buttons =
+        document.querySelectorAll(
+            ".language-button"
         );
-    });
+
+
+    buttons.forEach(
+        (button) => {
+
+            const isActive =
+                button.dataset.language ===
+                language;
+
+
+            button.classList.toggle(
+                "is-active",
+                isActive
+            );
+        }
+    );
 }
 
 
@@ -364,15 +788,21 @@ function updateLanguageButtons() {
 function resetTapper() {
 
     /*
-     * Tap calculation will later be reset here.
+     * Real Tap Tempo state will be reset here later.
      */
 
     tapValue.textContent =
-        translations[currentLanguage].tap;
+        translations[
+            getCurrentLanguage()
+        ].tap;
 
-    averageValue.textContent = "—";
 
-    tapHistory.innerHTML = "";
+    averageValue.textContent =
+        "—";
+
+
+    tapHistory.innerHTML =
+        "";
 }
 
 
@@ -387,14 +817,54 @@ resetButton.addEventListener(
 
 
 /* =========================================================
+   PLACEHOLDER TAP HANDLER
+   ========================================================= */
+
+/*
+ * The actual Tap Tempo engine will be implemented later.
+ *
+ * For now this handler is deliberately empty so that
+ * clicking the button does not accidentally interfere
+ * with the visual prototype.
+ */
+
+tapButton.addEventListener(
+    "click",
+    () => {
+        /*
+         * Tap Tempo will be implemented here.
+         */
+    }
+);
+
+
+/* =========================================================
    INITIALIZATION
    ========================================================= */
 
 function initialize() {
 
+    /*
+     * 1. Load persistent settings.
+     */
+
+    settings.load();
+
+
+    /*
+     * 2. Build the language selector.
+     */
+
     createLanguageSwitcher();
 
-    applyLanguage(currentLanguage);
+
+    /*
+     * 3. Apply saved language.
+     */
+
+    applyLanguage(
+        getCurrentLanguage()
+    );
 }
 
 
