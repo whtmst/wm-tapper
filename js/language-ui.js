@@ -16,6 +16,9 @@
  * @param {HTMLElement} elements.averageLabel
  * @param {HTMLElement} elements.resetButton
  * @param {HTMLElement} elements.analyzeButton
+ * @param {HTMLElement} elements.analysisRunButton
+ * @param {HTMLElement} elements.analysisModeValue
+ * @param {HTMLElement} elements.analysisModeMenu
  * @param {HTMLElement} elements.settingsHeader
  * @param {HTMLElement} elements.tapKeyLabel
  * @param {HTMLElement} elements.sessionLabel
@@ -26,6 +29,7 @@
  * @param {HTMLElement} elements.sessionMenu
  * @param {HTMLElement} elements.historyValue
  * @param {HTMLElement} elements.historyMenu
+ *
  * @param {Object} dependencies
  * @param {Object} dependencies.settings
  * @param {Array<string>} dependencies.supportedLanguages
@@ -34,6 +38,7 @@
  * @param {Object} dependencies.tapKeyController
  * @param {Object} dependencies.tapUI
  * @param {Object} dependencies.dropdowns
+ *
  * @returns {Object}
  */
 export function createLanguageUI(
@@ -42,6 +47,9 @@ export function createLanguageUI(
         averageLabel,
         resetButton,
         analyzeButton,
+        analysisRunButton,
+        analysisModeValue,
+        analysisModeMenu,
         settingsHeader,
         tapKeyLabel,
         sessionLabel,
@@ -201,6 +209,63 @@ export function createLanguageUI(
 
 
     /* =====================================================
+       ANALYSIS MODE DISPLAY
+       ===================================================== */
+
+    function updateAnalysisModeDisplay() {
+
+        if (
+            !analysisModeValue ||
+            !analysisModeMenu
+        ) {
+
+            return;
+        }
+
+
+        const language =
+            getCurrentLanguage();
+
+
+        const text =
+            getTranslations(
+                language
+            );
+
+
+        const selectedOption =
+            analysisModeMenu.querySelector(
+                ".analysis-mode__option.is-selected"
+            );
+
+
+        if (
+            !selectedOption
+        ) {
+
+            return;
+        }
+
+
+        const value =
+            selectedOption.dataset.value;
+
+
+        if (
+            !value ||
+            !text[value]
+        ) {
+
+            return;
+        }
+
+
+        analysisModeValue.textContent =
+            text[value];
+    }
+
+
+    /* =====================================================
        DROPDOWN TRANSLATIONS
        ===================================================== */
 
@@ -213,6 +278,10 @@ export function createLanguageUI(
                 language
             );
 
+
+        /* -----------------------------------------
+           Session
+           ----------------------------------------- */
 
         sessionMenu
             .querySelectorAll(
@@ -230,6 +299,7 @@ export function createLanguageUI(
                     if (
                         Number.isNaN(value)
                     ) {
+
                         return;
                     }
 
@@ -242,6 +312,10 @@ export function createLanguageUI(
                 }
             );
 
+
+        /* -----------------------------------------
+           History
+           ----------------------------------------- */
 
         historyMenu
             .querySelectorAll(
@@ -259,6 +333,7 @@ export function createLanguageUI(
                     if (
                         Number.isNaN(value)
                     ) {
+
                         return;
                     }
 
@@ -267,6 +342,39 @@ export function createLanguageUI(
                         `${value} ${text.taps}`;
                 }
             );
+
+
+        /* -----------------------------------------
+           Analysis Mode
+           ----------------------------------------- */
+
+        analysisModeMenu
+            .querySelectorAll(
+                ".analysis-mode__option"
+            )
+            .forEach(
+                (option) => {
+
+                    const value =
+                        option.dataset.value;
+
+
+                    if (
+                        !value ||
+                        !text[value]
+                    ) {
+
+                        return;
+                    }
+
+
+                    option.textContent =
+                        text[value];
+                }
+            );
+
+
+        updateAnalysisModeDisplay();
     }
 
 
@@ -283,6 +391,7 @@ export function createLanguageUI(
                 language
             )
         ) {
+
             return;
         }
 
@@ -334,6 +443,15 @@ export function createLanguageUI(
             text.reset;
 
 
+        if (
+            analysisRunButton
+        ) {
+
+            analysisRunButton.textContent =
+                text.analyze;
+        }
+
+
         /* -----------------------------------------
            Settings
            ----------------------------------------- */
@@ -362,7 +480,9 @@ export function createLanguageUI(
            Footer
            ----------------------------------------- */
 
-        if (madeByText) {
+        if (
+            madeByText
+        ) {
 
             madeByText.textContent =
                 text.madeBy;
@@ -445,12 +565,21 @@ export function createLanguageUI(
        ===================================================== */
 
     return {
+
         getCurrentLanguage,
+
         updateLanguageButtons,
+
         updateSessionDisplay,
+
         updateHistoryDisplay,
+
+        updateAnalysisModeDisplay,
+
         updateDropdownTranslations,
+
         setLanguage,
+
         applyLanguage
     };
 }
