@@ -15,6 +15,7 @@
  * @param {HTMLElement} elements.languageSwitcher
  * @param {HTMLElement} elements.averageLabel
  * @param {HTMLElement} elements.resetButton
+ * @param {HTMLElement} elements.analyzeButton
  * @param {HTMLElement} elements.settingsHeader
  * @param {HTMLElement} elements.tapKeyLabel
  * @param {HTMLElement} elements.sessionLabel
@@ -40,6 +41,7 @@ export function createLanguageUI(
         languageSwitcher,
         averageLabel,
         resetButton,
+        analyzeButton,
         settingsHeader,
         tapKeyLabel,
         sessionLabel,
@@ -322,6 +324,10 @@ export function createLanguageUI(
 
         averageLabel.textContent =
             text.average;
+
+
+        analyzeButton.textContent =
+            text.analyzeFile;
 
 
         resetButton.textContent =
