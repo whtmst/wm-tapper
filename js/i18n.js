@@ -31,6 +31,8 @@ export const translations = {
 
         average: "Average BPM:",
 
+        analyzeFile: "ANALYZE FILE",
+
         reset: "RESET",
 
         settings: "SETTINGS",
@@ -63,6 +65,8 @@ export const translations = {
 
         average: "Средний BPM:",
 
+        analyzeFile: "АНАЛИЗ ФАЙЛА",
+
         reset: "СБРОС",
 
         settings: "НАСТРОЙКИ",
@@ -94,6 +98,8 @@ export const translations = {
         tap: "TAP",
 
         average: "Orta BPM:",
+
+        analyzeFile: "FAYLI TƏHLİL ET",
 
         reset: "SIFIRLA",
 
