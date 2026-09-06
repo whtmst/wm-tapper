@@ -89,90 +89,6 @@ const analyzeButton =
     );
 
 
-const analysisPanel =
-    document.getElementById(
-        "analysisPanel"
-    );
-
-
-const analysisWaveform =
-    document.getElementById(
-        "analysisWaveform"
-    );
-
-
-const analysisOverlayLeft =
-    document.getElementById(
-        "analysisOverlayLeft"
-    );
-
-
-const analysisOverlayRight =
-    document.getElementById(
-        "analysisOverlayRight"
-    );
-
-
-const analysisSelection =
-    document.getElementById(
-        "analysisSelection"
-    );
-
-
-const analysisStartHandle =
-    document.getElementById(
-        "analysisStartHandle"
-    );
-
-
-const analysisEndHandle =
-    document.getElementById(
-        "analysisEndHandle"
-    );
-
-
-const analysisStartTime =
-    document.getElementById(
-        "analysisStartTime"
-    );
-
-
-const analysisEndTime =
-    document.getElementById(
-        "analysisEndTime"
-    );
-
-
-const analysisMode =
-    document.getElementById(
-        "analysisMode"
-    );
-
-
-const analysisModeControl =
-    document.getElementById(
-        "analysisModeControl"
-    );
-
-
-const analysisModeValue =
-    document.getElementById(
-        "analysisModeValue"
-    );
-
-
-const analysisModeMenu =
-    document.getElementById(
-        "analysisModeMenu"
-    );
-
-
-const analysisRunButton =
-    document.getElementById(
-        "analysisRunButton"
-    );
-
-
 const resetButton =
     document.getElementById(
         "resetButton"
@@ -288,6 +204,88 @@ const languageLabel =
 
 
 /* =========================================================
+   ANALYSIS PANEL ELEMENTS
+   ========================================================= */
+
+const analysisPanel =
+    document.getElementById(
+        "analysisPanel"
+    );
+
+
+const analysisWaveform =
+    document.getElementById(
+        "analysisWaveform"
+    );
+
+
+const analysisOverlayLeft =
+    document.getElementById(
+        "analysisOverlayLeft"
+    );
+
+
+const analysisOverlayRight =
+    document.getElementById(
+        "analysisOverlayRight"
+    );
+
+
+const analysisSelection =
+    document.getElementById(
+        "analysisSelection"
+    );
+
+
+const analysisStartHandle =
+    document.getElementById(
+        "analysisStartHandle"
+    );
+
+
+const analysisEndHandle =
+    document.getElementById(
+        "analysisEndHandle"
+    );
+
+
+const analysisStartTime =
+    document.getElementById(
+        "analysisStartTime"
+    );
+
+
+const analysisEndTime =
+    document.getElementById(
+        "analysisEndTime"
+    );
+
+
+const analysisMode =
+    document.getElementById(
+        "analysisMode"
+    );
+
+
+const analysisModeControl =
+    document.getElementById(
+        "analysisModeControl"
+    );
+
+
+const analysisModeMenu =
+    document.getElementById(
+        "analysisModeMenu"
+    );
+
+
+const analysisRunButton =
+    document.getElementById(
+        "analysisRunButton"
+    );
+
+
+/* =========================================================
    APPLICATION MODULES
    ========================================================= */
 
@@ -312,9 +310,6 @@ const tapKeyController =
 
 /**
  * Get current language.
- *
- * This helper is intentionally defined
- * before language UI initialization.
  *
  * @returns {string}
  */
@@ -393,8 +388,7 @@ const SUPPORTED_AUDIO_MIME_TYPES = [
 
 
 /**
- * Check whether a file has a supported
- * audio extension.
+ * Check whether a file has a supported extension.
  *
  * @param {File} file
  * @returns {boolean}
@@ -404,6 +398,7 @@ function hasSupportedAudioExtension(file) {
     if (
         !(file instanceof File)
     ) {
+
         return false;
     }
 
@@ -415,6 +410,7 @@ function hasSupportedAudioExtension(file) {
     return SUPPORTED_AUDIO_EXTENSIONS
         .some(
             (extension) => {
+
                 return fileName.endsWith(
                     extension
                 );
@@ -424,12 +420,7 @@ function hasSupportedAudioExtension(file) {
 
 
 /**
- * Check whether a file has a supported
- * MIME type.
- *
- * Empty MIME types are allowed because
- * some browsers / operating systems may
- * provide an empty type for valid files.
+ * Check whether a file has a supported MIME type.
  *
  * @param {File} file
  * @returns {boolean}
@@ -439,6 +430,7 @@ function hasSupportedAudioMimeType(file) {
     if (
         !(file instanceof File)
     ) {
+
         return false;
     }
 
@@ -446,6 +438,7 @@ function hasSupportedAudioMimeType(file) {
     if (
         !file.type
     ) {
+
         return true;
     }
 
@@ -474,9 +467,6 @@ function isSupportedAudioFile(file) {
 /**
  * Create hidden audio file input.
  *
- * The input is intentionally created from JavaScript
- * so index.html does not need another visible element.
- *
  * @returns {HTMLInputElement}
  */
 function createAudioFileInput() {
@@ -491,30 +481,15 @@ function createAudioFileInput() {
         "file";
 
 
-    /*
-     * One file only.
-     *
-     * "multiple" is intentionally NOT present.
-     */
-
     input.multiple =
         false;
 
-
-    /*
-     * Restrict the picker to formats
-     * supported by the application.
-     */
 
     input.accept =
         ".mp3,.wav,.flac,.aif,.aiff," +
         "audio/mpeg,audio/wav,audio/x-wav," +
         "audio/flac,audio/aiff,audio/x-aiff";
 
-
-    /*
-     * Keep the element completely invisible.
-     */
 
     input.style.display =
         "none";
@@ -534,7 +509,7 @@ const audioFileInput =
 
 
 /* =========================================================
-   AUDIO ANALYSIS PANEL
+   AUDIO ANALYSIS PANEL STATE
    ========================================================= */
 
 let selectedAudioFile =
@@ -561,13 +536,19 @@ let activeAnalysisHandle =
     null;
 
 
+/* =========================================================
+   AUDIO ANALYSIS PANEL HELPERS
+   ========================================================= */
+
 /**
  * Format seconds as MM:SS.t
  *
  * @param {number} seconds
  * @returns {string}
  */
-function formatAnalysisTime(seconds) {
+function formatAnalysisTime(
+    seconds
+) {
 
     if (
         !Number.isFinite(seconds) ||
@@ -618,11 +599,13 @@ function formatAnalysisTime(seconds) {
 function updateAnalysisRangeUI() {
 
     const startPercent =
-        analysisStartRatio * 100;
+        analysisStartRatio *
+        100;
 
 
     const endPercent =
-        analysisEndRatio * 100;
+        analysisEndRatio *
+        100;
 
 
     analysisStartHandle.style.left =
@@ -681,11 +664,15 @@ function updateAnalysisRangeUI() {
 
 
 /**
- * Set analysis mode.
+ * Apply analysis mode in the application layer.
+ *
+ * Dropdown state itself is managed by dropdowns.js.
  *
  * @param {string} mode
  */
-function setAnalysisMode(mode) {
+function applyAnalysisMode(
+    mode
+) {
 
     if (
         ![
@@ -703,48 +690,10 @@ function setAnalysisMode(mode) {
         mode;
 
 
-    analysisModeValue.textContent =
-        mode.toUpperCase();
-
-
-    analysisMode.classList.toggle(
-        "is-open",
-        false
-    );
-
-
     analysisPanel.classList.toggle(
         "analysis-panel--fast",
         mode === "fast"
     );
-
-
-    analysisModeMenu
-        .querySelectorAll(
-            ".analysis-mode__option"
-        )
-        .forEach(
-            (option) => {
-
-                const isSelected =
-                    option.dataset.value ===
-                    mode;
-
-
-                option.classList.toggle(
-                    "is-selected",
-                    isSelected
-                );
-
-
-                option.setAttribute(
-                    "aria-selected",
-                    String(
-                        isSelected
-                    )
-                );
-            }
-        );
 
 
     if (
@@ -754,6 +703,7 @@ function setAnalysisMode(mode) {
 
         analysisStartRatio =
             0;
+
 
         analysisEndRatio =
             1;
@@ -805,11 +755,6 @@ function closeAnalysisPanel() {
         );
 
 
-    analysisMode.classList.remove(
-        "is-open"
-    );
-
-
     activeAnalysisHandle =
         null;
 }
@@ -818,12 +763,12 @@ function closeAnalysisPanel() {
 /**
  * Load audio duration only.
  *
- * This does NOT start Essentia analysis.
- *
  * @param {File} file
  * @returns {Promise<number>}
  */
-function loadAudioDuration(file) {
+function loadAudioDuration(
+    file
+) {
 
     return new Promise(
         (
@@ -852,9 +797,11 @@ function loadAudioDuration(file) {
                         objectUrl
                     );
 
+
                     audio.removeAttribute(
                         "src"
                     );
+
 
                     audio.load();
                 };
@@ -882,6 +829,7 @@ function loadAudioDuration(file) {
                         resolve(
                             duration
                         );
+
 
                         return;
                     }
@@ -916,6 +864,10 @@ function loadAudioDuration(file) {
 }
 
 
+/* =========================================================
+   ANALYSIS HANDLE DRAGGING
+   ========================================================= */
+
 /**
  * Start dragging one analysis handle.
  *
@@ -941,11 +893,6 @@ function startAnalysisHandleDrag(
 
 
     event.preventDefault();
-
-
-    document.body.setPointerCapture?.(
-        event.pointerId
-    );
 }
 
 
@@ -1028,9 +975,28 @@ function updateAnalysisHandleDrag(
             );
 
 
-        setAnalysisMode(
+        /*
+         * Moving a handle always means
+         * that we are working with a selection.
+         */
+
+        if (
+            analysisModeValueCurrent !==
             "selection"
-        );
+        ) {
+
+            applyAnalysisMode(
+                "selection"
+            );
+
+
+            dropdowns.setAnalysisMode(
+                "selection"
+            );
+        }
+
+
+        updateAnalysisRangeUI();
 
         return;
     }
@@ -1056,9 +1022,23 @@ function updateAnalysisHandleDrag(
             );
 
 
-        setAnalysisMode(
+        if (
+            analysisModeValueCurrent !==
             "selection"
-        );
+        ) {
+
+            applyAnalysisMode(
+                "selection"
+            );
+
+
+            dropdowns.setAnalysisMode(
+                "selection"
+            );
+        }
+
+
+        updateAnalysisRangeUI();
     }
 }
 
@@ -1118,252 +1098,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   ANALYSIS MODE DROPDOWN
-   ========================================================= */
-
-analysisModeControl.addEventListener(
-    "click",
-    (event) => {
-
-        event.stopPropagation();
-
-
-        analysisMode.classList.toggle(
-            "is-open"
-        );
-    }
-);
-
-
-analysisModeMenu
-    .querySelectorAll(
-        ".analysis-mode__option"
-    )
-    .forEach(
-        (option) => {
-
-            option.addEventListener(
-                "click",
-                (event) => {
-
-                    event.stopPropagation();
-
-
-                    setAnalysisMode(
-                        option.dataset.value
-                    );
-                }
-            );
-        }
-    );
-
-
-document.addEventListener(
-    "click",
-    () => {
-
-        analysisMode.classList.remove(
-            "is-open"
-        );
-    }
-);
-
-
-/* =========================================================
-   ANALYSIS BUTTON
-   ========================================================= */
-
-analysisRunButton.addEventListener(
-    "click",
-    () => {
-
-        if (!selectedAudioFile) {
-
-            return;
-        }
-
-
-        const startTime =
-            analysisDuration *
-            analysisStartRatio;
-
-
-        const endTime =
-            analysisDuration *
-            analysisEndRatio;
-
-
-        console.log(
-            "WM Tapper: analysis UI selection.",
-            {
-                file:
-                    selectedAudioFile.name,
-
-                mode:
-                    analysisModeValueCurrent,
-
-                startTime,
-
-                endTime,
-
-                duration:
-                    analysisDuration
-            }
-        );
-    }
-);
-
-
-/* =========================================================
-   ANALYSIS FILE METADATA
-   ========================================================= */
-
-async function prepareAnalysisPanel(
-    file
-) {
-
-    selectedAudioFile =
-        file;
-
-
-    analysisDuration =
-        0;
-
-
-    analysisStartRatio =
-        0;
-
-
-    analysisEndRatio =
-        1;
-
-
-    setAnalysisMode(
-        "full"
-    );
-
-
-    updateAnalysisRangeUI();
-
-
-    openAnalysisPanel();
-
-
-    try {
-
-        analysisDuration =
-            await loadAudioDuration(
-                file
-            );
-
-
-        updateAnalysisRangeUI();
-
-    } catch (error) {
-
-        console.error(
-            "WM Tapper: failed to read audio duration.",
-            error
-        );
-    }
-}
-
-
-/* =========================================================
-   AUDIO FILE SELECTION
-   ========================================================= */
-
-audioFileInput.addEventListener(
-    "change",
-    async () => {
-
-        const file =
-            audioFileInput.files?.[0];
-
-
-        /*
-         * No file selected.
-         */
-
-        if (!file) {
-
-            audioFileInput.value =
-                "";
-
-            return;
-        }
-
-
-        /*
-         * Validate selected file.
-         */
-
-        if (
-            !isSupportedAudioFile(file)
-        ) {
-
-            console.warn(
-                "WM Tapper: unsupported audio file.",
-                file.name,
-                file.type
-            );
-
-
-            audioFileInput.value =
-                "";
-
-            return;
-        }
-
-
-        /*
-         * File is selected.
-         *
-         * Do NOT start audio analysis yet.
-         * Prepare the analysis UI instead.
-         */
-
-        console.log(
-            "WM Tapper: audio file selected.",
-            {
-                name: file.name,
-                type: file.type,
-                size: file.size
-            }
-        );
-
-
-        await prepareAnalysisPanel(
-            file
-        );
-
-
-        /*
-         * Allow selecting the exact same file
-         * again later.
-         */
-
-        audioFileInput.value =
-            "";
-    }
-);
-
-
-/* =========================================================
-   ANALYZE FILE BUTTON
-   ========================================================= */
-
-analyzeButton.addEventListener(
-    "click",
-    () => {
-
-        audioFileInput.click();
-    }
-);
-
-
-/* =========================================================
-   DROPDOWNS
+   APPLICATION DROPDOWNS
    ========================================================= */
 
 const dropdowns =
@@ -1371,8 +1106,13 @@ const dropdowns =
         {
             sessionControl,
             sessionMenu,
+
             historyControl,
-            historyMenu
+            historyMenu,
+
+            analysisMode,
+            analysisModeControl,
+            analysisModeMenu
         },
         {
             onSessionChange: (
@@ -1386,6 +1126,7 @@ const dropdowns =
 
 
                 tapEngine.configure({
+
                     sessionTimeout:
                         settings.get(
                             "sessionTimeout"
@@ -1413,6 +1154,7 @@ const dropdowns =
 
 
                 tapEngine.configure({
+
                     sessionTimeout:
                         settings.get(
                             "sessionTimeout"
@@ -1426,6 +1168,16 @@ const dropdowns =
 
 
                 languageUI.updateHistoryDisplay();
+            },
+
+
+            onAnalysisModeChange: (
+                mode
+            ) => {
+
+                applyAnalysisMode(
+                    mode
+                );
             }
         }
     );
@@ -1486,6 +1238,201 @@ const languageUI =
 
 
 /* =========================================================
+   AUDIO FILE SELECTION
+   ========================================================= */
+
+audioFileInput.addEventListener(
+    "change",
+    async () => {
+
+        const file =
+            audioFileInput.files?.[0];
+
+
+        if (!file) {
+
+            audioFileInput.value =
+                "";
+
+            return;
+        }
+
+
+        if (
+            !isSupportedAudioFile(
+                file
+            )
+        ) {
+
+            console.warn(
+                "WM Tapper: unsupported audio file.",
+                file.name,
+                file.type
+            );
+
+
+            audioFileInput.value =
+                "";
+
+            return;
+        }
+
+
+        console.log(
+            "WM Tapper: audio file selected.",
+            {
+                name:
+                    file.name,
+
+                type:
+                    file.type,
+
+                size:
+                    file.size
+            }
+        );
+
+
+        await prepareAnalysisPanel(
+            file
+        );
+
+
+        audioFileInput.value =
+            "";
+    }
+);
+
+
+/* =========================================================
+   ANALYZE FILE BUTTON
+   ========================================================= */
+
+analyzeButton.addEventListener(
+    "click",
+    () => {
+
+        audioFileInput.click();
+    }
+);
+
+
+/* =========================================================
+   ANALYSIS PANEL PREPARATION
+   ========================================================= */
+
+/**
+ * Prepare analysis panel for selected file.
+ *
+ * No Essentia analysis is started here.
+ *
+ * @param {File} file
+ * @returns {Promise<void>}
+ */
+async function prepareAnalysisPanel(
+    file
+) {
+
+    selectedAudioFile =
+        file;
+
+
+    analysisDuration =
+        0;
+
+
+    analysisStartRatio =
+        0;
+
+
+    analysisEndRatio =
+        1;
+
+
+    applyAnalysisMode(
+        "full"
+    );
+
+
+    dropdowns.setAnalysisMode(
+        "full"
+    );
+
+
+    updateAnalysisRangeUI();
+
+
+    openAnalysisPanel();
+
+
+    try {
+
+        analysisDuration =
+            await loadAudioDuration(
+                file
+            );
+
+
+        updateAnalysisRangeUI();
+
+    } catch (error) {
+
+        console.error(
+            "WM Tapper: failed to read audio duration.",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   ANALYSIS RUN BUTTON
+   ========================================================= */
+
+analysisRunButton.addEventListener(
+    "click",
+    () => {
+
+        if (
+            !selectedAudioFile
+        ) {
+
+            return;
+        }
+
+
+        const startTime =
+            analysisDuration *
+            analysisStartRatio;
+
+
+        const endTime =
+            analysisDuration *
+            analysisEndRatio;
+
+
+        console.log(
+            "WM Tapper: analysis UI selection.",
+            {
+                file:
+                    selectedAudioFile.name,
+
+                mode:
+                    analysisModeValueCurrent,
+
+                startTime,
+
+                endTime,
+
+                duration:
+                    analysisDuration
+            }
+        );
+    }
+);
+
+
+/* =========================================================
    SESSION
    ========================================================= */
 
@@ -1511,21 +1458,12 @@ const session =
 
 function handleTap() {
 
-    /*
-     * Every new tap means that the current
-     * session is still active.
-     */
-
     session.clear();
 
 
     const result =
         tapEngine.registerTap();
 
-
-    /* -----------------------------------------
-       New session
-       ----------------------------------------- */
 
     if (
         result.isNewSession
@@ -1539,10 +1477,6 @@ function handleTap() {
     }
 
 
-    /* -----------------------------------------
-       Current BPM
-       ----------------------------------------- */
-
     if (
         Number.isFinite(
             result.bpm
@@ -1555,18 +1489,10 @@ function handleTap() {
     }
 
 
-    /* -----------------------------------------
-       Average BPM
-       ----------------------------------------- */
-
     tapUI.showAverageBpm(
         result.averageBpm
     );
 
-
-    /* -----------------------------------------
-       Session timer
-       ----------------------------------------- */
 
     if (
         Array.isArray(
@@ -1584,10 +1510,6 @@ function handleTap() {
         );
     }
 
-
-    /* -----------------------------------------
-       History
-       ----------------------------------------- */
 
     tapUI.renderTapHistory(
         result.history
@@ -1647,21 +1569,32 @@ resetButton.addEventListener(
 
         tapUI.reset();
 
+
         selectedAudioFile =
             null;
+
 
         analysisDuration =
             0;
 
+
         analysisStartRatio =
             0;
+
 
         analysisEndRatio =
             1;
 
-        setAnalysisMode(
+
+        applyAnalysisMode(
             "full"
         );
+
+
+        dropdowns.setAnalysisMode(
+            "full"
+        );
+
 
         closeAnalysisPanel();
     }
@@ -1693,16 +1626,8 @@ document.addEventListener(
 
 function initialize() {
 
-    /*
-     * Load persistent settings.
-     */
-
     settings.load();
 
-
-    /*
-     * Configure Tap Engine.
-     */
 
     tapEngine.configure({
 
@@ -1718,37 +1643,27 @@ function initialize() {
     });
 
 
-    /*
-     * Initialize Tap Key controller.
-     */
-
     tapKeyController.initialize();
 
-
-    /*
-     * Apply saved language.
-     */
 
     languageUI.applyLanguage(
         languageUI.getCurrentLanguage()
     );
 
 
-    /*
-     * Final language button synchronization.
-     */
-
     languageUI.updateLanguageButtons(
         languageUI.getCurrentLanguage()
     );
 
 
-    /*
-     * Analyzer will be connected
-     * after the file picker stage.
-     */
+    applyAnalysisMode(
+        "full"
+    );
 
-    void trackAnalyzer;
+
+    dropdowns.setAnalysisMode(
+        "full"
+    );
 }
 
 
