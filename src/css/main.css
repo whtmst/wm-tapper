@@ -1529,19 +1529,15 @@ a:focus-visible {
     border-radius: 5px;
 
     background:
-        linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.018),
-            rgba(255, 255, 255, 0.006)
-        );
+        #141619;
 }
 
 
 /* ---------------------------------------------------------
-   Waveform SVG
+   Waveform Canvas
    --------------------------------------------------------- */
 
-.analysis-waveform__svg {
+.analysis-waveform__canvas {
     position: absolute;
 
     inset: 0;
@@ -1552,17 +1548,8 @@ a:focus-visible {
     display: block;
 
     pointer-events: none;
-}
 
-
-.analysis-waveform__path {
-    fill: none;
-
-    stroke: rgba(222, 238, 176, 0.66);
-
-    stroke-width: 1.15;
-
-    vector-effect: non-scaling-stroke;
+   color: rgba(222, 238, 176, 0.66);
 }
 
 
