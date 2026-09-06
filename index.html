@@ -159,7 +159,10 @@
                         <!-- =================================
                              SETTINGS HEADER
                              ================================= -->
-                        <div class="settings-content__header">
+                        <div
+                            class="settings-content__header"
+                            id="settingsHeader"
+                        >
                             SETTINGS
                         </div>
 
@@ -169,13 +172,22 @@
                              ================================= -->
                         <div class="setting-row">
 
-                            <div class="setting-row__label">
+                            <div
+                                class="setting-row__label"
+                                id="tapKeyLabel"
+                            >
                                 Tap Key
                             </div>
 
-                            <div class="setting-row__value">
-                                SPACE
-                            </div>
+                            <button
+                                class="setting-row__value setting-control"
+                                id="tapKeyControl"
+                                type="button"
+                            >
+                                <span id="tapKeyValue">
+                                    SPACE
+                                </span>
+                            </button>
 
                         </div>
 
@@ -185,12 +197,109 @@
                              ================================= -->
                         <div class="setting-row">
 
-                            <div class="setting-row__label">
+                            <div
+                                class="setting-row__label"
+                                id="sessionLabel"
+                            >
                                 New Session After
                             </div>
 
-                            <div class="setting-row__value">
-                                3.0 SEC
+                            <div
+                                class="setting-row__value setting-control setting-dropdown"
+                                id="sessionControl"
+                                role="button"
+                                tabindex="0"
+                                aria-haspopup="listbox"
+                                aria-expanded="false"
+                            >
+
+                                <span id="sessionValue">
+                                    3.0 SEC
+                                </span>
+
+                                <span class="dropdown-arrow"></span>
+
+                                <div
+                                    class="dropdown-menu"
+                                    id="sessionMenu"
+                                    role="listbox"
+                                >
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="1.5"
+                                        role="option"
+                                    >
+                                        1.5 SEC
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="2"
+                                        role="option"
+                                    >
+                                        2.0 SEC
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="2.5"
+                                        role="option"
+                                    >
+                                        2.5 SEC
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="3"
+                                        role="option"
+                                        aria-selected="true"
+                                    >
+                                        3.0 SEC
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="3.5"
+                                        role="option"
+                                    >
+                                        3.5 SEC
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="4"
+                                        role="option"
+                                    >
+                                        4.0 SEC
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="4.5"
+                                        role="option"
+                                    >
+                                        4.5 SEC
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="5"
+                                        role="option"
+                                    >
+                                        5.0 SEC
+                                    </button>
+
+                                </div>
+
                             </div>
 
                         </div>
@@ -201,12 +310,82 @@
                              ================================= -->
                         <div class="setting-row">
 
-                            <div class="setting-row__label">
+                            <div
+                                class="setting-row__label"
+                                id="historyLabel"
+                            >
                                 History
                             </div>
 
-                            <div class="setting-row__value">
-                                12 TAPS
+                            <div
+                                class="setting-row__value setting-control setting-dropdown"
+                                id="historyControl"
+                                role="button"
+                                tabindex="0"
+                                aria-haspopup="listbox"
+                                aria-expanded="false"
+                            >
+
+                                <span id="historyValue">
+                                    12 TAPS
+                                </span>
+
+                                <span class="dropdown-arrow"></span>
+
+                                <div
+                                    class="dropdown-menu"
+                                    id="historyMenu"
+                                    role="listbox"
+                                >
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="8"
+                                        role="option"
+                                    >
+                                        8 TAPS
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="12"
+                                        role="option"
+                                        aria-selected="true"
+                                    >
+                                        12 TAPS
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="16"
+                                        role="option"
+                                    >
+                                        16 TAPS
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="20"
+                                        role="option"
+                                    >
+                                        20 TAPS
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="dropdown-option"
+                                        data-value="24"
+                                        role="option"
+                                    >
+                                        24 TAPS
+                                    </button>
+
+                                </div>
+
                             </div>
 
                         </div>
@@ -217,7 +396,10 @@
                              ================================= -->
                         <div class="setting-row setting-row--language">
 
-                            <div class="setting-row__label">
+                            <div
+                                class="setting-row__label"
+                                id="languageLabel"
+                            >
                                 Language
                             </div>
 
@@ -225,17 +407,38 @@
                                 class="setting-row__value language-switcher"
                                 id="languageSwitcher"
                             >
-                                <!--
-                                    Language buttons will be inserted
-                                    here by JavaScript.
-                                -->
+
+                                <button
+                                    type="button"
+                                    class="language-button"
+                                    data-language="en"
+                                >
+                                    EN
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="language-button"
+                                    data-language="ru"
+                                >
+                                    RU
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="language-button"
+                                    data-language="az"
+                                >
+                                    AZ
+                                </button>
+
                             </div>
 
                         </div>
 
 
                         <!-- =================================
-                             DIVIDER
+                             FOOTER DIVIDER
                              ================================= -->
                         <div class="settings-divider"></div>
 
@@ -253,12 +456,17 @@
                                 class="settings-about__text"
                                 id="madeByText"
                             >
-                                Made by Wht Mst
+                                Made by WHT MST
                             </div>
 
-                            <div class="settings-about__link">
+                            <a
+                                class="settings-about__link"
+                                href="https://github.com/whtmst/wm-tapper"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
                                 github.com/whtmst/wm-tapper
-                            </div>
+                            </a>
 
                         </div>
 
