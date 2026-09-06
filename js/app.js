@@ -389,6 +389,15 @@ function applyLanguage(language) {
     updateLanguageButtons(
         language
     );
+
+
+    /* -----------------------------------------
+       Current BPM display
+       ----------------------------------------- */
+
+    updateTapDisplayLanguage(
+        language
+    );
 }
 
 
@@ -586,6 +595,438 @@ function updateDropdownTranslations(
                     `${value} ${text.taps}`;
             }
         );
+}
+
+
+/* =========================================================
+   BPM FORMATTING
+   ========================================================= */
+
+/**
+ * Format average BPM with two decimals.
+ *
+ * @param {number|null} value
+ * @returns {string}
+ */
+function formatBpm(value) {
+
+    if (
+        !Number.isFinite(value)
+    ) {
+        return "—";
+    }
+
+
+    const language =
+        getCurrentLanguage();
+
+
+    return formatDecimal(
+        Number(
+            value.toFixed(2)
+        ),
+        language
+    );
+}
+
+
+/* =========================================================
+   TAP DISPLAY
+   ========================================================= */
+
+/**
+ * Update the BPM display after language change.
+ *
+ * Keeps the numeric BPM intact while refreshing
+ * the TAP text when no BPM is available.
+ *
+ * @param {string} language
+ */
+function updateTapDisplayLanguage(language) {
+
+    const text =
+        getTranslations(
+            language
+        );
+
+
+    const currentValue =
+        tapValue.textContent.trim();
+
+
+    const isTapState =
+        currentValue === "TAP" ||
+        currentValue === "ТАП";
+
+
+    if (isTapState) {
+
+        tapValue.textContent =
+            text.tap;
+    }
+
+
+    const average =
+        tapEngine.getAverageBpm();
+
+
+    if (
+        average === null
+    ) {
+
+        averageValue.textContent =
+            "—";
+    } else {
+
+        averageValue.textContent =
+            formatBpm(
+                average
+            );
+    }
+}
+
+
+/* =========================================================
+   TAP HISTORY RENDERING
+   ========================================================= */
+
+/**
+ * Render tap history points.
+ *
+ * Horizontal position represents real time
+ * between taps.
+ *
+ * @param {number[]} timestamps
+ */
+function renderTapHistory(timestamps) {
+
+    tapHistory.innerHTML =
+        "";
+
+
+    if (
+        !Array.isArray(timestamps) ||
+        timestamps.length === 0
+    ) {
+        return;
+    }
+
+
+    const firstTime =
+        timestamps[0];
+
+
+    const lastTime =
+        timestamps[
+            timestamps.length - 1
+        ];
+
+
+    const timeRange =
+        lastTime -
+        firstTime;
+
+
+    const leftPadding = 6;
+    const rightPadding = 6;
+
+
+    const historyWidth =
+        tapHistory.clientWidth;
+
+
+    const usableWidth =
+        Math.max(
+            0,
+            historyWidth -
+            leftPadding -
+            rightPadding
+        );
+
+
+    /*
+     * With only one tap there is no interval
+     * to visualize, so put the point in the center.
+     */
+
+    if (
+        timestamps.length === 1 ||
+        timeRange <= 0
+    ) {
+
+        createTapPoint(
+            50
+        );
+
+        return;
+    }
+
+
+    timestamps.forEach(
+        (timestamp) => {
+
+            const normalized =
+                (
+                    timestamp -
+                    firstTime
+                ) /
+                timeRange;
+
+
+            const x =
+                leftPadding +
+                (
+                    normalized *
+                    usableWidth
+                );
+
+
+            const percent =
+                historyWidth > 0
+                    ? (
+                        x /
+                        historyWidth
+                    ) * 100
+                    : 50;
+
+
+            createTapPoint(
+                percent
+            );
+        }
+    );
+
+
+    renderTapConnectors(
+        timestamps,
+        leftPadding,
+        usableWidth,
+        historyWidth
+    );
+}
+
+
+/**
+ * Create one tap point.
+ *
+ * @param {number} leftPercent
+ */
+function createTapPoint(leftPercent) {
+
+    const point =
+        document.createElement(
+            "div"
+        );
+
+
+    point.className =
+        "tap-point";
+
+
+    point.style.left =
+        `${leftPercent}%`;
+
+
+    point.style.top =
+        "50%";
+
+
+    tapHistory.appendChild(
+        point
+    );
+}
+
+
+/**
+ * Render connectors between points.
+ *
+ * @param {number[]} timestamps
+ * @param {number} leftPadding
+ * @param {number} usableWidth
+ * @param {number} historyWidth
+ */
+function renderTapConnectors(
+    timestamps,
+    leftPadding,
+    usableWidth,
+    historyWidth
+) {
+
+    const firstTime =
+        timestamps[0];
+
+
+    const lastTime =
+        timestamps[
+            timestamps.length - 1
+        ];
+
+
+    const timeRange =
+        lastTime -
+        firstTime;
+
+
+    if (
+        timeRange <= 0 ||
+        historyWidth <= 0
+    ) {
+        return;
+    }
+
+
+    for (
+        let index = 0;
+        index < timestamps.length - 1;
+        index += 1
+    ) {
+
+        const startNormalized =
+            (
+                timestamps[index] -
+                firstTime
+            ) /
+            timeRange;
+
+
+        const endNormalized =
+            (
+                timestamps[index + 1] -
+                firstTime
+            ) /
+            timeRange;
+
+
+        const startX =
+            leftPadding +
+            (
+                startNormalized *
+                usableWidth
+            );
+
+
+        const endX =
+            leftPadding +
+            (
+                endNormalized *
+                usableWidth
+            );
+
+
+        const connector =
+            document.createElement(
+                "div"
+            );
+
+
+        connector.className =
+            "tap-connector";
+
+
+        connector.style.left =
+            `${startX}px`;
+
+
+        connector.style.width =
+            `${Math.max(
+                0,
+                endX - startX
+            )}px`;
+
+
+        connector.style.top =
+            "50%";
+
+
+        tapHistory.appendChild(
+            connector
+        );
+    }
+}
+
+
+/* =========================================================
+   TAP RESULT
+   ========================================================= */
+
+/**
+ * Process one tap.
+ */
+function handleTap() {
+
+    const result =
+        tapEngine.registerTap();
+
+
+    /*
+     * New session:
+     * this tap is the first tap of the
+     * new series and therefore has no BPM.
+     */
+
+    if (
+        result.isNewSession
+    ) {
+
+        tapValue.textContent =
+            getTranslations(
+                getCurrentLanguage()
+            ).tap;
+
+
+        averageValue.textContent =
+            "—";
+    }
+
+
+    /*
+     * Display the latest measured BPM.
+     */
+
+    if (
+        Number.isFinite(
+            result.bpm
+        )
+    ) {
+
+        tapValue.textContent =
+            String(
+                Math.round(
+                    result.bpm
+                )
+            );
+    }
+
+
+    /*
+     * Display average BPM.
+     */
+
+    if (
+        Number.isFinite(
+            result.averageBpm
+        )
+    ) {
+
+        averageValue.textContent =
+            formatBpm(
+                result.averageBpm
+            );
+
+    } else {
+
+        averageValue.textContent =
+            "—";
+    }
+
+
+    /*
+     * Update visual history.
+     */
+
+    renderTapHistory(
+        result.history
+    );
 }
 
 
@@ -947,10 +1388,7 @@ tapButton.addEventListener(
     "click",
     () => {
 
-        /*
-         * Real Tap Tempo logic will be connected
-         * to tapEngine.registerTap() next.
-         */
+        handleTap();
     }
 );
 
