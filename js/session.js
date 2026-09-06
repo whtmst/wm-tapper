@@ -3,7 +3,6 @@
    Tap Session Controller
    ========================================================= */
 
-
 /* =========================================================
    FACTORY
    ========================================================= */
@@ -16,60 +15,36 @@
  * @param {Function} dependencies.onSessionFinished
  * @returns {Object}
  */
-export function createSessionController({
-    tapEngine,
-    onSessionFinished
-}) {
-
+export function createSessionController({ tapEngine, onSessionFinished }) {
     let sessionTimer = null;
-
 
     /* =====================================================
        CLEAR TIMER
        ===================================================== */
 
     function clear() {
-
-        if (
-            sessionTimer !== null
-        ) {
-
-            clearTimeout(
-                sessionTimer
-            );
+        if (sessionTimer !== null) {
+            clearTimeout(sessionTimer);
 
             sessionTimer = null;
         }
     }
-
 
     /* =====================================================
        FINISH SESSION
        ===================================================== */
 
     function finish() {
-
         sessionTimer = null;
 
+        const averageBpm = tapEngine.getAverageBpm();
 
-        const averageBpm =
-            tapEngine.getAverageBpm();
-
-
-        if (
-            !Number.isFinite(
-                averageBpm
-            )
-        ) {
+        if (!Number.isFinite(averageBpm)) {
             return;
         }
 
-
-        onSessionFinished(
-            averageBpm
-        );
+        onSessionFinished(averageBpm);
     }
-
 
     /* =====================================================
        RESTART TIMER
@@ -81,41 +56,24 @@ export function createSessionController({
      * @param {number} delaySeconds
      */
     function restart(delaySeconds) {
-
         clear();
 
-
-        if (
-            !Number.isFinite(
-                delaySeconds
-            ) ||
-            delaySeconds <= 0
-        ) {
+        if (!Number.isFinite(delaySeconds) || delaySeconds <= 0) {
             return;
         }
 
-
-        sessionTimer =
-            setTimeout(
-                () => {
-
-                    finish();
-
-                },
-                delaySeconds * 1000
-            );
+        sessionTimer = setTimeout(() => {
+            finish();
+        }, delaySeconds * 1000);
     }
-
 
     /* =====================================================
        RESET
        ===================================================== */
 
     function reset() {
-
         clear();
     }
-
 
     /* =====================================================
        PUBLIC API
@@ -125,6 +83,6 @@ export function createSessionController({
         clear,
         restart,
         reset,
-        finish
+        finish,
     };
 }
