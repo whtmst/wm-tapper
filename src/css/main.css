@@ -757,13 +757,27 @@ a:focus-visible {
 
 
 /* =========================================================
+   BOTTOM ACTIONS
+   ========================================================= */
+
+.bottom-actions {
+    width: 100%;
+
+    margin-top: auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+}
+
+
+/* =========================================================
    ANALYZE FILE BUTTON
    ========================================================= */
 
 .analyze-button {
-    margin-top: 4px;
-    margin-bottom: 0;
-
     padding: 5px 12px;
 
     border-radius: 5px;
@@ -823,9 +837,6 @@ a:focus-visible {
    ========================================================= */
 
 .reset-button {
-    margin-top: auto;
-    margin-bottom: 0;
-
     padding: 5px 12px;
 
     border-radius: 5px;
