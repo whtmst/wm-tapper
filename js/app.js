@@ -364,7 +364,7 @@ function formatBpm(value) {
         !Number.isFinite(value)
     ) {
 
-        return "—";
+        return "-";
     }
 
 
