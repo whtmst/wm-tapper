@@ -1844,7 +1844,7 @@ a:focus-visible {
 .analysis-mode__menu {
     position: absolute;
 
-    top: calc(100% + 3px);
+    bottom: calc(100% + 3px);
     left: 0;
     right: 0;
 
@@ -1874,10 +1874,10 @@ a:focus-visible {
     pointer-events: none;
 
     transform:
-        translateY(-3px)
+        translateY(3px)
         scale(0.98);
 
-    transform-origin: top center;
+    transform-origin: bottom center;
 
     transition:
         opacity 100ms ease,
@@ -2062,6 +2062,7 @@ a:focus-visible {
 .analysis-busy-overlay.is-visible {
     opacity: 1;
     visibility: visible;
+
     pointer-events: auto;
 }
 
@@ -2075,19 +2076,48 @@ a:focus-visible {
 }
 
 
-/* ---------------------------------------------------------
-   Keep analysis panel above the busy overlay
-   --------------------------------------------------------- */
+/* =========================================================
+   ANALYSIS PANEL BUSY OVERLAY
+   ========================================================= */
 
-.app-window.analysis-panel-open
-    .analysis-panel {
-    z-index: 300;
+.analysis-panel::before {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 250;
+
+    content: "";
+
+    border-radius: 0 0 10px 10px;
+
+    background:
+        rgba(8, 10, 11, 0.36);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    pointer-events: none;
+
+    transition:
+        opacity 140ms ease,
+        visibility 140ms ease;
 }
 
 
-/* ---------------------------------------------------------
-   Analysis button remains highlighted above overlay
-   --------------------------------------------------------- */
+.analysis-panel.analysis-panel--busy::before {
+    opacity: 1;
+
+    visibility: visible;
+
+    pointer-events: auto;
+}
+
+
+/* =========================================================
+   ANALYSIS BUTTON
+   ========================================================= */
 
 .analysis-run-button {
     position: relative;
@@ -2138,13 +2168,13 @@ a:focus-visible {
     0%,
     100% {
 
-        opacity: 0.72;
+        opacity: 0.68;
 
         transform:
             scale(0.985);
 
         box-shadow:
-            0 0 8px rgba(200, 233, 87, 0.06);
+            0 0 7px rgba(200, 233, 87, 0.05);
     }
 
     50% {
@@ -2155,7 +2185,7 @@ a:focus-visible {
             scale(1);
 
         box-shadow:
-            0 0 16px rgba(200, 233, 87, 0.15);
+            0 0 17px rgba(200, 233, 87, 0.16);
     }
 }
 
