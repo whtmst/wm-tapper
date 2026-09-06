@@ -83,6 +83,12 @@ const tapValue =
     );
 
 
+const analyzeButton =
+    document.getElementById(
+        "analyzeButton"
+    );
+
+
 const resetButton =
     document.getElementById(
         "resetButton"
@@ -378,6 +384,7 @@ const languageUI =
             languageSwitcher,
             averageLabel,
             resetButton,
+            analyzeButton,
             settingsHeader,
             tapKeyLabel,
             sessionLabel,
