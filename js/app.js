@@ -85,7 +85,7 @@ const DEFAULT_SETTINGS = {
    ========================================================= */
 
 /*
- * We intentionally accept only single keys.
+ * Only single keys are supported.
  *
  * Modifier combinations such as:
  *
@@ -259,9 +259,6 @@ const settings = {
 
         /*
          * Sanitize values loaded from storage.
-         *
-         * This protects the application from invalid
-         * or manually modified localStorage data.
          */
 
         this.sanitize();
@@ -275,7 +272,9 @@ const settings = {
      */
     sanitize() {
 
-        /* Language */
+        /* ---------------------------------------------
+           Language
+           --------------------------------------------- */
 
         if (
             !supportedLanguages.includes(
@@ -287,7 +286,9 @@ const settings = {
         }
 
 
-        /* Session timeout */
+        /* ---------------------------------------------
+           Session timeout
+           --------------------------------------------- */
 
         const validSessionValues = [
             1.5,
@@ -300,6 +301,7 @@ const settings = {
             5
         ];
 
+
         const sessionValue =
             Number(
                 this.data.sessionTimeout
@@ -311,15 +313,20 @@ const settings = {
                 sessionValue
             )
         ) {
+
             this.data.sessionTimeout =
                 DEFAULT_SETTINGS.sessionTimeout;
+
         } else {
+
             this.data.sessionTimeout =
                 sessionValue;
         }
 
 
-        /* History length */
+        /* ---------------------------------------------
+           History length
+           --------------------------------------------- */
 
         const validHistoryValues = [
             8,
@@ -328,6 +335,7 @@ const settings = {
             20,
             24
         ];
+
 
         const historyValue =
             Number(
@@ -340,15 +348,20 @@ const settings = {
                 historyValue
             )
         ) {
+
             this.data.historyLength =
                 DEFAULT_SETTINGS.historyLength;
+
         } else {
+
             this.data.historyLength =
                 historyValue;
         }
 
 
-        /* Tap key */
+        /* ---------------------------------------------
+           Tap key
+           --------------------------------------------- */
 
         if (
             typeof this.data.tapKey !== "string" ||
@@ -356,16 +369,20 @@ const settings = {
                 this.data.tapKey
             )
         ) {
+
             this.data.tapKey =
                 DEFAULT_SETTINGS.tapKey;
         }
 
 
-        /* Version */
+        /* ---------------------------------------------
+           Version
+           --------------------------------------------- */
 
         if (
             typeof this.data.version !== "number"
         ) {
+
             this.data.version =
                 DEFAULT_SETTINGS.version;
         }
@@ -421,7 +438,7 @@ const settings = {
 
 
     /**
-     * Update multiple settings and save immediately.
+     * Update multiple settings.
      *
      * @param {Object} values
      */
@@ -567,11 +584,7 @@ const supportedLanguages = [
  */
 function isAllowedTapKey(key) {
 
-    /*
-     * Letters:
-     *
-     * KeyA ... KeyZ
-     */
+    /* Letters */
 
     if (
         /^Key[A-Z]$/.test(key)
@@ -580,11 +593,7 @@ function isAllowedTapKey(key) {
     }
 
 
-    /*
-     * Numbers:
-     *
-     * Digit0 ... Digit9
-     */
+    /* Numbers */
 
     if (
         /^Digit[0-9]$/.test(key)
@@ -593,17 +602,7 @@ function isAllowedTapKey(key) {
     }
 
 
-    /*
-     * Numpad:
-     *
-     * Numpad0 ... Numpad9
-     * NumpadAdd
-     * NumpadSubtract
-     * NumpadMultiply
-     * NumpadDivide
-     * NumpadDecimal
-     * NumpadEnter
-     */
+    /* Numpad numbers */
 
     if (
         /^Numpad[0-9]$/.test(key)
@@ -611,6 +610,8 @@ function isAllowedTapKey(key) {
         return true;
     }
 
+
+    /* Numpad actions */
 
     const allowedNumpadKeys = new Set([
         "NumpadAdd",
@@ -629,9 +630,7 @@ function isAllowedTapKey(key) {
     }
 
 
-    /*
-     * Special keys.
-     */
+    /* Other supported keys */
 
     if (
         ALLOWED_SPECIAL_KEYS.has(key)
@@ -690,9 +689,13 @@ function getKeyDisplayName(code) {
 
 
     const specialNames = {
+
         Space: "SPACE",
+
         Enter: "ENTER",
+
         Tab: "TAB",
+
 
         F1: "F1",
         F2: "F2",
@@ -707,25 +710,38 @@ function getKeyDisplayName(code) {
         F11: "F11",
         F12: "F12",
 
+
         ArrowUp: "↑",
         ArrowDown: "↓",
         ArrowLeft: "←",
         ArrowRight: "→",
 
+
         Home: "HOME",
+
         End: "END",
 
+
         PageUp: "PAGE UP",
+
         PageDown: "PAGE DOWN",
 
+
         Insert: "INSERT",
+
         Delete: "DELETE",
 
+
         NumpadAdd: "NUM +",
+
         NumpadSubtract: "NUM −",
+
         NumpadMultiply: "NUM ×",
+
         NumpadDivide: "NUM ÷",
+
         NumpadDecimal: "NUM .",
+
         NumpadEnter: "NUM ENTER"
     };
 
@@ -901,6 +917,7 @@ function applyLanguage(language) {
             "is-listening"
         )
     ) {
+
         updateTapKeyDisplay();
     }
 
@@ -920,12 +937,138 @@ function applyLanguage(language) {
 
 
     /* ---------------------------------------------
+       Dropdown menu translations
+       --------------------------------------------- */
+
+    updateDropdownTranslations();
+
+
+    /* ---------------------------------------------
        Language buttons
        --------------------------------------------- */
 
     updateLanguageButtons(
         language
     );
+}
+
+
+/* =========================================================
+   DROPDOWN TRANSLATIONS
+   ========================================================= */
+
+/**
+ * Format a decimal number according to language.
+ *
+ * English:
+ * 3.0
+ *
+ * Russian / Azerbaijani:
+ * 3,0
+ *
+ * @param {number} value
+ * @param {string} language
+ * @returns {string}
+ */
+function formatDecimal(
+    value,
+    language
+) {
+
+    const formatted =
+        value.toFixed(1);
+
+
+    if (
+        language === "ru" ||
+        language === "az"
+    ) {
+        return formatted.replace(
+            ".",
+            ","
+        );
+    }
+
+
+    return formatted;
+}
+
+
+/**
+ * Update all visible dropdown options
+ * according to the current language.
+ *
+ * @param {string} language
+ */
+function updateDropdownTranslations(
+    language = getCurrentLanguage()
+) {
+
+    const text =
+        translations[language];
+
+
+    /* ---------------------------------------------
+       Session dropdown
+       --------------------------------------------- */
+
+    sessionMenu
+        .querySelectorAll(
+            ".dropdown-option"
+        )
+        .forEach(
+            (option) => {
+
+                const value =
+                    Number(
+                        option.dataset.value
+                    );
+
+
+                if (
+                    Number.isNaN(value)
+                ) {
+                    return;
+                }
+
+
+                option.textContent =
+                    `${formatDecimal(
+                        value,
+                        language
+                    )} ${text.seconds}`;
+            }
+        );
+
+
+    /* ---------------------------------------------
+       History dropdown
+       --------------------------------------------- */
+
+    historyMenu
+        .querySelectorAll(
+            ".dropdown-option"
+        )
+        .forEach(
+            (option) => {
+
+                const value =
+                    Number(
+                        option.dataset.value
+                    );
+
+
+                if (
+                    Number.isNaN(value)
+                ) {
+                    return;
+                }
+
+
+                option.textContent =
+                    `${value} ${text.taps}`;
+            }
+        );
 }
 
 
@@ -964,7 +1107,8 @@ function updateLanguageButtons(language) {
 
 let isCapturingTapKey = false;
 
-let previousTapKey = DEFAULT_SETTINGS.tapKey;
+let previousTapKey =
+    DEFAULT_SETTINGS.tapKey;
 
 
 /**
@@ -977,7 +1121,9 @@ function updateTapKeyDisplay() {
 
 
     tapKeyValue.textContent =
-        getKeyDisplayName(key);
+        getKeyDisplayName(
+            key
+        );
 }
 
 
@@ -990,12 +1136,6 @@ function startTapKeyCapture() {
         return;
     }
 
-
-    /*
-     * Remember the current key.
-     *
-     * Escape will restore this exact value.
-     */
 
     previousTapKey =
         settings.get("tapKey");
@@ -1014,13 +1154,6 @@ function startTapKeyCapture() {
             getCurrentLanguage()
         ].pressKey;
 
-
-    /*
-     * Listen once globally.
-     *
-     * keydown is used instead of keyup so the
-     * interface reacts immediately.
-     */
 
     document.addEventListener(
         "keydown",
@@ -1061,11 +1194,9 @@ function stopTapKeyCapture() {
  */
 function captureTapKey(event) {
 
-    /*
-     * Escape cancels the operation.
-     *
-     * The previous key remains unchanged.
-     */
+    /* ---------------------------------------------
+       Escape cancels selection
+       --------------------------------------------- */
 
     if (
         event.code === "Escape"
@@ -1087,9 +1218,9 @@ function captureTapKey(event) {
     }
 
 
-    /*
-     * Modifier keys cannot be assigned.
-     */
+    /* ---------------------------------------------
+       Modifier keys are not allowed
+       --------------------------------------------- */
 
     if (
         event.ctrlKey ||
@@ -1101,9 +1232,9 @@ function captureTapKey(event) {
     }
 
 
-    /*
-     * Ignore modifier-only key presses.
-     */
+    /* ---------------------------------------------
+       Modifier-only keys
+       --------------------------------------------- */
 
     const modifierOnlyKeys = new Set([
         "ControlLeft",
@@ -1129,9 +1260,9 @@ function captureTapKey(event) {
     }
 
 
-    /*
-     * Only allowed keys can be assigned.
-     */
+    /* ---------------------------------------------
+       Allowed key check
+       --------------------------------------------- */
 
     if (
         !isAllowedTapKey(
@@ -1146,9 +1277,9 @@ function captureTapKey(event) {
     event.stopPropagation();
 
 
-    /*
-     * Save immediately.
-     */
+    /* ---------------------------------------------
+       Save immediately
+       --------------------------------------------- */
 
     settings.set(
         "tapKey",
@@ -1178,12 +1309,12 @@ tapKeyControl.addEventListener(
 
 
 /* =========================================================
-   DROPDOWNS
+   DROPDOWN HELPERS
    ========================================================= */
 
 
 /**
- * Close both dropdown menus.
+ * Close all dropdowns.
  */
 function closeDropdowns() {
 
@@ -1208,14 +1339,12 @@ function closeDropdowns() {
 
 
 /**
- * Toggle a dropdown.
+ * Toggle dropdown.
  *
  * @param {HTMLElement} control
- * @param {HTMLElement} otherControl
  */
 function toggleDropdown(
-    control,
-    otherControl
+    control
 ) {
 
     const isOpen =
@@ -1249,11 +1378,6 @@ sessionControl.addEventListener(
     "click",
     (event) => {
 
-        /*
-         * Prevent a click on an option from
-         * being interpreted as another toggle.
-         */
-
         if (
             event.target.closest(
                 ".dropdown-option"
@@ -1267,8 +1391,7 @@ sessionControl.addEventListener(
 
 
         toggleDropdown(
-            sessionControl,
-            historyControl
+            sessionControl
         );
     }
 );
@@ -1295,8 +1418,7 @@ historyControl.addEventListener(
 
 
         toggleDropdown(
-            historyControl,
-            sessionControl
+            historyControl
         );
     }
 );
@@ -1417,7 +1539,10 @@ function updateSessionDisplay() {
 
 
     sessionValue.textContent =
-        `${value.toFixed(1)} ${text.seconds}`;
+        `${formatDecimal(
+            value,
+            language
+        )} ${text.seconds}`;
 
 
     updateSelectedOption(
@@ -1548,8 +1673,7 @@ document.addEventListener(
     (event) => {
 
         /*
-         * If we are currently assigning a key,
-         * the dedicated capture handler owns Escape.
+         * Tap Key capture has its own Escape handler.
          */
 
         if (
@@ -1562,6 +1686,7 @@ document.addEventListener(
         if (
             event.code === "Escape"
         ) {
+
             closeDropdowns();
         }
     }
@@ -1592,7 +1717,7 @@ settingsButton.addEventListener(
 function resetTapper() {
 
     /*
-     * Real Tap Tempo state will be added next.
+     * Real Tap Tempo state will be implemented later.
      */
 
     tapValue.textContent =
@@ -1636,11 +1761,10 @@ tapButton.addEventListener(
    ========================================================= */
 
 /*
- * The real Tap Tempo keyboard handler will later
- * intercept the configured key.
+ * Space will later become the configurable Tap Key.
  *
- * For now we prevent Space from scrolling the page
- * while the Tapper button/page is active.
+ * For now we prevent the browser from scrolling
+ * when Space is pressed.
  */
 
 document.addEventListener(
