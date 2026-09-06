@@ -3,30 +3,22 @@
    Internationalization
    ========================================================= */
 
-
 /* =========================================================
    SUPPORTED LANGUAGES
    ========================================================= */
 
-export const supportedLanguages = [
-    "en",
-    "ru",
-    "az"
-];
-
+export const supportedLanguages = ["en", "ru", "az"];
 
 /* =========================================================
    TRANSLATIONS
    ========================================================= */
 
 export const translations = {
-
     /* =====================================================
        ENGLISH
        ===================================================== */
 
     en: {
-
         tap: "TAP",
 
         average: "Average BPM:",
@@ -59,16 +51,14 @@ export const translations = {
 
         fast: "FAST",
 
-        madeBy: "Made by Wht Mst"
+        madeBy: "Made by Wht Mst",
     },
-
 
     /* =====================================================
        RUSSIAN
        ===================================================== */
 
     ru: {
-
         tap: "ТАП",
 
         average: "Средний BPM:",
@@ -101,16 +91,14 @@ export const translations = {
 
         fast: "БЫСТРЫЙ",
 
-        madeBy: "Сделано Wht Mst"
+        madeBy: "Сделано Wht Mst",
     },
-
 
     /* =====================================================
        AZERBAIJANI
        ===================================================== */
 
     az: {
-
         tap: "TAP",
 
         average: "Orta BPM:",
@@ -143,10 +131,9 @@ export const translations = {
 
         fast: "SÜRƏTLİ",
 
-        madeBy: "Wht Mst tərəfindən"
-    }
+        madeBy: "Wht Mst tərəfindən",
+    },
 };
-
 
 /* =========================================================
    LANGUAGE HELPERS
@@ -165,30 +152,15 @@ export const translations = {
  * @param {string} language
  * @returns {string}
  */
-export function formatDecimal(
-    value,
-    language
-) {
+export function formatDecimal(value, language) {
+    const formatted = value.toFixed(1);
 
-    const formatted =
-        value.toFixed(1);
-
-
-    if (
-        language === "ru" ||
-        language === "az"
-    ) {
-
-        return formatted.replace(
-            ".",
-            ","
-        );
+    if (language === "ru" || language === "az") {
+        return formatted.replace(".", ",");
     }
-
 
     return formatted;
 }
-
 
 /**
  * Get translation object.
@@ -196,12 +168,6 @@ export function formatDecimal(
  * @param {string} language
  * @returns {Object}
  */
-export function getTranslations(
-    language
-) {
-
-    return (
-        translations[language] ||
-        translations.en
-    );
+export function getTranslations(language) {
+    return translations[language] || translations.en;
 }
