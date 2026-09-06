@@ -1,27 +1,6 @@
 /* =========================================================
    WM TAPPER
    Main application script
-
-   Architecture:
-   UI
-    ↓
-   Settings Manager
-    ↓
-   Storage Adapter
-    ↓
-   localStorage (browser)
-
-   Later in Tauri:
-   UI
-    ↓
-   Settings Manager
-    ↓
-   Storage Adapter
-    ↓
-   Tauri Store / JSON
-
-   The rest of the application will not need to know
-   where the settings are physically stored.
    ========================================================= */
 
 
@@ -39,6 +18,10 @@ const tapValue = document.getElementById("tapValue");
 
 const averageValue = document.getElementById("averageValue");
 const tapHistory = document.getElementById("tapHistory");
+
+const languageSwitcher = document.getElementById("languageSwitcher");
+
+const madeByText = document.getElementById("madeByText");
 
 
 /* =========================================================
@@ -71,17 +54,6 @@ const DEFAULT_SETTINGS = {
    STORAGE ADAPTER
    ========================================================= */
 
-/*
- * This is the only place that directly talks to
- * localStorage.
- *
- * When the project moves to Tauri, this object can
- * be replaced with a Tauri-based implementation.
- *
- * The rest of the application should use storage.get(),
- * storage.set() and storage.remove() only.
- */
-
 const storage = {
 
     /**
@@ -93,7 +65,9 @@ const storage = {
     get(key) {
 
         try {
-            const rawValue = localStorage.getItem(key);
+
+            const rawValue =
+                localStorage.getItem(key);
 
             if (rawValue === null) {
                 return null;
@@ -164,20 +138,6 @@ const storage = {
    SETTINGS MANAGER
    ========================================================= */
 
-/*
- * Settings Manager is deliberately independent from
- * the storage implementation.
- *
- * The rest of the application interacts with settings
- * through:
- *
- *     settings.get("language")
- *     settings.set("language", "ru")
- *
- * It does not care whether the data is stored in
- * localStorage, JSON, Tauri Store, etc.
- */
-
 const settings = {
 
     data: null,
@@ -185,14 +145,13 @@ const settings = {
 
     /**
      * Load settings from persistent storage.
-     *
-     * Missing values automatically fall back to defaults.
      */
     load() {
 
-        const savedSettings = storage.get(
-            SETTINGS_STORAGE_KEY
-        );
+        const savedSettings =
+            storage.get(
+                SETTINGS_STORAGE_KEY
+            );
 
 
         if (
@@ -210,32 +169,18 @@ const settings = {
         }
 
 
-        /*
-         * Merge saved values over defaults.
-         *
-         * This is important for future updates:
-         *
-         * If version 2 adds a new setting, an old
-         * settings file can still receive the default.
-         */
-
         this.data = {
             ...DEFAULT_SETTINGS,
             ...savedSettings
         };
 
 
-        /*
-         * Persist the merged structure in case
-         * new defaults were introduced.
-         */
-
         this.save();
     },
 
 
     /**
-     * Save the current settings object.
+     * Save the current settings.
      */
     save() {
 
@@ -247,7 +192,7 @@ const settings = {
 
 
     /**
-     * Get a single setting.
+     * Get one setting.
      *
      * @param {string} key
      * @returns {any}
@@ -263,7 +208,7 @@ const settings = {
 
 
     /**
-     * Update a single setting.
+     * Set one setting.
      *
      * @param {string} key
      * @param {any} value
@@ -281,7 +226,7 @@ const settings = {
 
 
     /**
-     * Replace several settings at once.
+     * Update multiple settings.
      *
      * @param {Object} values
      */
@@ -301,7 +246,7 @@ const settings = {
 
 
     /**
-     * Reset all settings to defaults.
+     * Reset settings to defaults.
      */
     reset() {
 
@@ -315,83 +260,65 @@ const settings = {
 
 
 /* =========================================================
-   LANGUAGE DATA
+   TRANSLATIONS
    ========================================================= */
 
 const translations = {
 
     en: {
         tap: "TAP",
-
         average: "Average BPM:",
-
         reset: "RESET",
-
         settings: "SETTINGS",
 
-        language: "LANGUAGE",
+        language: "Language",
 
         tapKey: "Tap Key",
-
-        newSession: "New Session",
-
+        newSession: "New Session After",
         history: "History",
 
         seconds: "3.0 SEC",
-
         taps: "12 TAPS",
 
-        madeBy: "Made by WhiteMist"
+        madeBy: "Made by WHT MST"
     },
 
 
     ru: {
         tap: "ТАП",
-
         average: "Средний BPM:",
-
         reset: "СБРОС",
-
         settings: "НАСТРОЙКИ",
 
-        language: "ЯЗЫК",
+        language: "Язык",
 
         tapKey: "Клавиша тапа",
-
-        newSession: "Новая серия",
-
+        newSession: "Новая серия после",
         history: "История",
 
         seconds: "3,0 СЕК",
-
         taps: "12 ТАПОВ",
 
-        madeBy: "Сделано WhiteMist"
+        madeBy: "Сделано WHT MST"
     },
 
 
     az: {
         tap: "TAP",
-
         average: "Orta BPM:",
-
         reset: "SIFIRLA",
-
         settings: "AYARLAR",
 
-        language: "DİL",
+        language: "Dil",
 
         tapKey: "Tap düyməsi",
-
-        newSession: "Yeni seriya",
-
+        newSession: "Yeni seriya sonra",
         history: "Tarixçə",
 
         seconds: "3,0 SAN",
-
         taps: "12 TAP",
 
-        madeBy: "WhiteMist tərəfindən"
+        madeBy: "WHT MST tərəfindən"
     }
 };
 
@@ -408,17 +335,9 @@ const supportedLanguages = [
 
 
 /* =========================================================
-   LANGUAGE HELPERS
+   CURRENT LANGUAGE
    ========================================================= */
 
-
-/**
- * Return the currently configured language.
- *
- * If the saved value is invalid, English is used.
- *
- * @returns {string}
- */
 function getCurrentLanguage() {
 
     const savedLanguage =
@@ -444,15 +363,74 @@ function getCurrentLanguage() {
 }
 
 
-/**
- * Change the current language.
- *
- * @param {string} language
- */
+/* =========================================================
+   CREATE LANGUAGE BUTTONS
+   ========================================================= */
+
+function createLanguageButtons() {
+
+    if (!languageSwitcher) {
+        return;
+    }
+
+
+    /*
+     * Clear any previous buttons.
+     */
+
+    languageSwitcher.innerHTML = "";
+
+
+    supportedLanguages.forEach(
+        (language) => {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.type = "button";
+
+            button.className =
+                "language-button";
+
+            button.dataset.language =
+                language;
+
+            button.textContent =
+                language.toUpperCase();
+
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    setLanguage(
+                        language
+                    );
+                }
+            );
+
+
+            languageSwitcher.appendChild(
+                button
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   SET LANGUAGE
+   ========================================================= */
+
 function setLanguage(language) {
 
     if (
-        !supportedLanguages.includes(language)
+        !supportedLanguages.includes(
+            language
+        )
     ) {
         return;
     }
@@ -469,15 +447,18 @@ function setLanguage(language) {
 
 
 /* =========================================================
-   LANGUAGE APPLICATION
+   APPLY LANGUAGE
    ========================================================= */
 
 function applyLanguage(language) {
 
     if (
-        !supportedLanguages.includes(language)
+        !supportedLanguages.includes(
+            language
+        )
     ) {
-        language = DEFAULT_SETTINGS.language;
+        language =
+            DEFAULT_SETTINGS.language;
     }
 
 
@@ -493,20 +474,13 @@ function applyLanguage(language) {
         tapValue.textContent.trim();
 
 
-    /*
-     * Only replace the button text while it still
-     * represents the initial TAP state.
-     *
-     * We do not want a language change to overwrite
-     * an already calculated BPM.
-     */
-
-    const isInitialTapState =
+    const initialTapState =
         currentTapText === "TAP" ||
         currentTapText === "ТАП";
 
 
-    if (isInitialTapState) {
+    if (initialTapState) {
+
         tapValue.textContent =
             text.tap;
     }
@@ -514,7 +488,8 @@ function applyLanguage(language) {
 
     document.querySelector(
         ".average__label"
-    ).textContent = text.average;
+    ).textContent =
+        text.average;
 
 
     resetButton.textContent =
@@ -522,13 +497,18 @@ function applyLanguage(language) {
 
 
     /* ---------------------------------------------
-       Settings side
+       Settings header
        --------------------------------------------- */
 
     document.querySelector(
         ".settings-content__header"
-    ).textContent = text.settings;
+    ).textContent =
+        text.settings;
 
+
+    /* ---------------------------------------------
+       Settings rows
+       --------------------------------------------- */
 
     const settingRows =
         document.querySelectorAll(
@@ -538,62 +518,108 @@ function applyLanguage(language) {
 
     if (settingRows.length >= 3) {
 
+        /* Tap Key */
+
         settingRows[0].querySelector(
             ".setting-row__label"
-        ).textContent = text.tapKey;
+        ).textContent =
+            text.tapKey;
 
 
         settingRows[0].querySelector(
             ".setting-row__value"
-        ).textContent = "SPACE";
+        ).textContent =
+            "SPACE";
 
+
+        /* New Session After */
 
         settingRows[1].querySelector(
             ".setting-row__label"
-        ).textContent = text.newSession;
+        ).textContent =
+            text.newSession;
 
 
         settingRows[1].querySelector(
             ".setting-row__value"
-        ).textContent = text.seconds;
+        ).textContent =
+            text.seconds;
 
+
+        /* History */
 
         settingRows[2].querySelector(
             ".setting-row__label"
-        ).textContent = text.history;
+        ).textContent =
+            text.history;
 
 
         settingRows[2].querySelector(
             ".setting-row__value"
-        ).textContent = text.taps;
+        ).textContent =
+            text.taps;
     }
 
 
-    /*
-     * Language label is created dynamically.
-     * Do not assume that it already exists.
-     */
+    /* ---------------------------------------------
+       Language label
+       --------------------------------------------- */
 
-    const languageLabel =
-        document.querySelector(
-            ".language-switcher__label"
-        );
+    if (settingRows.length >= 4) {
 
-
-    if (languageLabel) {
-        languageLabel.textContent =
+        settingRows[3].querySelector(
+            ".setting-row__label"
+        ).textContent =
             text.language;
     }
 
 
-    document.querySelector(
-        ".settings-about__text:last-of-type"
-    ).textContent =
-        text.madeBy;
+    /* ---------------------------------------------
+       About
+       --------------------------------------------- */
 
+    if (madeByText) {
+
+        madeByText.textContent =
+            text.madeBy;
+    }
+
+
+    /* ---------------------------------------------
+       Language button state
+       --------------------------------------------- */
 
     updateLanguageButtons(
         language
+    );
+}
+
+
+/* =========================================================
+   LANGUAGE BUTTON STATE
+   ========================================================= */
+
+function updateLanguageButtons(language) {
+
+    const buttons =
+        document.querySelectorAll(
+            ".language-button"
+        );
+
+
+    buttons.forEach(
+        (button) => {
+
+            const isActive =
+                button.dataset.language ===
+                language;
+
+
+            button.classList.toggle(
+                "is-active",
+                isActive
+            );
+        }
     );
 }
 
@@ -621,174 +647,13 @@ settingsButton.addEventListener(
 
 
 /* =========================================================
-   LANGUAGE SWITCHER
-   ========================================================= */
-
-function createLanguageSwitcher() {
-
-    const settingsContent =
-        document.querySelector(
-            ".settings-content"
-        );
-
-
-    const existingSwitcher =
-        document.getElementById(
-            "languageSwitcher"
-        );
-
-
-    if (existingSwitcher) {
-        existingSwitcher.remove();
-    }
-
-
-    /* ---------------------------------------------
-       Wrapper
-       --------------------------------------------- */
-
-    const wrapper =
-        document.createElement("div");
-
-
-    wrapper.className =
-        "language-switcher";
-
-    wrapper.id =
-        "languageSwitcher";
-
-
-    /* ---------------------------------------------
-       Label
-       --------------------------------------------- */
-
-    const label =
-        document.createElement("div");
-
-
-    label.className =
-        "language-switcher__label";
-
-
-    /* ---------------------------------------------
-       Buttons
-       --------------------------------------------- */
-
-    const buttons =
-        document.createElement("div");
-
-
-    buttons.className =
-        "language-switcher__buttons";
-
-
-    supportedLanguages.forEach(
-        (language) => {
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-
-            button.type =
-                "button";
-
-
-            button.className =
-                "language-button";
-
-
-            button.dataset.language =
-                language;
-
-
-            button.textContent =
-                language.toUpperCase();
-
-
-            button.addEventListener(
-                "click",
-                () => {
-                    setLanguage(language);
-                }
-            );
-
-
-            buttons.appendChild(
-                button
-            );
-        }
-    );
-
-
-    wrapper.appendChild(
-        label
-    );
-
-
-    wrapper.appendChild(
-        buttons
-    );
-
-
-    /*
-     * Insert the language switcher before
-     * the existing divider.
-     */
-
-    const divider =
-        document.querySelector(
-            ".settings-divider"
-        );
-
-
-    settingsContent.insertBefore(
-        wrapper,
-        divider
-    );
-}
-
-
-/* =========================================================
-   LANGUAGE BUTTON STATE
-   ========================================================= */
-
-function updateLanguageButtons(
-    language = getCurrentLanguage()
-) {
-
-    const buttons =
-        document.querySelectorAll(
-            ".language-button"
-        );
-
-
-    buttons.forEach(
-        (button) => {
-
-            const isActive =
-                button.dataset.language ===
-                language;
-
-
-            button.classList.toggle(
-                "is-active",
-                isActive
-            );
-        }
-    );
-}
-
-
-/* =========================================================
    RESET
    ========================================================= */
 
 function resetTapper() {
 
     /*
-     * Real Tap Tempo state will be reset here later.
+     * Real Tap Tempo state will be implemented later.
      */
 
     tapValue.textContent =
@@ -806,10 +671,6 @@ function resetTapper() {
 }
 
 
-/* =========================================================
-   RESET BUTTON
-   ========================================================= */
-
 resetButton.addEventListener(
     "click",
     resetTapper
@@ -817,22 +678,15 @@ resetButton.addEventListener(
 
 
 /* =========================================================
-   PLACEHOLDER TAP HANDLER
+   TAP PLACEHOLDER
    ========================================================= */
-
-/*
- * The actual Tap Tempo engine will be implemented later.
- *
- * For now this handler is deliberately empty so that
- * clicking the button does not accidentally interfere
- * with the visual prototype.
- */
 
 tapButton.addEventListener(
     "click",
     () => {
+
         /*
-         * Tap Tempo will be implemented here.
+         * Real Tap Tempo logic will be added later.
          */
     }
 );
@@ -845,21 +699,22 @@ tapButton.addEventListener(
 function initialize() {
 
     /*
-     * 1. Load persistent settings.
+     * Load persistent settings first.
      */
 
     settings.load();
 
 
     /*
-     * 2. Build the language selector.
+     * Create EN / RU / AZ buttons
+     * inside the existing Language row.
      */
 
-    createLanguageSwitcher();
+    createLanguageButtons();
 
 
     /*
-     * 3. Apply saved language.
+     * Apply saved language.
      */
 
     applyLanguage(
