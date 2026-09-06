@@ -1064,7 +1064,7 @@ a:focus-visible {
 .dropdown-menu {
     position: absolute;
 
-    bottom: calc(100% + 4px);
+    top: calc(100% + 4px);
     right: -1px;
 
     z-index: 50;
@@ -1095,10 +1095,10 @@ a:focus-visible {
     pointer-events: none;
 
     transform:
-        translateY(3px)
+        translateY(-3px)
         scale(0.98);
 
-    transform-origin: bottom right;
+    transform-origin: top right;
 
     transition:
         opacity 110ms ease,
