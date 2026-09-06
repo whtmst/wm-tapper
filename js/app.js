@@ -213,6 +213,20 @@ function setLanguage(language) {
     applyLanguage(
         language
     );
+
+
+    /*
+     * Explicitly synchronize the active
+     * language button immediately.
+     *
+     * This prevents the previous language
+     * from remaining highlighted until the
+     * Settings panel is reopened.
+     */
+
+    updateLanguageButtons(
+        language
+    );
 }
 
 
@@ -514,23 +528,14 @@ function updateLanguageButtons(language) {
     buttons.forEach(
         (button) => {
 
-            const buttonLanguage =
-                button.dataset.language;
+            const isActive =
+                button.dataset.language === language;
 
-            if (
-                buttonLanguage === language
-            ) {
 
-                button.classList.add(
-                    "is-active"
-                );
-
-            } else {
-
-                button.classList.remove(
-                    "is-active"
-                );
-            }
+            button.classList.toggle(
+                "is-active",
+                isActive
+            );
         }
     );
 }
