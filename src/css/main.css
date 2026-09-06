@@ -2027,3 +2027,192 @@ a:focus-visible {
         transition-duration: 0.01ms !important;
     }
 }
+
+
+/* =========================================================
+   ANALYSIS BUSY STATE
+   ========================================================= */
+
+.analysis-busy-overlay {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    z-index: 200;
+
+    border-radius: 12px;
+
+    background:
+        rgba(8, 10, 11, 0.34);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity 140ms ease,
+        visibility 140ms ease;
+}
+
+
+.analysis-busy-overlay.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+
+.app-window.analysis-panel-open
+    .analysis-busy-overlay.is-visible {
+    height: calc(100% + 144px);
+
+    border-radius:
+        12px 12px 0 0;
+}
+
+
+/* ---------------------------------------------------------
+   Keep analysis panel above the busy overlay
+   --------------------------------------------------------- */
+
+.app-window.analysis-panel-open
+    .analysis-panel {
+    z-index: 300;
+}
+
+
+/* ---------------------------------------------------------
+   Analysis button remains highlighted above overlay
+   --------------------------------------------------------- */
+
+.analysis-run-button {
+    position: relative;
+
+    z-index: 301;
+}
+
+
+.analysis-run-button.is-analyzing {
+    cursor: default;
+
+    animation:
+        analysis-button-pulse 1.45s ease-in-out infinite;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(200, 233, 87, 0.19),
+            rgba(200, 233, 87, 0.085)
+        );
+
+    border-color:
+        rgba(200, 233, 87, 0.34);
+
+    color:
+        var(--accent-light);
+
+    box-shadow:
+        0 0 13px rgba(200, 233, 87, 0.10);
+}
+
+
+.analysis-run-button.is-analyzing:hover,
+.analysis-run-button.is-analyzing:active {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(200, 233, 87, 0.19),
+            rgba(200, 233, 87, 0.085)
+        );
+
+    transform: none;
+}
+
+
+@keyframes analysis-button-pulse {
+
+    0%,
+    100% {
+
+        opacity: 0.72;
+
+        transform:
+            scale(0.985);
+
+        box-shadow:
+            0 0 8px rgba(200, 233, 87, 0.06);
+    }
+
+    50% {
+
+        opacity: 1;
+
+        transform:
+            scale(1);
+
+        box-shadow:
+            0 0 16px rgba(200, 233, 87, 0.15);
+    }
+}
+
+
+/* =========================================================
+   ANALYSIS RESULT
+   ========================================================= */
+
+.tap-button__confidence {
+    position: absolute;
+
+    top: 35px;
+    left: 50%;
+
+    z-index: 2;
+
+    width: calc(100% - 20px);
+
+    color:
+        rgba(36, 41, 26, 0.54);
+
+    font-size: 11px;
+    font-weight: 500;
+
+    line-height: 1;
+
+    letter-spacing: 0.075em;
+
+    text-align: center;
+
+    transform:
+        translateX(-50%);
+}
+
+
+.tap-button__key {
+    position: absolute;
+
+    bottom: 34px;
+    left: 50%;
+
+    z-index: 2;
+
+    width: calc(100% - 20px);
+
+    color:
+        rgba(36, 41, 26, 0.56);
+
+    font-size: 13px;
+    font-weight: 500;
+
+    line-height: 1;
+
+    letter-spacing: 0.045em;
+
+    text-align: center;
+
+    transform:
+        translateX(-50%);
+}
