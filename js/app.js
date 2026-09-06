@@ -292,6 +292,24 @@ const analysisRunButton =
     );
 
 
+const analysisBusyOverlay =
+    document.getElementById(
+        "analysisBusyOverlay"
+    );
+
+
+const tapConfidence =
+    document.getElementById(
+        "tapConfidence"
+    );
+
+
+const tapKey =
+    document.getElementById(
+        "tapKey"
+    );
+
+
 const analysisWaveformCanvas =
     document.getElementById(
         "analysisWaveformCanvas"
@@ -909,6 +927,20 @@ function setAnalysisRunning(
     analysisRunButton.classList.toggle(
         "is-analyzing",
         state
+    );
+
+
+    analysisBusyOverlay.classList.toggle(
+        "is-visible",
+        state
+    );
+
+
+    analysisBusyOverlay.setAttribute(
+        "aria-hidden",
+        state
+            ? "false"
+            : "true"
     );
 
 
@@ -1662,11 +1694,45 @@ analysisRunButton.addEventListener(
                     result.bpm
                 )
             ) {
-
+            
                 tapValue.textContent =
                     `${formatBpm(
                         result.bpm
                     )} BPM`;
+            }
+            
+            
+            if (
+                result &&
+                Number.isFinite(
+                    result.strength
+                )
+            ) {
+            
+                tapConfidence.textContent =
+                    `${Math.round(
+                        result.strength * 100
+                    )}% CONFIDENCE`;
+            
+            } else {
+            
+                tapConfidence.textContent =
+                    "";
+            }
+            
+            
+            if (
+                result &&
+                result.keyLabel
+            ) {
+            
+                tapKey.textContent =
+                    result.keyLabel;
+            
+            } else {
+            
+                tapKey.textContent =
+                    "";
             }
 
 
@@ -1723,6 +1789,10 @@ const session =
    ========================================================= */
 
 function handleTap() {
+
+    tapConfidence.textContent = "";
+
+    tapKey.textContent = "";
 
     if (
         isAnalysisRunning
