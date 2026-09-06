@@ -773,7 +773,7 @@ a:focus-visible {
 
     color: var(--text-secondary);
 
-    font-size: 11px;
+    font-size: 15px;
 
     line-height: 1;
 
@@ -785,18 +785,15 @@ a:focus-visible {
 
 .average__label {
     color: var(--text-secondary);
-
-    font-weight: 570;
+    font-weight: 400;
+    text-transform: uppercase;
 }
 
 
 .average__value {
     margin-left: 4px;
-
     color: rgba(240, 242, 236, 0.56);
-
     font-weight: 400;
-
     font-variant-numeric: tabular-nums;
 }
 
