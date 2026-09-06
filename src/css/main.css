@@ -1746,7 +1746,7 @@ a:focus-visible {
 
     color: rgba(240, 242, 236, 0.48);
 
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 500;
 
     line-height: 1;
@@ -1796,7 +1796,7 @@ a:focus-visible {
 
     color: rgba(240, 242, 236, 0.67);
 
-    font-size: 8.5px;
+    font-size: 9.5px;
     font-weight: 570;
 
     line-height: 1;
@@ -1928,7 +1928,7 @@ a:focus-visible {
 
     color: rgba(240, 242, 236, 0.52);
 
-    font-size: 8px;
+    font-size: 9.5px;
     font-weight: 520;
 
     line-height: 1;
@@ -1979,7 +1979,7 @@ a:focus-visible {
 
     color: rgba(200, 233, 87, 0.82);
 
-    font-size: 8.5px;
+    font-size: 10px;
     font-weight: 620;
 
     line-height: 1;
