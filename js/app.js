@@ -1665,6 +1665,10 @@ resetButton.addEventListener(
             null;
 
 
+        selectedAudioBuffer =
+            null;
+
+
         analysisDuration =
             0;
 
@@ -1685,6 +1689,12 @@ resetButton.addEventListener(
         dropdowns.setAnalysisMode(
             "full"
         );
+
+
+        waveform.clear();
+
+
+        updateAnalysisRangeUI();
 
 
         closeAnalysisPanel();
