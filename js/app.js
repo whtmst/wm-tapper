@@ -286,6 +286,258 @@ function formatBpm(value) {
 
 
 /* =========================================================
+   AUDIO FILE PICKER
+   ========================================================= */
+
+const SUPPORTED_AUDIO_EXTENSIONS = [
+    ".mp3",
+    ".wav",
+    ".flac",
+    ".aif",
+    ".aiff"
+];
+
+
+const SUPPORTED_AUDIO_MIME_TYPES = [
+    "audio/mpeg",
+    "audio/wav",
+    "audio/x-wav",
+    "audio/flac",
+    "audio/aiff",
+    "audio/x-aiff"
+];
+
+
+/**
+ * Check whether a file has a supported
+ * audio extension.
+ *
+ * @param {File} file
+ * @returns {boolean}
+ */
+function hasSupportedAudioExtension(file) {
+
+    if (
+        !(file instanceof File)
+    ) {
+        return false;
+    }
+
+
+    const fileName =
+        file.name.toLowerCase();
+
+
+    return SUPPORTED_AUDIO_EXTENSIONS
+        .some(
+            (extension) => {
+                return fileName.endsWith(
+                    extension
+                );
+            }
+        );
+}
+
+
+/**
+ * Check whether a file has a supported
+ * MIME type.
+ *
+ * Empty MIME types are allowed because
+ * some browsers / operating systems may
+ * provide an empty type for valid files.
+ *
+ * @param {File} file
+ * @returns {boolean}
+ */
+function hasSupportedAudioMimeType(file) {
+
+    if (
+        !(file instanceof File)
+    ) {
+        return false;
+    }
+
+
+    if (
+        !file.type
+    ) {
+        return true;
+    }
+
+
+    return SUPPORTED_AUDIO_MIME_TYPES.includes(
+        file.type.toLowerCase()
+    );
+}
+
+
+/**
+ * Validate selected audio file.
+ *
+ * @param {File} file
+ * @returns {boolean}
+ */
+function isSupportedAudioFile(file) {
+
+    return (
+        hasSupportedAudioExtension(file) &&
+        hasSupportedAudioMimeType(file)
+    );
+}
+
+
+/**
+ * Create hidden audio file input.
+ *
+ * The input is intentionally created from JavaScript
+ * so index.html does not need another visible element.
+ *
+ * @returns {HTMLInputElement}
+ */
+function createAudioFileInput() {
+
+    const input =
+        document.createElement(
+            "input"
+        );
+
+
+    input.type =
+        "file";
+
+
+    /*
+     * One file only.
+     *
+     * "multiple" is intentionally NOT present.
+     */
+
+    input.multiple =
+        false;
+
+
+    /*
+     * Restrict the picker to formats
+     * supported by the application.
+     */
+
+    input.accept =
+        ".mp3,.wav,.flac,.aif,.aiff," +
+        "audio/mpeg,audio/wav,audio/x-wav," +
+        "audio/flac,audio/aiff,audio/x-aiff";
+
+
+    /*
+     * Keep the element completely invisible.
+     */
+
+    input.style.display =
+        "none";
+
+
+    document.body.appendChild(
+        input
+    );
+
+
+    return input;
+}
+
+
+const audioFileInput =
+    createAudioFileInput();
+
+
+/* =========================================================
+   AUDIO FILE SELECTION
+   ========================================================= */
+
+audioFileInput.addEventListener(
+    "change",
+    () => {
+
+        const file =
+            audioFileInput.files?.[0];
+
+
+        /*
+         * No file selected.
+         */
+
+        if (!file) {
+
+            audioFileInput.value =
+                "";
+
+            return;
+        }
+
+
+        /*
+         * Validate selected file.
+         */
+
+        if (
+            !isSupportedAudioFile(file)
+        ) {
+
+            console.warn(
+                "WM Tapper: unsupported audio file.",
+                file.name,
+                file.type
+            );
+
+
+            audioFileInput.value =
+                "";
+
+            return;
+        }
+
+
+        /*
+         * Valid file.
+         *
+         * Real analyzer integration will
+         * be connected in the next step.
+         */
+
+        console.log(
+            "WM Tapper: audio file selected.",
+            {
+                name: file.name,
+                type: file.type,
+                size: file.size
+            }
+        );
+
+
+        /*
+         * Allow selecting the exact same file
+         * again later.
+         */
+
+        audioFileInput.value =
+            "";
+    }
+);
+
+
+/* =========================================================
+   ANALYZE FILE BUTTON
+   ========================================================= */
+
+analyzeButton.addEventListener(
+    "click",
+    () => {
+
+        audioFileInput.click();
+    }
+);
+
+
+/* =========================================================
    DROPDOWNS
    ========================================================= */
 
@@ -647,7 +899,8 @@ function initialize() {
 
 
     /*
-     * Analyzer will be connected later.
+     * Analyzer will be connected
+     * after the file picker stage.
      */
 
     void trackAnalyzer;
