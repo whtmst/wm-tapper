@@ -591,7 +591,72 @@ function selectBestKeyResult(results) {
  * @param {Object[]} results
  * @returns {number|null}
  */
-function selectBpmResult(results) {
+/**
+ * Get BPM range for the selected genre.
+ *
+ * @param {string} genre
+ * @returns {{min:number,max:number}}
+ */
+function getGenreBpmRange(genre) {
+    if (!genre || genre === "auto") {
+        return {
+            min: RHYTHM_MIN_TEMPO,
+            max: RHYTHM_MAX_TEMPO,
+        };
+    }
+
+    return (
+        GENRE_BPM_RANGES[genre] || {
+            min: RHYTHM_MIN_TEMPO,
+            max: RHYTHM_MAX_TEMPO,
+        }
+    );
+}
+
+/**
+ * Calculate a soft genre preference for a BPM candidate.
+ *
+ * @param {number} bpm
+ * @param {string} genre
+ * @returns {number}
+ */
+function getGenreBpmBonus(bpm, genre) {
+    if (!Number.isFinite(bpm) || !genre || genre === "auto") {
+        return 0;
+    }
+
+    const range = getGenreBpmRange(genre);
+
+    if (bpm >= range.min && bpm <= range.max) {
+        return 2;
+    }
+
+    const distance =
+        bpm < range.min
+            ? range.min - bpm
+            : bpm - range.max;
+
+    return Math.max(0, 1 - distance / 30);
+}
+
+/**
+ * Select the best BPM result from several FAST segments.
+ *
+ * Each detected BPM produces three possible interpretations:
+ *
+ *   1x  - detected tempo
+ *   2x  - double-time interpretation
+ *   0.5x - half-time interpretation
+ *
+ * Candidates are grouped by proximity.
+ * Each segment can contribute only once to a cluster,
+ * so one segment cannot vote three times for the same BPM.
+ *
+ * @param {Object[]} results
+ * @param {string} genre
+ * @returns {number|null}
+ */
+function selectBpmResult(results, genre = "auto") {
     const validResults = results.filter((result) => {
         return result && Number.isFinite(result.bpm);
     });
@@ -600,18 +665,192 @@ function selectBpmResult(results) {
         return null;
     }
 
-    /*
-     * Median is deliberately used instead of an average.
-     *
-     * A single bad segment should not drag the final BPM
-     * toward an incorrect value.
-     */
+    const candidates = [];
 
-    return calculateMedian(
-        validResults.map((result) => {
-            return result.bpm;
+    validResults.forEach((result, segmentIndex) => {
+        const bpm = Number(result.bpm);
+
+        const confidence =
+            Number.isFinite(result.rhythmConfidence) &&
+            result.rhythmConfidence > 0
+                ? result.rhythmConfidence
+                : 1;
+
+        const variants = [
+            {
+                bpm,
+                weight: 1,
+                interpretation: "1x",
+            },
+
+            {
+                bpm: bpm * 2,
+                weight: 0.85,
+                interpretation: "2x",
+            },
+
+            {
+                bpm: bpm / 2,
+                weight: 0.85,
+                interpretation: "0.5x",
+            },
+        ];
+
+        variants.forEach((variant) => {
+            if (
+                !Number.isFinite(variant.bpm) ||
+                variant.bpm < RHYTHM_MIN_TEMPO ||
+                variant.bpm > RHYTHM_MAX_TEMPO
+            ) {
+                return;
+            }
+
+            candidates.push({
+                bpm: variant.bpm,
+                weight: variant.weight,
+                confidence,
+                segmentIndex,
+                interpretation: variant.interpretation,
+            });
+        });
+    });
+
+    /*
+     * Sort by BPM so nearby interpretations can be grouped.
+     */
+    candidates.sort((left, right) => {
+        return left.bpm - right.bpm;
+    });
+
+    const clusters = [];
+
+    candidates.forEach((candidate) => {
+        let targetCluster = null;
+
+        /*
+         * A tolerance of 3 BPM allows small differences
+         * between Essentia segment estimates.
+         */
+        for (let index = 0; index < clusters.length; index += 1) {
+            const cluster = clusters[index];
+
+            if (Math.abs(cluster.center - candidate.bpm) <= 3) {
+                targetCluster = cluster;
+
+                break;
+            }
+        }
+
+        if (!targetCluster) {
+            clusters.push({
+                center: candidate.bpm,
+
+                candidates: [candidate],
+            });
+
+            return;
+        }
+
+        targetCluster.candidates.push(candidate);
+
+        const totalWeight = targetCluster.candidates.reduce(
+            (sum, item) => {
+                return sum + item.weight;
+            },
+            0,
+        );
+
+        targetCluster.center =
+            targetCluster.candidates.reduce((sum, item) => {
+                return sum + item.bpm * item.weight;
+            }, 0) / totalWeight;
+    });
+
+    /*
+     * Score each BPM cluster.
+     */
+    let bestCluster = null;
+
+    let bestScore = -Infinity;
+
+    clusters.forEach((cluster) => {
+        /*
+         * One segment can support a cluster only once.
+         *
+         * Among all interpretations from that segment,
+         * keep only the strongest contribution.
+         */
+        const segmentScores = new Map();
+
+        cluster.candidates.forEach((candidate) => {
+            const candidateScore =
+                candidate.confidence * candidate.weight;
+
+            const previousScore =
+                segmentScores.get(candidate.segmentIndex) || 0;
+
+            if (candidateScore > previousScore) {
+                segmentScores.set(
+                    candidate.segmentIndex,
+                    candidateScore,
+                );
+            }
+        });
+
+        let score = 0;
+
+        segmentScores.forEach((value) => {
+            score += value;
+        });
+
+        /*
+         * Reward agreement between independent segments.
+         */
+        score += segmentScores.size * 0.75;
+
+        /*
+         * Genre provides a soft preference only.
+         */
+        score += getGenreBpmBonus(cluster.center, genre);
+
+        cluster.score = score;
+
+        if (score > bestScore) {
+            bestScore = score;
+
+            bestCluster = cluster;
+        }
+    });
+
+    if (!bestCluster) {
+        return null;
+    }
+
+    console.log("WM Tapper: FAST BPM consensus.", {
+        genre,
+        selectedBpm: bestCluster.center,
+        score: bestScore,
+
+        clusters: clusters.map((cluster) => {
+            return {
+                bpm: Number(cluster.center.toFixed(3)),
+                score: Number(cluster.score.toFixed(3)),
+                candidates: cluster.candidates.map((candidate) => {
+                    return {
+                        bpm: Number(candidate.bpm.toFixed(3)),
+                        confidence: Number(
+                            candidate.confidence.toFixed(3),
+                        ),
+                        weight: candidate.weight,
+                        segmentIndex: candidate.segmentIndex + 1,
+                        interpretation: candidate.interpretation,
+                    };
+                }),
+            };
         }),
-    );
+    });
+
+    return bestCluster.center;
 }
 
 /* =========================================================
@@ -681,7 +920,12 @@ export class TrackAnalyzer {
             const mode = ["full", "selection", "fast"].includes(options?.mode)
                 ? options.mode
                 : "full";
-
+            
+            const genre =
+                typeof options?.genre === "string"
+                    ? options.genre
+                    : "auto";
+            
             const providedAudioBuffer = options?.audioBuffer;
 
             /* -------------------------------------------------
@@ -854,7 +1098,7 @@ export class TrackAnalyzer {
                 segmentResults.push(result);
             }
 
-            const bpm = selectBpmResult(segmentResults);
+            const bpm = selectBpmResult(segmentResults, genre);
 
             const bestKey = selectBestKeyResult(segmentResults);
 
