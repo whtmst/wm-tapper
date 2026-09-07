@@ -252,6 +252,18 @@ try {
 
     const rhythmResult = essentia.RhythmDescriptors(signalVector);
 
+	const rhythmTestResult = essentia.RhythmExtractor2013(
+        signalVector,
+        RHYTHM_MAX_TEMPO,
+        RHYTHM_METHOD,
+        RHYTHM_MIN_TEMPO,
+    );
+
+    console.log("WM Tapper: RHYTHM EXTRACTOR TEST.", {
+        bpm: rhythmTestResult?.bpm,
+        confidence: rhythmTestResult?.confidence,
+    });
+
     console.log("WM Tapper: RHYTHM HISTOGRAM.", {
         firstPeakBpm: rhythmResult?.first_peak_bpm,
         firstPeakWeight: rhythmResult?.first_peak_weight,
