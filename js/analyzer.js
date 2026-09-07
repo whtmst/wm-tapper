@@ -229,92 +229,88 @@ async function analyzeSignal(essentia, signal) {
     }
 
 	const signalVector = essentia.arrayToVector(signal);
-	
-	try {
-	    const percivalResult = essentia.PercivalBpmEstimator(
-	        signalVector,
-	        1024,
-	        2048,
-	        128,
-	        128,
-	        RHYTHM_MAX_TEMPO,
-	        RHYTHM_MIN_TEMPO,
-	        TARGET_SAMPLE_RATE,
-	    );
-	
-	    console.log("WM Tapper: PERCIVAL BPM.", {
-	        bpm: percivalResult?.bpm,
-	    });
-	
-	    /* -------------------------------------------------
-	       BPM
-	       ------------------------------------------------- */
-	
-	    const rhythmResult = essentia.RhythmDescriptors(signalVector);
-	
-    try {
-        /* -------------------------------------------------
-           BPM
-           ------------------------------------------------- */
 
-		const rhythmResult = essentia.RhythmDescriptors(signalVector);
+try {
+    const percivalResult = essentia.PercivalBpmEstimator(
+        signalVector,
+        1024,
+        2048,
+        128,
+        128,
+        RHYTHM_MAX_TEMPO,
+        RHYTHM_MIN_TEMPO,
+        TARGET_SAMPLE_RATE,
+    );
 
-		console.log("WM Tapper: RHYTHM HISTOGRAM.", {
-		    firstPeakBpm: rhythmResult?.first_peak_bpm,
-		    firstPeakWeight: rhythmResult?.first_peak_weight,
-		    secondPeakBpm: rhythmResult?.second_peak_bpm,
-		    secondPeakWeight: rhythmResult?.second_peak_weight,
-		
-		    histogramAt92:
-		        rhythmResult?.histogram?.get
-		            ? rhythmResult.histogram.get(92)
-		            : null,
-		
-		    histogramAt185:
-		        rhythmResult?.histogram?.get
-		            ? rhythmResult.histogram.get(185)
-		            : null,
-		
-		    histogramObject: rhythmResult?.histogram,
-		});
-		
-		console.log("WM Tapper: RHYTHM DESCRIPTORS RAW.", rhythmResult);
-		console.log(
-		    "WM Tapper: RHYTHM DESCRIPTORS KEYS.",
-		    Object.keys(rhythmResult || {}),
-		);
-		
-		console.log("WM Tapper: rhythm descriptors.", {
-		    bpm: rhythmResult?.bpm,
-		    confidence: rhythmResult?.confidence,
-		
-		    bpmEstimates: rhythmResult?.bpm_estimates
-		        ? Array.from(rhythmResult.bpm_estimates)
-		        : [],
-		
-		    bpmIntervals: rhythmResult?.bpm_intervals
-		        ? Array.from(rhythmResult.bpm_intervals)
-		        : [],
-		
-		    firstPeakBpm: rhythmResult?.first_peak_bpm,
-		    firstPeakWeight: rhythmResult?.first_peak_weight,
-		    firstPeakSpread: rhythmResult?.first_peak_spread,
-		
-		    secondPeakBpm: rhythmResult?.second_peak_bpm,
-		    secondPeakWeight: rhythmResult?.second_peak_weight,
-		    secondPeakSpread: rhythmResult?.second_peak_spread,
-		});
+    console.log("WM Tapper: PERCIVAL BPM.", {
+        bpm: percivalResult?.bpm,
+    });
 
-		console.log("WM Tapper: rhythm raw result.", {
-		    bpm: rhythmResult?.bpm,
-		    confidence: rhythmResult?.confidence,
-		    estimates: rhythmResult?.estimates
-		        ? Array.from(rhythmResult.estimates)
-		        : [],
-		    bpmIntervals: rhythmResult?.bpmIntervals
-		        ? Array.from(rhythmResult.bpmIntervals)
-		        : [],
-		});
+    /* -------------------------------------------------
+       BPM
+       ------------------------------------------------- */
+
+    const rhythmResult = essentia.RhythmDescriptors(signalVector);
+
+    console.log("WM Tapper: RHYTHM HISTOGRAM.", {
+        firstPeakBpm: rhythmResult?.first_peak_bpm,
+        firstPeakWeight: rhythmResult?.first_peak_weight,
+        secondPeakBpm: rhythmResult?.second_peak_bpm,
+        secondPeakWeight: rhythmResult?.second_peak_weight,
+
+        histogramAt92:
+            rhythmResult?.histogram?.get
+                ? rhythmResult.histogram.get(92)
+                : null,
+
+        histogramAt185:
+            rhythmResult?.histogram?.get
+                ? rhythmResult.histogram.get(185)
+                : null,
+
+        histogramObject: rhythmResult?.histogram,
+    });
+
+    console.log("WM Tapper: RHYTHM DESCRIPTORS RAW.", rhythmResult);
+
+    console.log(
+        "WM Tapper: RHYTHM DESCRIPTORS KEYS.",
+        Object.keys(rhythmResult || {}),
+    );
+
+    console.log("WM Tapper: rhythm descriptors.", {
+        bpm: rhythmResult?.bpm,
+        confidence: rhythmResult?.confidence,
+
+        bpmEstimates: rhythmResult?.bpm_estimates
+            ? Array.from(rhythmResult.bpm_estimates)
+            : [],
+
+        bpmIntervals: rhythmResult?.bpm_intervals
+            ? Array.from(rhythmResult.bpm_intervals)
+            : [],
+
+        firstPeakBpm: rhythmResult?.first_peak_bpm,
+        firstPeakWeight: rhythmResult?.first_peak_weight,
+        firstPeakSpread: rhythmResult?.first_peak_spread,
+
+        secondPeakBpm: rhythmResult?.second_peak_bpm,
+        secondPeakWeight: rhythmResult?.second_peak_weight,
+        secondPeakSpread: rhythmResult?.second_peak_spread,
+    });
+
+    console.log("WM Tapper: rhythm raw result.", {
+        bpm: rhythmResult?.bpm,
+        confidence: rhythmResult?.confidence,
+
+        estimates: rhythmResult?.estimates
+            ? Array.from(rhythmResult.estimates)
+            : [],
+
+        bpmIntervals: rhythmResult?.bpmIntervals
+            ? Array.from(rhythmResult.bpmIntervals)
+            : [],
+    });
 
         /* -------------------------------------------------
            KEY
