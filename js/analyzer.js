@@ -236,6 +236,12 @@ async function analyzeSignal(essentia, signal) {
            ------------------------------------------------- */
 
 		const rhythmResult = essentia.RhythmDescriptors(signalVector);
+
+		console.log("WM Tapper: RHYTHM DESCRIPTORS RAW.", rhythmResult);
+		console.log(
+		    "WM Tapper: RHYTHM DESCRIPTORS KEYS.",
+		    Object.keys(rhythmResult || {}),
+		);
 		
 		console.log("WM Tapper: rhythm descriptors.", {
 		    bpm: rhythmResult?.bpm,
