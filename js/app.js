@@ -117,6 +117,12 @@ const analysisModeControl = document.getElementById("analysisModeControl");
 
 const analysisModeMenu = document.getElementById("analysisModeMenu");
 
+const analysisGenre = document.getElementById("analysisGenre");
+
+const analysisGenreControl = document.getElementById("analysisGenreControl");
+
+const analysisGenreMenu = document.getElementById("analysisGenreMenu");
+
 const analysisRunButton = document.getElementById("analysisRunButton");
 
 const analysisBusyOverlay = document.getElementById("analysisBusyOverlay");
@@ -606,6 +612,10 @@ const dropdowns = createDropdownController(
         analysisMode,
         analysisModeControl,
         analysisModeMenu,
+
+        analysisGenre,
+        analysisGenreControl,
+        analysisGenreMenu,
     },
     {
         onSessionChange: (value) => {
