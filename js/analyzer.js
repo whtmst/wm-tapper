@@ -17,9 +17,9 @@ const ESSENTIA_WASM_SCRIPT = "./lib/essentia/essentia-wasm.web.js";
 
 const TARGET_SAMPLE_RATE = 44100;
 
-const RHYTHM_MAX_TEMPO = 300;
+const RHYTHM_MAX_TEMPO = 250;
 
-const RHYTHM_MIN_TEMPO = 30;
+const RHYTHM_MIN_TEMPO = 40;
 
 const RHYTHM_METHOD = "multifeature";
 
@@ -97,8 +97,8 @@ const GENRE_BPM_RANGES = {
     },
 
     other: {
-        min: 30,
-        max: 300,
+        min: 40,
+        max: 250,
     },
 };
 
