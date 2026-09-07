@@ -324,10 +324,21 @@ export function formatAnalysisKey(key, scale, language) {
     if (language === "ru") {
         const russianKey = russianNoteNames[key] || key;
 
-        const russianScale =
-            scale === "major" ? "Мажор" : scale === "minor" ? "Минор" : scale;
+        const englishScale =
+            scale === "major"
+                ? "Major"
+                : scale === "minor"
+                  ? "Minor"
+                  : scale;
 
-        return `${normalizedKey} ${scale}` + ` (${russianKey} ${russianScale})`;
+        const russianScale =
+            scale === "major"
+                ? "мажор"
+                : scale === "minor"
+                  ? "минор"
+                  : scale;
+
+        return `${normalizedKey} ${englishScale} (${russianKey} ${russianScale})`;
     }
 
     const translatedScale = translateScale(scale, language);
