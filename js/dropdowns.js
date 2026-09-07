@@ -38,8 +38,16 @@ export function createDropdownController(
         analysisMode,
         analysisModeControl,
         analysisModeMenu,
+        analysisGenre,
+        analysisGenreControl,
+        analysisGenreMenu,
     },
-    { onSessionChange, onHistoryChange, onAnalysisModeChange },
+    {
+        onSessionChange,
+        onHistoryChange,
+        onAnalysisModeChange,
+        onAnalysisGenreChange,
+    },
 ) {
     /* =====================================================
        SELECTED OPTION
@@ -50,9 +58,9 @@ export function createDropdownController(
             return;
         }
 
-        menu.querySelectorAll(
-            ".dropdown-option, .analysis-mode__option",
-        ).forEach((option) => {
+		menu.querySelectorAll(
+		    ".dropdown-option, .analysis-mode__option, .analysis-genre__option",
+		).forEach((option) => {
             const isSelected = option.dataset.value === String(value);
 
             option.classList.toggle("is-selected", isSelected);
@@ -65,19 +73,23 @@ export function createDropdownController(
        CLOSE ALL
        ===================================================== */
 
-    function closeAll() {
-        sessionControl.classList.remove("is-open");
-
-        historyControl.classList.remove("is-open");
-
-        analysisMode.classList.remove("is-open");
-
-        sessionControl.setAttribute("aria-expanded", "false");
-
-        historyControl.setAttribute("aria-expanded", "false");
-
-        analysisModeControl.setAttribute("aria-expanded", "false");
-    }
+		function closeAll() {
+		    sessionControl.classList.remove("is-open");
+		
+		    historyControl.classList.remove("is-open");
+		
+		    analysisMode.classList.remove("is-open");
+		
+		    analysisGenre.classList.remove("is-open");
+		
+		    sessionControl.setAttribute("aria-expanded", "false");
+		
+		    historyControl.setAttribute("aria-expanded", "false");
+		
+		    analysisModeControl.setAttribute("aria-expanded", "false");
+		
+		    analysisGenreControl.setAttribute("aria-expanded", "false");
+		}
 
     /* =====================================================
        TOGGLE
@@ -95,28 +107,51 @@ export function createDropdownController(
         }
     }
 
-    /* =====================================================
-       ANALYSIS MODE VALUE
-       ===================================================== */
-
-    function setAnalysisMode(value) {
-        const normalizedValue = String(value);
-
-        updateSelectedOption(analysisModeMenu, normalizedValue);
-
-        const selectedOption = analysisModeMenu.querySelector(
-            `[data-value="${normalizedValue}"]`,
-        );
-
-        if (selectedOption) {
-            const valueElement =
-                analysisModeControl.querySelector("#analysisModeValue");
-
-            if (valueElement) {
-                valueElement.textContent = selectedOption.textContent.trim();
-            }
-        }
-    }
+	/* =====================================================
+	   ANALYSIS MODE VALUE
+	   ===================================================== */
+	
+	function setAnalysisMode(value) {
+	    const normalizedValue = String(value);
+	
+	    updateSelectedOption(analysisModeMenu, normalizedValue);
+	
+	    const selectedOption = analysisModeMenu.querySelector(
+	        `[data-value="${normalizedValue}"]`,
+	    );
+	
+	    if (selectedOption) {
+	        const valueElement =
+	            analysisModeControl.querySelector("#analysisModeValue");
+	
+	        if (valueElement) {
+	            valueElement.textContent = selectedOption.textContent.trim();
+	        }
+	    }
+	}
+	
+	/* =====================================================
+	   ANALYSIS GENRE VALUE
+	   ===================================================== */
+	
+	function setAnalysisGenre(value) {
+	    const normalizedValue = String(value);
+	
+	    updateSelectedOption(analysisGenreMenu, normalizedValue);
+	
+	    const selectedOption = analysisGenreMenu.querySelector(
+	        `[data-value="${normalizedValue}"]`,
+	    );
+	
+	    if (selectedOption) {
+	        const valueElement =
+	            analysisGenreControl.querySelector("#analysisGenreValue");
+	
+	        if (valueElement) {
+	            valueElement.textContent = selectedOption.textContent.trim();
+	        }
+	    }
+	}
 
     /* =====================================================
        SESSION DROPDOWN
@@ -146,15 +181,25 @@ export function createDropdownController(
         toggle(historyControl);
     });
 
-    /* =====================================================
-       ANALYSIS MODE DROPDOWN
-       ===================================================== */
-
-    analysisModeControl.addEventListener("click", (event) => {
-        event.stopPropagation();
-
-        toggle(analysisMode);
-    });
+	/* =====================================================
+	   ANALYSIS MODE DROPDOWN
+	   ===================================================== */
+	
+	analysisModeControl.addEventListener("click", (event) => {
+	    event.stopPropagation();
+	
+	    toggle(analysisMode);
+	});
+	
+	/* =====================================================
+	   ANALYSIS GENRE DROPDOWN
+	   ===================================================== */
+	
+	analysisGenreControl.addEventListener("click", (event) => {
+	    event.stopPropagation();
+	
+	    toggle(analysisGenre);
+	});
 
     /* =====================================================
        SESSION OPTIONS
@@ -226,6 +271,32 @@ export function createDropdownController(
             });
         });
 
+	/* =====================================================
+	   ANALYSIS GENRE OPTIONS
+	   ===================================================== */
+	
+	analysisGenreMenu
+	    .querySelectorAll(".analysis-genre__option")
+	    .forEach((option) => {
+	        option.addEventListener("click", (event) => {
+	            event.stopPropagation();
+	
+	            const value = option.dataset.value;
+	
+	            if (!value) {
+	                return;
+	            }
+	
+	            setAnalysisGenre(value);
+	
+	            if (typeof onAnalysisGenreChange === "function") {
+	                onAnalysisGenreChange(value);
+	            }
+	
+	            closeAll();
+	        });
+	    });
+	
     /* =====================================================
        OUTSIDE CLICK
        ===================================================== */
@@ -248,11 +319,13 @@ export function createDropdownController(
        PUBLIC API
        ===================================================== */
 
-    return {
-        closeAll,
-
-        updateSelectedOption,
-
-        setAnalysisMode,
-    };
+	return {
+	    closeAll,
+	
+	    updateSelectedOption,
+	
+	    setAnalysisMode,
+	
+	    setAnalysisGenre,
+	};
 }
