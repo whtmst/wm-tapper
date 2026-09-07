@@ -148,6 +148,7 @@ const trackAnalyzer = new TrackAnalyzer();
 const tapKeyController = new TapKeyController({
     control: tapKeyControl,
     value: tapKeyValue,
+    onTap: handleTap,
 });
 
 const waveform = createWaveformRenderer(analysisWaveformCanvas);
@@ -1018,11 +1019,7 @@ tapButton.addEventListener("click", () => {
    ========================================================= */
 
 donateButton.addEventListener("click", () => {
-    window.open(
-        "https://dalink.to/whtmst",
-        "_blank",
-        "noopener,noreferrer",
-    );
+    window.open("https://dalink.to/whtmst", "_blank", "noopener,noreferrer");
 });
 
 /* =========================================================
