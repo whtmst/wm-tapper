@@ -19,7 +19,7 @@ const TARGET_SAMPLE_RATE = 44100;
 
 const RHYTHM_MAX_TEMPO = 208;
 
-const RHYTHM_MIN_TEMPO = 40;
+const RHYTHM_MIN_TEMPO = 100; // WAS 40
 
 const RHYTHM_METHOD = "multifeature";
 
