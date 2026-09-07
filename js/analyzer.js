@@ -237,6 +237,25 @@ async function analyzeSignal(essentia, signal) {
 
 		const rhythmResult = essentia.RhythmDescriptors(signalVector);
 
+		console.log("WM Tapper: RHYTHM HISTOGRAM.", {
+		    firstPeakBpm: rhythmResult?.first_peak_bpm,
+		    firstPeakWeight: rhythmResult?.first_peak_weight,
+		    secondPeakBpm: rhythmResult?.second_peak_bpm,
+		    secondPeakWeight: rhythmResult?.second_peak_weight,
+		
+		    histogramAt92:
+		        rhythmResult?.histogram?.get
+		            ? rhythmResult.histogram.get(92)
+		            : null,
+		
+		    histogramAt185:
+		        rhythmResult?.histogram?.get
+		            ? rhythmResult.histogram.get(185)
+		            : null,
+		
+		    histogramObject: rhythmResult?.histogram,
+		});
+		
 		console.log("WM Tapper: RHYTHM DESCRIPTORS RAW.", rhythmResult);
 		console.log(
 		    "WM Tapper: RHYTHM DESCRIPTORS KEYS.",
