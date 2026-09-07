@@ -9,7 +9,13 @@
 
 import { settings } from "./settings.js";
 
-import { supportedLanguages, getTranslations, formatDecimal } from "./i18n.js";
+import {
+    supportedLanguages,
+    getTranslations,
+    formatDecimal,
+    formatConfidence,
+    formatAnalysisKey,
+} from "./i18n.js";
 
 import { TapKeyController } from "./key-handler.js";
 
@@ -661,12 +667,16 @@ const languageUI = createLanguageUI(
         sessionMenu,
         historyValue,
         historyMenu,
+        tapConfidence,
+        tapKey,
     },
     {
         settings,
         supportedLanguages,
         getTranslations,
         formatDecimal,
+        formatAnalysisKey,
+        formatConfidence,
         tapKeyController,
         tapUI,
         dropdowns,
@@ -852,23 +862,11 @@ analysisRunButton.addEventListener("click", async () => {
 
         console.log("WM Tapper: analysis result.", result);
 
-		if (result && Number.isFinite(result.bpm)) {
-		    tapValue.textContent = `${Math.round(result.bpm)} BPM`;
-		}
-
-        if (result && Number.isFinite(result.strength)) {
-            tapConfidence.textContent = `${Math.round(
-                result.strength * 100,
-            )}% CONFIDENCE`;
-        } else {
-            tapConfidence.textContent = "";
+        if (result && Number.isFinite(result.bpm)) {
+            tapValue.textContent = `${Math.round(result.bpm)} BPM`;
         }
 
-        if (result && result.keyLabel) {
-            tapKey.textContent = result.keyLabel;
-        } else {
-            tapKey.textContent = "";
-        }
+        languageUI.updateAnalysisResult(result);
 
         /*
          * Keep the result available for the
@@ -902,9 +900,7 @@ const session = createSessionController({
    ========================================================= */
 
 function handleTap() {
-    tapConfidence.textContent = "";
-
-    tapKey.textContent = "";
+    languageUI.updateAnalysisResult(null);
 
     if (isAnalysisRunning) {
         return;
@@ -967,6 +963,8 @@ resetButton.addEventListener("click", () => {
     if (isAnalysisRunning) {
         return;
     }
+
+    languageUI.updateAnalysisResult(null);
 
     session.reset();
 
