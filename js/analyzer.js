@@ -235,12 +235,28 @@ async function analyzeSignal(essentia, signal) {
            BPM
            ------------------------------------------------- */
 
-        const rhythmResult = essentia.RhythmExtractor2013(
-            signalVector,
-            RHYTHM_MAX_TEMPO,
-            RHYTHM_METHOD,
-            RHYTHM_MIN_TEMPO,
-        );
+		const rhythmResult = essentia.RhythmDescriptors(signalVector);
+		
+		console.log("WM Tapper: rhythm descriptors.", {
+		    bpm: rhythmResult?.bpm,
+		    confidence: rhythmResult?.confidence,
+		
+		    bpmEstimates: rhythmResult?.bpm_estimates
+		        ? Array.from(rhythmResult.bpm_estimates)
+		        : [],
+		
+		    bpmIntervals: rhythmResult?.bpm_intervals
+		        ? Array.from(rhythmResult.bpm_intervals)
+		        : [],
+		
+		    firstPeakBpm: rhythmResult?.first_peak_bpm,
+		    firstPeakWeight: rhythmResult?.first_peak_weight,
+		    firstPeakSpread: rhythmResult?.first_peak_spread,
+		
+		    secondPeakBpm: rhythmResult?.second_peak_bpm,
+		    secondPeakWeight: rhythmResult?.second_peak_weight,
+		    secondPeakSpread: rhythmResult?.second_peak_spread,
+		});
 
 		console.log("WM Tapper: rhythm raw result.", {
 		    bpm: rhythmResult?.bpm,
