@@ -162,27 +162,21 @@ export const translations = {
  */
 export const englishNoteNames = {
     C: "C",
-
     "C#": "C#",
-
+    Db: "Db",
     D: "D",
-
     "D#": "D#",
-
+    Eb: "Eb",
     E: "E",
-
     F: "F",
-
     "F#": "F#",
-
+    Gb: "Gb",
     G: "G",
-
     "G#": "G#",
-
+    Ab: "Ab",
     A: "A",
-
     "A#": "A#",
-
+    Bb: "Bb",
     B: "B",
 };
 
@@ -194,27 +188,21 @@ export const englishNoteNames = {
  */
 export const russianNoteNames = {
     C: "До",
-
     "C#": "До-диез",
-
+    Db: "Ре-бемоль",
     D: "Ре",
-
     "D#": "Ре-диез",
-
+    Eb: "Ми-бемоль",
     E: "Ми",
-
     F: "Фа",
-
     "F#": "Фа-диез",
-
+    Gb: "Соль-бемоль",
     G: "Соль",
-
     "G#": "Соль-диез",
-
+    Ab: "Ля-бемоль",
     A: "Ля",
-
     "A#": "Ля-диез",
-
+    Bb: "Си-бемоль",
     B: "Си",
 };
 
@@ -325,18 +313,10 @@ export function formatAnalysisKey(key, scale, language) {
         const russianKey = russianNoteNames[key] || key;
 
         const englishScale =
-            scale === "major"
-                ? "Major"
-                : scale === "minor"
-                  ? "Minor"
-                  : scale;
+            scale === "major" ? "Major" : scale === "minor" ? "Minor" : scale;
 
         const russianScale =
-            scale === "major"
-                ? "мажор"
-                : scale === "minor"
-                  ? "минор"
-                  : scale;
+            scale === "major" ? "мажор" : scale === "minor" ? "минор" : scale;
 
         return `${normalizedKey} ${englishScale} (${russianKey} ${russianScale})`;
     }
