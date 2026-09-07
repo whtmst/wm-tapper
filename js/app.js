@@ -852,9 +852,9 @@ analysisRunButton.addEventListener("click", async () => {
 
         console.log("WM Tapper: analysis result.", result);
 
-        if (result && Number.isFinite(result.bpm)) {
-            tapValue.textContent = `${formatBpm(result.bpm)} BPM`;
-        }
+		if (result && Number.isFinite(result.bpm)) {
+		    tapValue.textContent = `${Math.round(result.bpm)} BPM`;
+		}
 
         if (result && Number.isFinite(result.strength)) {
             tapConfidence.textContent = `${Math.round(
