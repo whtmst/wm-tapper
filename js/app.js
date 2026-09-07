@@ -288,6 +288,8 @@ let analysisEndRatio = 1;
 
 let analysisModeValueCurrent = "full";
 
+let analysisGenreValueCurrent = "auto";
+
 let activeAnalysisHandle = null;
 
 let isAnalysisRunning = false;
@@ -540,8 +542,8 @@ function updateAnalysisHandleDrag(event) {
 
     ratio = Math.max(0, Math.min(1, ratio));
 
-   const minimumRange =
-       analysisDuration > 0 ? Math.min(1, 30 / analysisDuration) : 1;
+    const minimumRange =
+        analysisDuration > 0 ? Math.min(1, 30 / analysisDuration) : 1;
 
     if (activeAnalysisHandle === "start") {
         analysisStartRatio = Math.min(ratio, analysisEndRatio - minimumRange);
@@ -648,6 +650,14 @@ const dropdowns = createDropdownController(
             }
 
             applyAnalysisMode(mode);
+        },
+
+        onAnalysisGenreChange: (genre) => {
+            if (isAnalysisRunning) {
+                return;
+            }
+
+            analysisGenreValueCurrent = genre;
         },
     },
 );
@@ -786,6 +796,10 @@ async function prepareAnalysisPanel(file) {
 
     dropdowns.setAnalysisMode("full");
 
+    analysisGenreValueCurrent = "auto";
+
+    dropdowns.setAnalysisGenre("auto");
+
     waveform.clear();
 
     updateAnalysisRangeUI();
@@ -856,6 +870,8 @@ analysisRunButton.addEventListener("click", async () => {
 
         mode: analysisModeValueCurrent,
 
+        genre: analysisGenreValueCurrent,
+
         startTime,
 
         endTime,
@@ -880,6 +896,8 @@ analysisRunButton.addEventListener("click", async () => {
 
         const result = await trackAnalyzer.analyze(selectedAudioFile, {
             mode: analysisModeValueCurrent,
+
+            genre: analysisGenreValueCurrent,
 
             startTime,
 
@@ -1042,6 +1060,10 @@ resetButton.addEventListener("click", () => {
 
     dropdowns.setAnalysisMode("full");
 
+    analysisGenreValueCurrent = "auto";
+
+    dropdowns.setAnalysisGenre("auto");
+
     waveform.clear();
 
     updateAnalysisRangeUI();
@@ -1081,6 +1103,10 @@ function initialize() {
     applyAnalysisMode("full");
 
     dropdowns.setAnalysisMode("full");
+
+    analysisGenreValueCurrent = "auto";
+
+    dropdowns.setAnalysisGenre("auto");
 }
 
 /* =========================================================
