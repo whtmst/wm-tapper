@@ -245,8 +245,12 @@ async function analyzeSignal(essentia, signal) {
 		console.log("WM Tapper: rhythm raw result.", {
 		    bpm: rhythmResult?.bpm,
 		    confidence: rhythmResult?.confidence,
-		    estimates: rhythmResult?.estimates,
-		    bpmIntervals: rhythmResult?.bpmIntervals,
+		    estimates: rhythmResult?.estimates
+		        ? Array.from(rhythmResult.estimates)
+		        : [],
+		    bpmIntervals: rhythmResult?.bpmIntervals
+		        ? Array.from(rhythmResult.bpmIntervals)
+		        : [],
 		});
 
         /* -------------------------------------------------
