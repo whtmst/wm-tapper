@@ -1561,7 +1561,7 @@ a:focus-visible {
 .analysis-mode {
     position: relative;
 
-    width: 86px;
+    width: 125px;
 
     margin-top: 7px;
 }
@@ -1729,7 +1729,7 @@ a:focus-visible {
 .analysis-genre {
     position: relative;
 
-    width: 86px;
+    width: 125px;
 
     margin-top: 6px;
 }
@@ -1905,16 +1905,6 @@ a:focus-visible {
     color: var(--accent-light);
 
     background: rgba(200, 233, 87, 0.075);
-}
-
-.analysis-genre__option.is-selected::after {
-    margin-left: auto;
-
-    content: "✓";
-
-    color: var(--accent-primary);
-
-    font-size: 9.5px;
 }
 
 
