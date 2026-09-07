@@ -41,6 +41,8 @@ import {
    DOM ELEMENTS
    ========================================================= */
 
+const donateButton = document.getElementById("donateButton");
+
 const settingsButton = document.getElementById("settingsButton");
 
 const flipCard = document.getElementById("flipCard");
