@@ -17,11 +17,90 @@ const ESSENTIA_WASM_SCRIPT = "./lib/essentia/essentia-wasm.web.js";
 
 const TARGET_SAMPLE_RATE = 44100;
 
-const RHYTHM_MAX_TEMPO = 208;
+const RHYTHM_MAX_TEMPO = 300;
 
-const RHYTHM_MIN_TEMPO = 40;
+const RHYTHM_MIN_TEMPO = 30;
 
 const RHYTHM_METHOD = "multifeature";
+
+/* =========================================================
+   GENRE BPM RANGES
+   ========================================================= */
+
+/*
+ * Genre ranges are soft hints for the BPM decision layer.
+ *
+ * They are NOT hard limits.
+ * A detected BPM outside the selected genre range
+ * must still remain valid.
+ */
+
+const GENRE_BPM_RANGES = {
+    house: {
+        min: 115,
+        max: 135,
+    },
+
+    techno: {
+        min: 120,
+        max: 155,
+    },
+
+    trance: {
+        min: 125,
+        max: 150,
+    },
+
+    "drum-and-bass": {
+        min: 160,
+        max: 190,
+    },
+
+    dubstep: {
+        min: 135,
+        max: 150,
+    },
+
+    hardstyle: {
+        min: 145,
+        max: 165,
+    },
+
+    hardcore: {
+        min: 160,
+        max: 220,
+    },
+
+    frenchcore: {
+        min: 180,
+        max: 240,
+    },
+
+    "hip-hop-trap": {
+        min: 60,
+        max: 170,
+    },
+
+    pop: {
+        min: 80,
+        max: 140,
+    },
+
+    rock: {
+        min: 70,
+        max: 160,
+    },
+
+    "other-electronic": {
+        min: 80,
+        max: 220,
+    },
+
+    other: {
+        min: 30,
+        max: 300,
+    },
+};
 
 /*
  * FAST mode.
@@ -228,101 +307,99 @@ async function analyzeSignal(essentia, signal) {
         throw new Error("WM Tapper: analysis signal is empty.");
     }
 
-	const signalVector = essentia.arrayToVector(signal);
+    const signalVector = essentia.arrayToVector(signal);
 
-try {
-    const percivalResult = essentia.PercivalBpmEstimator(
-        signalVector,
-        1024,
-        2048,
-        128,
-        128,
-        RHYTHM_MAX_TEMPO,
-        RHYTHM_MIN_TEMPO,
-        TARGET_SAMPLE_RATE,
-    );
+    try {
+        const percivalResult = essentia.PercivalBpmEstimator(
+            signalVector,
+            1024,
+            2048,
+            128,
+            128,
+            RHYTHM_MAX_TEMPO,
+            RHYTHM_MIN_TEMPO,
+            TARGET_SAMPLE_RATE,
+        );
 
-    console.log("WM Tapper: PERCIVAL BPM.", {
-        bpm: percivalResult?.bpm,
-    });
+        console.log("WM Tapper: PERCIVAL BPM.", {
+            bpm: percivalResult?.bpm,
+        });
 
-    /* -------------------------------------------------
+        /* -------------------------------------------------
        BPM
        ------------------------------------------------- */
 
-    const rhythmResult = essentia.RhythmDescriptors(signalVector);
+        const rhythmResult = essentia.RhythmDescriptors(signalVector);
 
-	const rhythmTestResult = essentia.RhythmExtractor2013(
-        signalVector,
-        RHYTHM_MAX_TEMPO,
-        RHYTHM_METHOD,
-        RHYTHM_MIN_TEMPO,
-    );
+        const rhythmTestResult = essentia.RhythmExtractor2013(
+            signalVector,
+            RHYTHM_MAX_TEMPO,
+            RHYTHM_METHOD,
+            RHYTHM_MIN_TEMPO,
+        );
 
-    console.log("WM Tapper: RHYTHM EXTRACTOR TEST.", {
-        bpm: rhythmTestResult?.bpm,
-        confidence: rhythmTestResult?.confidence,
-    });
+        console.log("WM Tapper: RHYTHM EXTRACTOR TEST.", {
+            bpm: rhythmTestResult?.bpm,
+            confidence: rhythmTestResult?.confidence,
+        });
 
-    console.log("WM Tapper: RHYTHM HISTOGRAM.", {
-        firstPeakBpm: rhythmResult?.first_peak_bpm,
-        firstPeakWeight: rhythmResult?.first_peak_weight,
-        secondPeakBpm: rhythmResult?.second_peak_bpm,
-        secondPeakWeight: rhythmResult?.second_peak_weight,
+        console.log("WM Tapper: RHYTHM HISTOGRAM.", {
+            firstPeakBpm: rhythmResult?.first_peak_bpm,
+            firstPeakWeight: rhythmResult?.first_peak_weight,
+            secondPeakBpm: rhythmResult?.second_peak_bpm,
+            secondPeakWeight: rhythmResult?.second_peak_weight,
 
-        histogramAt92:
-            rhythmResult?.histogram?.get
+            histogramAt92: rhythmResult?.histogram?.get
                 ? rhythmResult.histogram.get(92)
                 : null,
 
-        histogramAt185:
-            rhythmResult?.histogram?.get
+            histogramAt185: rhythmResult?.histogram?.get
                 ? rhythmResult.histogram.get(185)
                 : null,
 
-        histogramObject: rhythmResult?.histogram,
-    });
+            histogramObject: rhythmResult?.histogram,
+        });
 
-    console.log("WM Tapper: RHYTHM DESCRIPTORS RAW.", rhythmResult);
+        console.log("WM Tapper: RHYTHM DESCRIPTORS RAW.", rhythmResult);
 
-    console.log(
-        "WM Tapper: RHYTHM DESCRIPTORS KEYS.",
-        Object.keys(rhythmResult || {}),
-    );
+        console.log(
+            "WM Tapper: RHYTHM DESCRIPTORS KEYS.",
+            Object.keys(rhythmResult || {}),
+        );
 
-    console.log("WM Tapper: rhythm descriptors.", {
-        bpm: rhythmResult?.bpm,
-        confidence: rhythmResult?.confidence,
+        console.log("WM Tapper: rhythm descriptors.", {
+            bpm: rhythmResult?.bpm,
+            confidence: rhythmResult?.confidence,
 
-        bpmEstimates: rhythmResult?.bpm_estimates
-            ? Array.from(rhythmResult.bpm_estimates)
-            : [],
+            bpmEstimates: rhythmResult?.bpm_estimates
+                ? Array.from(rhythmResult.bpm_estimates)
+                : [],
 
-        bpmIntervals: rhythmResult?.bpm_intervals
-            ? Array.from(rhythmResult.bpm_intervals)
-            : [],
+            bpmIntervals: rhythmResult?.bpm_intervals
+                ? Array.from(rhythmResult.bpm_intervals)
+                : [],
 
-        firstPeakBpm: rhythmResult?.first_peak_bpm,
-        firstPeakWeight: rhythmResult?.first_peak_weight,
-        firstPeakSpread: rhythmResult?.first_peak_spread,
+            firstPeakBpm: rhythmResult?.first_peak_bpm,
+            firstPeakWeight: rhythmResult?.first_peak_weight,
+            firstPeakSpread: rhythmResult?.first_peak_spread,
 
-        secondPeakBpm: rhythmResult?.second_peak_bpm,
-        secondPeakWeight: rhythmResult?.second_peak_weight,
-        secondPeakSpread: rhythmResult?.second_peak_spread,
-    });
+            secondPeakBpm: rhythmResult?.second_peak_bpm,
+            secondPeakWeight: rhythmResult?.second_peak_weight,
+            secondPeakSpread: rhythmResult?.second_peak_spread,
+        });
 
-    console.log("WM Tapper: rhythm raw result.", {
-        bpm: rhythmResult?.bpm,
-        confidence: rhythmResult?.confidence,
+        console.log("WM Tapper: rhythm raw result.", {
+            bpm: rhythmResult?.bpm,
+            confidence: rhythmResult?.confidence,
 
-        estimates: rhythmResult?.estimates
-            ? Array.from(rhythmResult.estimates)
-            : [],
+            estimates: rhythmResult?.estimates
+                ? Array.from(rhythmResult.estimates)
+                : [],
 
-        bpmIntervals: rhythmResult?.bpmIntervals
-            ? Array.from(rhythmResult.bpmIntervals)
-            : [],
-    });
+            bpmIntervals: rhythmResult?.bpmIntervals
+                ? Array.from(rhythmResult.bpmIntervals)
+                : [],
+        });
 
         /* -------------------------------------------------
            KEY
@@ -464,10 +541,7 @@ function calculateMedian(values) {
  * @returns {Float32Array}
  */
 function sliceSignalByTime(signal, startTime, endTime) {
-    const startSample = Math.max(
-        0,
-        Math.floor(startTime * TARGET_SAMPLE_RATE),
-    );
+    const startSample = Math.max(0, Math.floor(startTime * TARGET_SAMPLE_RATE));
 
     const endSample = Math.min(
         signal.length,
@@ -691,11 +765,11 @@ export class TrackAnalyzer {
 
                 endTime = Math.max(startTime, Math.min(duration, endTime));
 
-				if (endTime - startTime < 30) {
-				    throw new Error(
-				        "WM Tapper: selected range must be at least 30 seconds.",
-				    );
-				}
+                if (endTime - startTime < 30) {
+                    throw new Error(
+                        "WM Tapper: selected range must be at least 30 seconds.",
+                    );
+                }
 
                 console.log("WM Tapper: analyzing SELECTION.", {
                     startTime,
@@ -734,51 +808,51 @@ export class TrackAnalyzer {
 
             console.log("WM Tapper: analyzing FAST mode.", segments);
 
-			const segmentResults = [];
-			
-			/*
-			 * Resample the complete track only once.
-			 *
-			 * FAST segments are extracted from this already
-			 * resampled mono signal using sample indexes.
-			 */
-			console.log("WM Tapper: resampling track for FAST mode...");
-			
-			const fastSignal = await resampleRangeTo44100(
-			    decodedBuffer,
-			    0,
-			    duration,
-			);
-			
-			console.log("WM Tapper: FAST track resampled.", {
-			    samples: fastSignal.length,
-			    sampleRate: TARGET_SAMPLE_RATE,
-			    duration: fastSignal.length / TARGET_SAMPLE_RATE,
-			});
-			
-			for (let index = 0; index < segments.length; index += 1) {
-			    const segment = segments[index];
-			
-			    console.log("WM Tapper: FAST segment.", {
-			        index: index + 1,
-			
-			        total: segments.length,
-			
-			        startTime: segment.startTime,
-			
-			        endTime: segment.endTime,
-			    });
-			
-			    const signal = sliceSignalByTime(
-			        fastSignal,
-			        segment.startTime,
-			        segment.endTime,
-			    );
-			
-			    const result = await analyzeSignal(essentia, signal);
-			
-			    segmentResults.push(result);
-			}
+            const segmentResults = [];
+
+            /*
+             * Resample the complete track only once.
+             *
+             * FAST segments are extracted from this already
+             * resampled mono signal using sample indexes.
+             */
+            console.log("WM Tapper: resampling track for FAST mode...");
+
+            const fastSignal = await resampleRangeTo44100(
+                decodedBuffer,
+                0,
+                duration,
+            );
+
+            console.log("WM Tapper: FAST track resampled.", {
+                samples: fastSignal.length,
+                sampleRate: TARGET_SAMPLE_RATE,
+                duration: fastSignal.length / TARGET_SAMPLE_RATE,
+            });
+
+            for (let index = 0; index < segments.length; index += 1) {
+                const segment = segments[index];
+
+                console.log("WM Tapper: FAST segment.", {
+                    index: index + 1,
+
+                    total: segments.length,
+
+                    startTime: segment.startTime,
+
+                    endTime: segment.endTime,
+                });
+
+                const signal = sliceSignalByTime(
+                    fastSignal,
+                    segment.startTime,
+                    segment.endTime,
+                );
+
+                const result = await analyzeSignal(essentia, signal);
+
+                segmentResults.push(result);
+            }
 
             const bpm = selectBpmResult(segmentResults);
 
