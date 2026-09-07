@@ -839,7 +839,9 @@ analysisRunButton.addEventListener("click", async () => {
 
     const endTime = analysisDuration * analysisEndRatio;
 
-    console.log("WM Tapper: starting analysis.", {
+    const analysisStartedAt = performance.now();
+
+    console.log("WM Tapper: analysis started.", {
         file: selectedAudioFile.name,
 
         mode: analysisModeValueCurrent,
@@ -849,6 +851,8 @@ analysisRunButton.addEventListener("click", async () => {
         endTime,
 
         duration: analysisDuration,
+
+        startedAt: new Date().toISOString(),
     });
 
     setAnalysisRunning(true);
@@ -892,8 +896,34 @@ analysisRunButton.addEventListener("click", async () => {
         window.WMTapperLastAnalysis = result;
 
         closeAnalysisPanel();
+
+        const analysisFinishedAt = performance.now();
+
+        console.log("WM Tapper: analysis timing.", {
+            mode: analysisModeValueCurrent,
+
+            startedAt: new Date().toISOString(),
+
+            durationSeconds: Number(
+                ((analysisFinishedAt - analysisStartedAt) / 1000).toFixed(3),
+            ),
+        });
     } catch (error) {
+        const analysisFinishedAt = performance.now();
+
         console.error("WM Tapper: analysis failed.", error);
+
+        console.log("WM Tapper: analysis timing.", {
+            mode: analysisModeValueCurrent,
+
+            startedAt: new Date().toISOString(),
+
+            durationSeconds: Number(
+                ((analysisFinishedAt - analysisStartedAt) / 1000).toFixed(3),
+            ),
+
+            failed: true,
+        });
     } finally {
         setAnalysisRunning(false);
     }
