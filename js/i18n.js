@@ -51,6 +51,34 @@ export const translations = {
 
         fast: "FAST",
 
+        genreAuto: "AUTO",
+
+        genreHouse: "HOUSE",
+
+        genreTechno: "TECHNO",
+
+        genreTrance: "TRANCE",
+
+        genreDrumAndBass: "DRUM & BASS",
+
+        genreDubstep: "DUBSTEP",
+
+        genreHardstyle: "HARDSTYLE",
+
+        genreHardcore: "HARDCORE",
+
+        genreFrenchcore: "FRENCHCORE",
+
+        genreHipHopTrap: "HIP-HOP / TRAP",
+
+        genrePop: "POP",
+
+        genreRock: "ROCK",
+
+        genreOtherElectronic: "OTHER ELECTRONIC",
+
+        genreOther: "OTHER",
+
         confidence: "CONFIDENCE",
 
         major: "Major",
@@ -97,6 +125,34 @@ export const translations = {
 
         fast: "БЫСТРЫЙ",
 
+        genreAuto: "АВТО",
+
+        genreHouse: "ХАУС",
+
+        genreTechno: "ТЕХНО",
+
+        genreTrance: "ТРАНС",
+
+        genreDrumAndBass: "ДРАМ-Н-БЭЙС",
+
+        genreDubstep: "ДАБСТЕП",
+
+        genreHardstyle: "ХАРДСТАЙЛ",
+
+        genreHardcore: "ХАРДКОР",
+
+        genreFrenchcore: "ФРЕНЧКОР",
+
+        genreHipHopTrap: "ХИП-ХОП / ТРЭП",
+
+        genrePop: "ПОП",
+
+        genreRock: "РОК",
+
+        genreOtherElectronic: "ДРУГАЯ ЭЛЕКТРОННАЯ",
+
+        genreOther: "ДРУГОЕ",
+
         confidence: "УВЕРЕННОСТЬ",
 
         major: "Мажор",
@@ -142,6 +198,34 @@ export const translations = {
         selection: "SEÇİM",
 
         fast: "SÜRƏTLİ",
+
+        genreAuto: "AUTO",
+
+        genreHouse: "HOUSE",
+
+        genreTechno: "TECHNO",
+
+        genreTrance: "TRANCE",
+
+        genreDrumAndBass: "DRUM & BASS",
+
+        genreDubstep: "DUBSTEP",
+
+        genreHardstyle: "HARDSTYLE",
+
+        genreHardcore: "HARDCORE",
+
+        genreFrenchcore: "FRENCHCORE",
+
+        genreHipHopTrap: "HIP-HOP / TRAP",
+
+        genrePop: "POP",
+
+        genreRock: "ROCK",
+
+        genreOtherElectronic: "OTHER ELECTRONIC",
+
+        genreOther: "OTHER",
 
         confidence: "ƏMİNLİK",
 
