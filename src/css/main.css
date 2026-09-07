@@ -1480,63 +1480,6 @@ a:focus-visible {
         box-shadow var(--transition-fast);
 }
 
-/* ---------------------------------------------------------
-   Drag arrows
-   --------------------------------------------------------- */
-
-.analysis-handle::before,
-.analysis-handle::after {
-    position: absolute;
-
-    left: 50%;
-
-    width: 0;
-    height: 0;
-
-    content: "";
-
-    filter: drop-shadow(0 0 3px rgba(200, 233, 87, 0.18));
-
-    transform: translateX(-50%);
-}
-
-/* Start handle: arrows point right */
-
-.analysis-handle--start::before,
-.analysis-handle--start::after {
-    border-top: 4px solid transparent;
-    border-bottom: 4px solid transparent;
-    border-left: 5px solid var(--accent-primary);
-
-    transform: translateX(-40%);
-}
-
-.analysis-handle--start::before {
-    top: 36%;
-}
-
-.analysis-handle--start::after {
-    top: calc(36% + 11px);
-}
-
-/* End handle: arrows point left */
-
-.analysis-handle--end::before,
-.analysis-handle--end::after {
-    border-top: 4px solid transparent;
-    border-bottom: 4px solid transparent;
-    border-right: 5px solid var(--accent-primary);
-
-    transform: translateX(-60%);
-}
-
-.analysis-handle--end::before {
-    top: 36%;
-}
-
-.analysis-handle--end::after {
-    top: calc(36% + 11px);
-}
 
 /* ---------------------------------------------------------
    Hover / active
