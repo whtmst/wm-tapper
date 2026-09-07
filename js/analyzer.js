@@ -665,11 +665,11 @@ export class TrackAnalyzer {
 
                 endTime = Math.max(startTime, Math.min(duration, endTime));
 
-                if (endTime - startTime <= 0.5) {
-                    throw new Error(
-                        "WM Tapper: selected range is too short for analysis.",
-                    );
-                }
+				if (endTime - startTime < 30) {
+				    throw new Error(
+				        "WM Tapper: selected range must be at least 30 seconds.",
+				    );
+				}
 
                 console.log("WM Tapper: analyzing SELECTION.", {
                     startTime,
