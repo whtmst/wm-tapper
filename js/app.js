@@ -518,8 +518,8 @@ function updateAnalysisHandleDrag(event) {
 
     ratio = Math.max(0, Math.min(1, ratio));
 
-    const minimumRange =
-        analysisDuration > 0 ? Math.min(0.001, 0.5 / analysisDuration) : 0.001;
+   const minimumRange =
+       analysisDuration > 0 ? Math.min(1, 30 / analysisDuration) : 1;
 
     if (activeAnalysisHandle === "start") {
         analysisStartRatio = Math.min(ratio, analysisEndRatio - minimumRange);
