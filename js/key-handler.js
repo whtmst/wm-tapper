@@ -97,13 +97,15 @@ export class TapKeyController {
      */
     constructor(elements) {
         this.control = elements.control;
-
+    
         this.value = elements.value;
-
+    
+        this.onTap = elements.onTap;
+    
         this.isCapturing = false;
-
+    
         this.previousKey = settings.get("tapKey");
-
+    
         this.handleKeyDown = this.handleKeyDown.bind(this);
     }
 
@@ -213,13 +215,48 @@ export class TapKeyController {
     }
 
     /**
+     * Handle normal tap key press.
+     *
+     * @param {KeyboardEvent} event
+     */
+    handleTapKeyDown(event) {
+        if (this.isCapturing) {
+            return;
+        }
+
+        const tapKey = settings.get("tapKey");
+
+        if (event.code !== tapKey) {
+            return;
+        }
+
+        if (event.ctrlKey || event.shiftKey || event.altKey || event.metaKey) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.onTap();
+    }
+
+    /**
      * Initialize the controller.
      */
     initialize() {
         this.control.addEventListener("click", () => {
             this.startCapture();
         });
-
+    
+        this.handleTapKeyDown =
+            this.handleTapKeyDown.bind(this);
+    
+        document.addEventListener(
+            "keydown",
+            this.handleTapKeyDown,
+            true,
+        );
+    
         this.updateDisplay();
     }
 }
