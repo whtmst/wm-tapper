@@ -1014,6 +1014,18 @@ tapButton.addEventListener("click", () => {
 });
 
 /* =========================================================
+   DONATE BUTTON
+   ========================================================= */
+
+donateButton.addEventListener("click", () => {
+    window.open(
+        "https://dalink.to/whtmst",
+        "_blank",
+        "noopener,noreferrer",
+    );
+});
+
+/* =========================================================
    SETTINGS FLIP
    ========================================================= */
 
