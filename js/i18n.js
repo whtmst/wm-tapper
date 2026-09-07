@@ -53,9 +53,9 @@ export const translations = {
 
         confidence: "CONFIDENCE",
 
-        major: "MAJOR",
+        major: "Major",
 
-        minor: "MINOR",
+        minor: "Minor",
 
         madeBy: "Made by Wht Mst",
     },
@@ -99,9 +99,9 @@ export const translations = {
 
         confidence: "УВЕРЕННОСТЬ",
 
-        major: "МАЖОР",
+        major: "Мажор",
 
-        minor: "МИНОР",
+        minor: "Минор",
 
         madeBy: "Сделано Wht Mst",
     },
@@ -145,9 +145,9 @@ export const translations = {
 
         confidence: "ƏMİNLİK",
 
-        major: "MAJOR",
+        major: "Major",
 
-        minor: "MINOR",
+        minor: "Minor",
 
         madeBy: "Wht Mst tərəfindən",
     },
@@ -307,7 +307,7 @@ export function translateScale(scale, language) {
  * E MINOR
  *
  * RU:
- * E minor (ми минор)
+ * E minor (Ми минор)
  *
  * @param {string|null} key
  * @param {string|null} scale
@@ -325,7 +325,7 @@ export function formatAnalysisKey(key, scale, language) {
         const russianKey = russianNoteNames[key] || key;
 
         const russianScale =
-            scale === "major" ? "мажор" : scale === "minor" ? "минор" : scale;
+            scale === "major" ? "Мажор" : scale === "minor" ? "Минор" : scale;
 
         return `${normalizedKey} ${scale}` + ` (${russianKey} ${russianScale})`;
     }
