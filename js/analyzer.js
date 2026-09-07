@@ -228,8 +228,30 @@ async function analyzeSignal(essentia, signal) {
         throw new Error("WM Tapper: analysis signal is empty.");
     }
 
-    const signalVector = essentia.arrayToVector(signal);
-
+	const signalVector = essentia.arrayToVector(signal);
+	
+	try {
+	    const percivalResult = essentia.PercivalBpmEstimator(
+	        signalVector,
+	        1024,
+	        2048,
+	        128,
+	        128,
+	        RHYTHM_MAX_TEMPO,
+	        RHYTHM_MIN_TEMPO,
+	        TARGET_SAMPLE_RATE,
+	    );
+	
+	    console.log("WM Tapper: PERCIVAL BPM.", {
+	        bpm: percivalResult?.bpm,
+	    });
+	
+	    /* -------------------------------------------------
+	       BPM
+	       ------------------------------------------------- */
+	
+	    const rhythmResult = essentia.RhythmDescriptors(signalVector);
+	
     try {
         /* -------------------------------------------------
            BPM
