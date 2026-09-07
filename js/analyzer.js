@@ -456,6 +456,32 @@ function calculateMedian(values) {
 }
 
 /**
+ * Extract one time range from an already resampled signal.
+ *
+ * @param {Float32Array} signal
+ * @param {number} startTime
+ * @param {number} endTime
+ * @returns {Float32Array}
+ */
+function sliceSignalByTime(signal, startTime, endTime) {
+    const startSample = Math.max(
+        0,
+        Math.floor(startTime * TARGET_SAMPLE_RATE),
+    );
+
+    const endSample = Math.min(
+        signal.length,
+        Math.ceil(endTime * TARGET_SAMPLE_RATE),
+    );
+
+    if (endSample <= startSample) {
+        throw new Error("WM Tapper: selected signal range is empty.");
+    }
+
+    return signal.slice(startSample, endSample);
+}
+
+/**
  * Choose the strongest key result.
  *
  * @param {Object[]} results
@@ -708,31 +734,51 @@ export class TrackAnalyzer {
 
             console.log("WM Tapper: analyzing FAST mode.", segments);
 
-            const segmentResults = [];
-
-            for (let index = 0; index < segments.length; index += 1) {
-                const segment = segments[index];
-
-                console.log("WM Tapper: FAST segment.", {
-                    index: index + 1,
-
-                    total: segments.length,
-
-                    startTime: segment.startTime,
-
-                    endTime: segment.endTime,
-                });
-
-                const signal = await resampleRangeTo44100(
-                    decodedBuffer,
-                    segment.startTime,
-                    segment.endTime,
-                );
-
-                const result = await analyzeSignal(essentia, signal);
-
-                segmentResults.push(result);
-            }
+			const segmentResults = [];
+			
+			/*
+			 * Resample the complete track only once.
+			 *
+			 * FAST segments are extracted from this already
+			 * resampled mono signal using sample indexes.
+			 */
+			console.log("WM Tapper: resampling track for FAST mode...");
+			
+			const fastSignal = await resampleRangeTo44100(
+			    decodedBuffer,
+			    0,
+			    duration,
+			);
+			
+			console.log("WM Tapper: FAST track resampled.", {
+			    samples: fastSignal.length,
+			    sampleRate: TARGET_SAMPLE_RATE,
+			    duration: fastSignal.length / TARGET_SAMPLE_RATE,
+			});
+			
+			for (let index = 0; index < segments.length; index += 1) {
+			    const segment = segments[index];
+			
+			    console.log("WM Tapper: FAST segment.", {
+			        index: index + 1,
+			
+			        total: segments.length,
+			
+			        startTime: segment.startTime,
+			
+			        endTime: segment.endTime,
+			    });
+			
+			    const signal = sliceSignalByTime(
+			        fastSignal,
+			        segment.startTime,
+			        segment.endTime,
+			    );
+			
+			    const result = await analyzeSignal(essentia, signal);
+			
+			    segmentResults.push(result);
+			}
 
             const bpm = selectBpmResult(segmentResults);
 
