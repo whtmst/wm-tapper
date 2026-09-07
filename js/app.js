@@ -358,6 +358,18 @@ function applyAnalysisMode(mode) {
         return;
     }
 
+    /*
+     * Tracks shorter than 30 seconds can only be
+     * analyzed as a complete track.
+     */
+    if (mode === "selection" && analysisDuration > 0 && analysisDuration < 30) {
+        mode = "full";
+
+        if (typeof dropdowns !== "undefined") {
+            dropdowns.setAnalysisMode("full");
+        }
+    }
+
     analysisModeValueCurrent = mode;
 
     analysisPanel.classList.toggle("analysis-panel--fast", mode === "fast");
@@ -485,7 +497,11 @@ function setAnalysisRunning(state) {
  * @param {PointerEvent} event
  */
 function startAnalysisHandleDrag(handle, event) {
-    if (isAnalysisRunning || analysisModeValueCurrent === "fast") {
+    if (
+        isAnalysisRunning ||
+        analysisModeValueCurrent === "fast" ||
+        (analysisDuration > 0 && analysisDuration < 30)
+    ) {
         return;
     }
 
