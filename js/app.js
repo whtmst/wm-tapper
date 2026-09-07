@@ -326,7 +326,7 @@ function updateAnalysisRangeUI() {
 
     analysisStartHandle.style.left = `${startPercent}%`;
 
-    analysisEndHandle.style.left = `${endPercent}%`;
+    analysisEndHandle.style.left = `calc(${endPercent}% - 1px)`;
 
     analysisSelection.style.left = `${startPercent}%`;
 
