@@ -977,11 +977,18 @@ export class TrackAnalyzer {
                     duration,
                 );
 
-                console.log("WM Tapper: running Essentia analysis...");
-
-                const result = await analyzeSignal(essentia, signal);
-
-                const normalizedResult = normalizeResult(result, "full");
+				console.log("WM Tapper: running Essentia analysis...");
+				
+				const result = await analyzeSignal(essentia, signal);
+				
+				const normalizedResult = normalizeResult(
+				   {
+					   ...result,
+				
+					   bpm: selectBpmResult([result], genre),
+				   },
+				   "full",
+				);
 
                 console.log("WM Tapper: analysis complete.", normalizedResult);
 
@@ -1029,9 +1036,16 @@ export class TrackAnalyzer {
 
                 console.log("WM Tapper: running Essentia analysis...");
 
-                const result = await analyzeSignal(essentia, signal);
-
-                const normalizedResult = normalizeResult(result, "selection");
+				const result = await analyzeSignal(essentia, signal);
+				
+				const normalizedResult = normalizeResult(
+				    {
+				        ...result,
+				
+				        bpm: selectBpmResult([result], genre),
+				    },
+				    "selection",
+				);
 
                 console.log("WM Tapper: analysis complete.", normalizedResult);
 
