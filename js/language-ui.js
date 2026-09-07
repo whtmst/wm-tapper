@@ -232,58 +232,114 @@ export function createLanguageUI(
        DROPDOWN TRANSLATIONS
        ===================================================== */
 
-    function updateDropdownTranslations(language) {
-        const text = getTranslations(language);
-
-        /* -----------------------------------------
-           Session
-           ----------------------------------------- */
-
-        sessionMenu.querySelectorAll(".dropdown-option").forEach((option) => {
-            const value = Number(option.dataset.value);
-
-            if (Number.isNaN(value)) {
-                return;
-            }
-
-            option.textContent = `${formatDecimal(
-                value,
-                language,
-            )} ${text.seconds}`;
-        });
-
-        /* -----------------------------------------
-           History
-           ----------------------------------------- */
-
-        historyMenu.querySelectorAll(".dropdown-option").forEach((option) => {
-            const value = Number(option.dataset.value);
-
-            if (Number.isNaN(value)) {
-                return;
-            }
-
-            option.textContent = `${value} ${text.taps}`;
-        });
-
-        /* -----------------------------------------
-           Analysis Mode
-           ----------------------------------------- */
-
-        analysisModeMenu
-            .querySelectorAll(".analysis-mode__option")
-            .forEach((option) => {
-                const value = option.dataset.value;
-
-                if (!value || !text[value]) {
-                    return;
-                }
-
-                option.textContent = text[value];
-            });
-
-        updateAnalysisModeDisplay();
-    }
+      function updateDropdownTranslations(language) {
+          const text = getTranslations(language);
+      
+          /* -----------------------------------------
+             Session
+             ----------------------------------------- */
+      
+          sessionMenu.querySelectorAll(".dropdown-option").forEach((option) => {
+              const value = Number(option.dataset.value);
+      
+              if (Number.isNaN(value)) {
+                  return;
+              }
+      
+              option.textContent = `${formatDecimal(
+                  value,
+                  language,
+              )} ${text.seconds}`;
+          });
+      
+          /* -----------------------------------------
+             History
+             ----------------------------------------- */
+      
+          historyMenu.querySelectorAll(".dropdown-option").forEach((option) => {
+              const value = Number(option.dataset.value);
+      
+              if (Number.isNaN(value)) {
+                  return;
+              }
+      
+              option.textContent = `${value} ${text.taps}`;
+          });
+      
+          /* -----------------------------------------
+             Analysis Mode
+             ----------------------------------------- */
+      
+          analysisModeMenu
+              .querySelectorAll(".analysis-mode__option")
+              .forEach((option) => {
+                  const value = option.dataset.value;
+      
+                  if (!value || !text[value]) {
+                      return;
+                  }
+      
+                  option.textContent = text[value];
+              });
+      
+          /* -----------------------------------------
+             Analysis Genre
+             ----------------------------------------- */
+      
+          const genreTranslations = {
+              auto: text.genreAuto,
+              house: text.genreHouse,
+              techno: text.genreTechno,
+              trance: text.genreTrance,
+              "drum-and-bass": text.genreDrumAndBass,
+              dubstep: text.genreDubstep,
+              hardstyle: text.genreHardstyle,
+              hardcore: text.genreHardcore,
+              frenchcore: text.genreFrenchcore,
+              "hip-hop-trap": text.genreHipHopTrap,
+              pop: text.genrePop,
+              rock: text.genreRock,
+              "other-electronic": text.genreOtherElectronic,
+              other: text.genreOther,
+          };
+      
+          const analysisGenreMenu = document.getElementById("analysisGenreMenu");
+          const analysisGenreValue =
+              document.getElementById("analysisGenreValue");
+      
+          if (analysisGenreMenu) {
+              analysisGenreMenu
+                  .querySelectorAll(".analysis-genre__option")
+                  .forEach((option) => {
+                      const value = option.dataset.value;
+                      const translatedValue = genreTranslations[value];
+      
+                      if (!translatedValue) {
+                          return;
+                      }
+      
+                      option.textContent = translatedValue;
+                  });
+          }
+      
+          if (analysisGenreValue) {
+              const selectedGenre =
+                  analysisGenreMenu?.querySelector(
+                      ".analysis-genre__option.is-selected",
+                  );
+      
+              if (selectedGenre) {
+                  const value = selectedGenre.dataset.value;
+                  const translatedValue = genreTranslations[value];
+      
+                  if (translatedValue) {
+                      analysisGenreValue.textContent = translatedValue;
+                  }
+              }
+          }
+      
+          updateAnalysisModeDisplay();
+      }
 
     /* =====================================================
        SET LANGUAGE
