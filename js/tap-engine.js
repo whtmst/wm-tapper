@@ -3,14 +3,12 @@
    Tap Tempo Engine
    ========================================================= */
 
-
 /* =========================================================
    CONSTANTS
    ========================================================= */
 
 const MIN_BPM = 20;
 const MAX_BPM = 300;
-
 
 /*
  * Number of latest intervals used for the
@@ -22,22 +20,18 @@ const MAX_BPM = 300;
  */
 const CURRENT_BPM_INTERVALS = 4;
 
-
 /* =========================================================
    TAP ENGINE
    ========================================================= */
 
 export class TapEngine {
-
     constructor() {
-
         this.tapTimes = [];
 
         this.sessionTimeout = 3;
 
         this.historyLength = 12;
     }
-
 
     /* =====================================================
        CONFIGURATION
@@ -50,48 +44,24 @@ export class TapEngine {
      * @param {number} config.sessionTimeout
      * @param {number} config.historyLength
      */
-    configure({
-        sessionTimeout,
-        historyLength
-    }) {
-
-        if (
-            Number.isFinite(sessionTimeout) &&
-            sessionTimeout > 0
-        ) {
-
-            this.sessionTimeout =
-                sessionTimeout;
+    configure({ sessionTimeout, historyLength }) {
+        if (Number.isFinite(sessionTimeout) && sessionTimeout > 0) {
+            this.sessionTimeout = sessionTimeout;
         }
 
-
-        if (
-            Number.isInteger(historyLength) &&
-            historyLength > 0
-        ) {
-
-            this.historyLength =
-                historyLength;
+        if (Number.isInteger(historyLength) && historyLength > 0) {
+            this.historyLength = historyLength;
         }
-
 
         /*
          * Keep history within the currently
          * configured limit.
          */
 
-        if (
-            this.tapTimes.length >
-            this.historyLength
-        ) {
-
-            this.tapTimes =
-                this.tapTimes.slice(
-                    -this.historyLength
-                );
+        if (this.tapTimes.length > this.historyLength) {
+            this.tapTimes = this.tapTimes.slice(-this.historyLength);
         }
     }
-
 
     /* =====================================================
        REGISTER TAP
@@ -103,64 +73,35 @@ export class TapEngine {
      * @param {number} timestamp
      * @returns {Object}
      */
-    registerTap(
-        timestamp = performance.now()
-    ) {
-
-        if (
-            !Number.isFinite(timestamp)
-        ) {
-
-            throw new TypeError(
-                "WM Tapper: invalid tap timestamp."
-            );
+    registerTap(timestamp = performance.now()) {
+        if (!Number.isFinite(timestamp)) {
+            throw new TypeError("WM Tapper: invalid tap timestamp.");
         }
-
 
         /* ---------------------------------------------
            First tap
            --------------------------------------------- */
 
-        if (
-            this.tapTimes.length === 0
-        ) {
-
-            this.tapTimes.push(
-                timestamp
-            );
-
+        if (this.tapTimes.length === 0) {
+            this.tapTimes.push(timestamp);
 
             return this.createResult({
                 bpm: null,
-                isNewSession: true
+                isNewSession: true,
             });
         }
-
 
         /* ---------------------------------------------
            Session timeout
            --------------------------------------------- */
 
-        const previousTimestamp =
-            this.tapTimes[
-                this.tapTimes.length - 1
-            ];
+        const previousTimestamp = this.tapTimes[this.tapTimes.length - 1];
 
+        const interval = timestamp - previousTimestamp;
 
-        const interval =
-            timestamp -
-            previousTimestamp;
+        const timeout = this.sessionTimeout * 1000;
 
-
-        const timeout =
-            this.sessionTimeout *
-            1000;
-
-
-        if (
-            interval > timeout
-        ) {
-
+        if (interval > timeout) {
             /*
              * The old session has ended.
              *
@@ -168,90 +109,61 @@ export class TapEngine {
              * of a completely new session.
              */
 
-            this.tapTimes = [
-                timestamp
-            ];
-
+            this.tapTimes = [timestamp];
 
             return this.createResult({
                 bpm: null,
-                isNewSession: true
+                isNewSession: true,
             });
         }
-
 
         /* ---------------------------------------------
            Invalid interval
            --------------------------------------------- */
 
-        if (
-            interval <= 0
-        ) {
-
+        if (interval <= 0) {
             return this.createResult({
                 bpm: null,
-                isNewSession: false
+                isNewSession: false,
             });
         }
-
 
         /* ---------------------------------------------
            Instant BPM
            --------------------------------------------- */
 
-        const instantBpm =
-            60000 /
-            interval;
-
+        const instantBpm = 60000 / interval;
 
         /*
          * Reject physically implausible tap intervals.
          */
 
-        if (
-            instantBpm < MIN_BPM ||
-            instantBpm > MAX_BPM
-        ) {
-
+        if (instantBpm < MIN_BPM || instantBpm > MAX_BPM) {
             return this.createResult({
                 bpm: null,
-                isNewSession: false
+                isNewSession: false,
             });
         }
-
 
         /* ---------------------------------------------
            Store tap
            --------------------------------------------- */
 
-        this.tapTimes.push(
-            timestamp
-        );
-
+        this.tapTimes.push(timestamp);
 
         /* ---------------------------------------------
            Limit history
            --------------------------------------------- */
 
-        if (
-            this.tapTimes.length >
-            this.historyLength
-        ) {
-
-            this.tapTimes =
-                this.tapTimes.slice(
-                    -this.historyLength
-                );
+        if (this.tapTimes.length > this.historyLength) {
+            this.tapTimes = this.tapTimes.slice(-this.historyLength);
         }
-
 
         /* ---------------------------------------------
            Current BPM
            --------------------------------------------- */
 
-        const bpm =
-            this.getCurrentBpm();
-
+        const bpm = this.getCurrentBpm();
 
         /* ---------------------------------------------
            Result
@@ -259,10 +171,9 @@ export class TapEngine {
 
         return this.createResult({
             bpm,
-            isNewSession: false
+            isNewSession: false,
         });
     }
-
 
     /* =====================================================
        CURRENT BPM
@@ -279,77 +190,38 @@ export class TapEngine {
      * @returns {number|null}
      */
     getCurrentBpm() {
-
-        if (
-            this.tapTimes.length < 2
-        ) {
-
+        if (this.tapTimes.length < 2) {
             return null;
         }
 
+        const startIndex = Math.max(
+            0,
+            this.tapTimes.length - CURRENT_BPM_INTERVALS - 1,
+        );
 
-        const startIndex =
-            Math.max(
-                0,
-                this.tapTimes.length -
-                    CURRENT_BPM_INTERVALS -
-                    1
-            );
+        const relevantTimes = this.tapTimes.slice(startIndex);
 
-
-        const relevantTimes =
-            this.tapTimes.slice(
-                startIndex
-            );
-
-
-        if (
-            relevantTimes.length < 2
-        ) {
-
+        if (relevantTimes.length < 2) {
             return null;
         }
-
 
         const totalInterval =
-            relevantTimes[
-                relevantTimes.length - 1
-            ] -
-            relevantTimes[0];
+            relevantTimes[relevantTimes.length - 1] - relevantTimes[0];
 
+        const intervalCount = relevantTimes.length - 1;
 
-        const intervalCount =
-            relevantTimes.length - 1;
-
-
-        if (
-            totalInterval <= 0
-        ) {
-
+        if (totalInterval <= 0) {
             return null;
         }
 
+        const bpm = (60000 * intervalCount) / totalInterval;
 
-        const bpm =
-            (
-                60000 *
-                intervalCount
-            ) /
-            totalInterval;
-
-
-        if (
-            bpm < MIN_BPM ||
-            bpm > MAX_BPM
-        ) {
-
+        if (bpm < MIN_BPM || bpm > MAX_BPM) {
             return null;
         }
-
 
         return bpm;
     }
-
 
     /* =====================================================
        AVERAGE BPM
@@ -365,63 +237,30 @@ export class TapEngine {
      * @returns {number|null}
      */
     getAverageBpm() {
-
-        if (
-            this.tapTimes.length < 2
-        ) {
-
+        if (this.tapTimes.length < 2) {
             return null;
         }
 
+        const firstTime = this.tapTimes[0];
 
-        const firstTime =
-            this.tapTimes[0];
+        const lastTime = this.tapTimes[this.tapTimes.length - 1];
 
+        const totalTime = lastTime - firstTime;
 
-        const lastTime =
-            this.tapTimes[
-                this.tapTimes.length - 1
-            ];
+        const intervalCount = this.tapTimes.length - 1;
 
-
-        const totalTime =
-            lastTime -
-            firstTime;
-
-
-        const intervalCount =
-            this.tapTimes.length - 1;
-
-
-        if (
-            totalTime <= 0 ||
-            intervalCount <= 0
-        ) {
-
+        if (totalTime <= 0 || intervalCount <= 0) {
             return null;
         }
 
+        const bpm = (60000 * intervalCount) / totalTime;
 
-        const bpm =
-            (
-                60000 *
-                intervalCount
-            ) /
-            totalTime;
-
-
-        if (
-            bpm < MIN_BPM ||
-            bpm > MAX_BPM
-        ) {
-
+        if (bpm < MIN_BPM || bpm > MAX_BPM) {
             return null;
         }
-
 
         return bpm;
     }
-
 
     /* =====================================================
        HISTORY
@@ -433,12 +272,8 @@ export class TapEngine {
      * @returns {number[]}
      */
     getHistory() {
-
-        return [
-            ...this.tapTimes
-        ];
+        return [...this.tapTimes];
     }
-
 
     /* =====================================================
        RESULT
@@ -452,24 +287,17 @@ export class TapEngine {
      * @param {boolean} data.isNewSession
      * @returns {Object}
      */
-    createResult({
-        bpm,
-        isNewSession
-    }) {
-
+    createResult({ bpm, isNewSession }) {
         return {
             bpm,
 
-            averageBpm:
-                this.getAverageBpm(),
+            averageBpm: this.getAverageBpm(),
 
-            history:
-                this.getHistory(),
+            history: this.getHistory(),
 
-            isNewSession
+            isNewSession,
         };
     }
-
 
     /* =====================================================
        RESET
@@ -479,7 +307,6 @@ export class TapEngine {
      * Reset current session.
      */
     reset() {
-
         this.tapTimes = [];
     }
 }

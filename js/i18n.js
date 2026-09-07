@@ -3,30 +3,22 @@
    Internationalization
    ========================================================= */
 
-
 /* =========================================================
    SUPPORTED LANGUAGES
    ========================================================= */
 
-export const supportedLanguages = [
-    "en",
-    "ru",
-    "az"
-];
-
+export const supportedLanguages = ["en", "ru", "az"];
 
 /* =========================================================
    TRANSLATIONS
    ========================================================= */
 
 export const translations = {
-
     /* =====================================================
        ENGLISH
        ===================================================== */
 
     en: {
-
         tap: "TAP",
 
         average: "Average BPM:",
@@ -59,16 +51,48 @@ export const translations = {
 
         fast: "FAST",
 
-        madeBy: "Made by Wht Mst"
-    },
+        genreAuto: "AUTO",
 
+        genreHouse: "HOUSE",
+
+        genreTechno: "TECHNO",
+
+        genreTrance: "TRANCE",
+
+        genreDrumAndBass: "DRUM & BASS",
+
+        genreDubstep: "DUBSTEP",
+
+        genreHardstyle: "HARDSTYLE",
+
+        genreHardcore: "HARDCORE",
+
+        genreFrenchcore: "FRENCHCORE",
+
+        genreHipHopTrap: "HIP-HOP / TRAP",
+
+        genrePop: "POP",
+
+        genreRock: "ROCK",
+
+        genreOtherElectronic: "OTHER ELECTRONIC",
+
+        genreOther: "OTHER",
+
+        confidence: "CONFIDENCE",
+
+        major: "Major",
+
+        minor: "Minor",
+
+        madeBy: "Made by Wht Mst",
+    },
 
     /* =====================================================
        RUSSIAN
        ===================================================== */
 
     ru: {
-
         tap: "ТАП",
 
         average: "Средний BPM:",
@@ -101,16 +125,48 @@ export const translations = {
 
         fast: "БЫСТРЫЙ",
 
-        madeBy: "Сделано Wht Mst"
-    },
+        genreAuto: "АВТО",
 
+        genreHouse: "ХАУС",
+
+        genreTechno: "ТЕХНО",
+
+        genreTrance: "ТРАНС",
+
+        genreDrumAndBass: "ДРАМ-Н-БЭЙС",
+
+        genreDubstep: "ДАБСТЕП",
+
+        genreHardstyle: "ХАРДСТАЙЛ",
+
+        genreHardcore: "ХАРДКОР",
+
+        genreFrenchcore: "ФРЕНЧКОР",
+
+        genreHipHopTrap: "ХИП-ХОП / ТРЭП",
+
+        genrePop: "ПОП",
+
+        genreRock: "РОК",
+
+        genreOtherElectronic: "ДРУГАЯ ЭЛЕКТРОННАЯ",
+
+        genreOther: "ДРУГОЕ",
+
+        confidence: "УВЕРЕННОСТЬ",
+
+        major: "Мажор",
+
+        minor: "Минор",
+
+        madeBy: "Сделано Wht Mst",
+    },
 
     /* =====================================================
        AZERBAIJANI
        ===================================================== */
 
     az: {
-
         tap: "TAP",
 
         average: "Orta BPM:",
@@ -143,10 +199,96 @@ export const translations = {
 
         fast: "SÜRƏTLİ",
 
-        madeBy: "Wht Mst tərəfindən"
-    }
+        genreAuto: "AUTO",
+
+        genreHouse: "HOUSE",
+
+        genreTechno: "TECHNO",
+
+        genreTrance: "TRANCE",
+
+        genreDrumAndBass: "DRUM & BASS",
+
+        genreDubstep: "DUBSTEP",
+
+        genreHardstyle: "HARDSTYLE",
+
+        genreHardcore: "HARDCORE",
+
+        genreFrenchcore: "FRENCHCORE",
+
+        genreHipHopTrap: "HIP-HOP / TRAP",
+
+        genrePop: "POP",
+
+        genreRock: "ROCK",
+
+        genreOtherElectronic: "OTHER ELECTRONIC",
+
+        genreOther: "OTHER",
+
+        confidence: "ƏMİNLİK",
+
+        major: "Major",
+
+        minor: "Minor",
+
+        madeBy: "Wht Mst tərəfindən",
+    },
 };
 
+/* =========================================================
+   NOTE NAMES
+   ========================================================= */
+
+/**
+ * English note names used by Essentia.
+ */
+export const englishNoteNames = {
+    C: "C",
+    "C#": "C#",
+    Db: "Db",
+    D: "D",
+    "D#": "D#",
+    Eb: "Eb",
+    E: "E",
+    F: "F",
+    "F#": "F#",
+    Gb: "Gb",
+    G: "G",
+    "G#": "G#",
+    Ab: "Ab",
+    A: "A",
+    "A#": "A#",
+    Bb: "Bb",
+    B: "B",
+};
+
+/**
+ * Russian note names.
+ *
+ * These are used only for the Russian
+ * explanation in parentheses.
+ */
+export const russianNoteNames = {
+    C: "До",
+    "C#": "До-диез",
+    Db: "Ре-бемоль",
+    D: "Ре",
+    "D#": "Ре-диез",
+    Eb: "Ми-бемоль",
+    E: "Ми",
+    F: "Фа",
+    "F#": "Фа-диез",
+    Gb: "Соль-бемоль",
+    G: "Соль",
+    "G#": "Соль-диез",
+    Ab: "Ля-бемоль",
+    A: "Ля",
+    "A#": "Ля-диез",
+    Bb: "Си-бемоль",
+    B: "Си",
+};
 
 /* =========================================================
    LANGUAGE HELPERS
@@ -165,30 +307,15 @@ export const translations = {
  * @param {string} language
  * @returns {string}
  */
-export function formatDecimal(
-    value,
-    language
-) {
+export function formatDecimal(value, language) {
+    const formatted = value.toFixed(1);
 
-    const formatted =
-        value.toFixed(1);
-
-
-    if (
-        language === "ru" ||
-        language === "az"
-    ) {
-
-        return formatted.replace(
-            ".",
-            ","
-        );
+    if (language === "ru" || language === "az") {
+        return formatted.replace(".", ",");
     }
-
 
     return formatted;
 }
-
 
 /**
  * Get translation object.
@@ -196,12 +323,89 @@ export function formatDecimal(
  * @param {string} language
  * @returns {Object}
  */
-export function getTranslations(
-    language
-) {
+export function getTranslations(language) {
+    return translations[language] || translations.en;
+}
 
-    return (
-        translations[language] ||
-        translations.en
-    );
+/* =========================================================
+   ANALYSIS RESULT HELPERS
+   ========================================================= */
+
+/**
+ * Format confidence percentage.
+ *
+ * @param {number} strength
+ * @param {string} language
+ * @returns {string}
+ */
+export function formatConfidence(strength, language) {
+    if (!Number.isFinite(strength)) {
+        return "";
+    }
+
+    const text = getTranslations(language);
+
+    return `${Math.round(strength * 100)}% ${text.confidence}`;
+}
+
+/**
+ * Normalize Essentia scale name.
+ *
+ * @param {string|null} scale
+ * @param {string} language
+ * @returns {string}
+ */
+export function translateScale(scale, language) {
+    const text = getTranslations(language);
+
+    if (scale === "major") {
+        return text.major;
+    }
+
+    if (scale === "minor") {
+        return text.minor;
+    }
+
+    return typeof scale === "string" ? scale : "";
+}
+
+/**
+ * Format a detected key according to language.
+ *
+ * EN:
+ * E minor
+ *
+ * AZ:
+ * E MINOR
+ *
+ * RU:
+ * E minor (Ми минор)
+ *
+ * @param {string|null} key
+ * @param {string|null} scale
+ * @param {string} language
+ * @returns {string}
+ */
+export function formatAnalysisKey(key, scale, language) {
+    if (typeof key !== "string" || typeof scale !== "string") {
+        return "";
+    }
+
+    const normalizedKey = englishNoteNames[key] || key;
+
+    if (language === "ru") {
+        const russianKey = russianNoteNames[key] || key;
+
+        const englishScale =
+            scale === "major" ? "Major" : scale === "minor" ? "Minor" : scale;
+
+        const russianScale =
+            scale === "major" ? "мажор" : scale === "minor" ? "минор" : scale;
+
+        return `${normalizedKey} ${englishScale} (${russianKey} ${russianScale})`;
+    }
+
+    const translatedScale = translateScale(scale, language);
+
+    return `${normalizedKey} ${translatedScale}`;
 }

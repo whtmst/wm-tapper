@@ -3,7 +3,6 @@
    Main stylesheet
    ========================================================= */
 
-
 /* =========================================================
    FONT
    ========================================================= */
@@ -19,20 +18,17 @@
     font-display: swap;
 }
 
-
 /* =========================================================
    DESIGN TOKENS
    ========================================================= */
 
 :root {
-
     /* ---------------------------------------------
        Window
        --------------------------------------------- */
 
     --window-width: 250px;
     --window-height: 300px;
-
 
     /* ---------------------------------------------
        Background
@@ -43,7 +39,6 @@
     --background-window-top: #1d2022;
     --background-window-bottom: #151719;
 
-
     /* ---------------------------------------------
        Borders
        --------------------------------------------- */
@@ -52,7 +47,6 @@
     --border-soft: rgba(255, 255, 255, 0.035);
     --border-footer: rgba(255, 255, 255, 0.055);
 
-
     /* ---------------------------------------------
        Text
        --------------------------------------------- */
@@ -60,7 +54,6 @@
     --text-primary: #f0f2ec;
     --text-secondary: rgba(240, 242, 236, 0.56);
     --text-muted: rgba(240, 242, 236, 0.32);
-
 
     /* ---------------------------------------------
        Accent
@@ -71,15 +64,13 @@
     --accent-medium: #b4d447;
     --accent-dark: #849f35;
 
-
     /* ---------------------------------------------
        Accent glow
        --------------------------------------------- */
 
     --accent-glow-soft: rgba(200, 233, 87, 0.12);
-    --accent-glow-medium: rgba(200, 233, 87, 0.20);
-    --accent-glow-strong: rgba(200, 233, 87, 0.30);
-
+    --accent-glow-medium: rgba(200, 233, 87, 0.2);
+    --accent-glow-strong: rgba(200, 233, 87, 0.3);
 
     /* ---------------------------------------------
        Motion
@@ -88,7 +79,6 @@
     --transition-fast: 100ms ease;
     --transition-normal: 180ms ease;
 }
-
 
 /* =========================================================
    RESET
@@ -101,20 +91,17 @@
     padding: 0;
 }
 
-
 html,
 body {
     width: 100%;
     min-height: 100%;
 }
 
-
 html {
     background: var(--background-page);
 
     font-family: "Finlandica", sans-serif;
 }
-
 
 body {
     min-height: 100vh;
@@ -139,12 +126,10 @@ body {
     text-rendering: optimizeLegibility;
 }
 
-
 button,
 a {
     font: inherit;
 }
-
 
 button {
     appearance: none;
@@ -159,13 +144,11 @@ button {
     -webkit-tap-highlight-color: transparent;
 }
 
-
 button:focus-visible,
 a:focus-visible {
     outline: 1px solid rgba(200, 233, 87, 0.55);
     outline-offset: 2px;
 }
-
 
 /* =========================================================
    APPLICATION WINDOW
@@ -183,20 +166,18 @@ a:focus-visible {
     border: 1px solid var(--border-window);
     border-radius: 12px;
 
-    background:
-        linear-gradient(
-            180deg,
-            var(--background-window-top) 0%,
-            #1a1d1f 48%,
-            var(--background-window-bottom) 100%
-        );
+    background: linear-gradient(
+        180deg,
+        var(--background-window-top) 0%,
+        #1a1d1f 48%,
+        var(--background-window-bottom) 100%
+    );
 
     box-shadow:
         0 22px 50px rgba(0, 0, 0, 0.48),
-        0 5px 16px rgba(0, 0, 0, 0.30),
+        0 5px 16px rgba(0, 0, 0, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
-
 
 /* =========================================================
    TITLE BAR
@@ -217,14 +198,12 @@ a:focus-visible {
 
     border-bottom: 1px solid var(--border-soft);
 
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.012),
-            rgba(255, 255, 255, 0)
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.012),
+        rgba(255, 255, 255, 0)
+    );
 }
-
 
 /* =========================================================
    WINDOW TITLE
@@ -241,7 +220,6 @@ a:focus-visible {
     letter-spacing: 0.02em;
 }
 
-
 /* =========================================================
    WINDOW CONTROLS
    ========================================================= */
@@ -252,7 +230,6 @@ a:focus-visible {
 
     gap: 2px;
 }
-
 
 .window-control {
     position: relative;
@@ -275,18 +252,15 @@ a:focus-visible {
         opacity var(--transition-fast);
 }
 
-
 .window-control:hover {
     background: rgba(255, 255, 255, 0.055);
 
     opacity: 1;
 }
 
-
 .window-control:active {
     background: rgba(255, 255, 255, 0.085);
 }
-
 
 /* =========================================================
    SETTINGS ICON
@@ -307,13 +281,11 @@ a:focus-visible {
         transform 180ms ease;
 }
 
-
 .window-control--settings:hover .settings-icon {
     opacity: 1;
 
     transform: rotate(30deg);
 }
-
 
 /* =========================================================
    MINIMIZE ICON
@@ -327,17 +299,14 @@ a:focus-visible {
 
     border-radius: 1px;
 
-    background: rgba(240, 242, 236, 0.60);
+    background: rgba(240, 242, 236, 0.6);
 
-    transition:
-        background-color var(--transition-fast);
+    transition: background-color var(--transition-fast);
 }
-
 
 .window-control--minimize:hover span {
     background: rgba(240, 242, 236, 0.88);
 }
-
 
 /* =========================================================
    CLOSE ICON
@@ -356,25 +325,21 @@ a:focus-visible {
 
     border-radius: 1px;
 
-    background: rgba(240, 242, 236, 0.60);
+    background: rgba(240, 242, 236, 0.6);
 }
-
 
 .window-control--close span {
     transform: rotate(45deg);
 }
 
-
 .window-control--close span::after {
     transform: rotate(90deg);
 }
 
-
 .window-control--close:hover span,
 .window-control--close:hover span::after {
-    background: rgba(240, 242, 236, 0.90);
+    background: rgba(240, 242, 236, 0.9);
 }
-
 
 /* =========================================================
    FLIP CONTAINER
@@ -390,7 +355,6 @@ a:focus-visible {
     perspective: 900px;
 }
 
-
 .flip-card {
     position: relative;
 
@@ -399,20 +363,12 @@ a:focus-visible {
 
     transform-style: preserve-3d;
 
-    transition:
-        transform 460ms cubic-bezier(
-            0.22,
-            0.61,
-            0.36,
-            1
-        );
+    transition: transform 460ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-
 
 .flip-card.is-flipped {
     transform: rotateY(180deg);
 }
-
 
 /* =========================================================
    FLIP SIDES
@@ -430,16 +386,13 @@ a:focus-visible {
     -webkit-backface-visibility: hidden;
 }
 
-
 .flip-side--front {
     transform: rotateY(0deg);
 }
 
-
 .flip-side--back {
     transform: rotateY(180deg);
 }
-
 
 /* =========================================================
    FRONT CONTENT
@@ -455,7 +408,6 @@ a:focus-visible {
 
     padding: 11px 11px 10px;
 }
-
 
 /* =========================================================
    TAP BUTTON
@@ -478,15 +430,14 @@ a:focus-visible {
     border: 1px solid rgba(231, 255, 154, 0.22);
     border-radius: 16px;
 
-    background:
-        radial-gradient(
-            circle at 50% 43%,
-            #eaffad 0%,
-            var(--accent-light) 12%,
-            var(--accent-primary) 33%,
-            var(--accent-medium) 65%,
-            var(--accent-dark) 100%
-        );
+    background: radial-gradient(
+        circle at 50% 43%,
+        #eaffad 0%,
+        var(--accent-light) 12%,
+        var(--accent-primary) 33%,
+        var(--accent-medium) 65%,
+        var(--accent-dark) 100%
+    );
 
     color: #24291a;
 
@@ -504,7 +455,6 @@ a:focus-visible {
         box-shadow 140ms ease;
 }
 
-
 .tap-button::before {
     position: absolute;
 
@@ -514,17 +464,15 @@ a:focus-visible {
 
     border-radius: 15px;
 
-    background:
-        radial-gradient(
-            circle at 50% 34%,
-            rgba(255, 255, 255, 0.19),
-            rgba(255, 255, 255, 0.06) 34%,
-            transparent 67%
-        );
+    background: radial-gradient(
+        circle at 50% 34%,
+        rgba(255, 255, 255, 0.19),
+        rgba(255, 255, 255, 0.06) 34%,
+        transparent 67%
+    );
 
     pointer-events: none;
 }
-
 
 .tap-button::after {
     position: absolute;
@@ -542,7 +490,6 @@ a:focus-visible {
     pointer-events: none;
 }
 
-
 .tap-button:hover {
     filter: brightness(1.035);
 
@@ -552,7 +499,6 @@ a:focus-visible {
         0 9px 21px rgba(0, 0, 0, 0.27),
         0 0 25px var(--accent-glow-medium);
 }
-
 
 .tap-button:active {
     transform: translateY(2px) scale(0.985);
@@ -565,7 +511,6 @@ a:focus-visible {
         0 3px 8px rgba(0, 0, 0, 0.26),
         0 0 14px var(--accent-glow-medium);
 }
-
 
 /* =========================================================
    TAP VALUE
@@ -589,14 +534,12 @@ a:focus-visible {
 
     letter-spacing: 0.015em;
 
-    text-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.15);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
 
     transition:
         opacity 120ms ease,
         transform 120ms ease;
 }
-
 
 /* =========================================================
    TAP HISTORY
@@ -613,7 +556,6 @@ a:focus-visible {
     overflow: hidden;
 }
 
-
 /* ---------------------------------------------------------
    Subtle dashed guide
    --------------------------------------------------------- */
@@ -629,18 +571,16 @@ a:focus-visible {
 
     content: "";
 
-    background:
-        repeating-linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.075) 0 3px,
-            transparent 3px 8px
-        );
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.075) 0 3px,
+        transparent 3px 8px
+    );
 
     opacity: 0.6;
 
     transform: translateY(-50%);
 }
-
 
 /* =========================================================
    TAP POINT
@@ -664,38 +604,28 @@ a:focus-visible {
 
     z-index: 2;
 
-    animation:
-        tap-point-in 160ms ease-out both;
+    animation: tap-point-in 160ms ease-out both;
 }
 
-
 @keyframes tap-point-in {
-
     0% {
         opacity: 0;
 
-        transform:
-            translate(-50%, -50%)
-            scale(0.55);
+        transform: translate(-50%, -50%) scale(0.55);
     }
 
     55% {
         opacity: 1;
 
-        transform:
-            translate(-50%, -50%)
-            scale(1.10);
+        transform: translate(-50%, -50%) scale(1.1);
     }
 
     100% {
         opacity: 1;
 
-        transform:
-            translate(-50%, -50%)
-            scale(1);
+        transform: translate(-50%, -50%) scale(1);
     }
 }
-
 
 /* =========================================================
    TAP CONNECTOR
@@ -706,13 +636,12 @@ a:focus-visible {
 
     height: 1px;
 
-    background: rgba(242, 245, 236, 0.10);
+    background: rgba(242, 245, 236, 0.1);
 
     transform-origin: left center;
 
     z-index: 1;
 }
-
 
 /* =========================================================
    AVERAGE BPM
@@ -740,13 +669,11 @@ a:focus-visible {
     font-variant-numeric: tabular-nums;
 }
 
-
 .average__label {
     color: var(--text-secondary);
     font-weight: 400;
     text-transform: uppercase;
 }
-
 
 .average__value {
     margin-left: 4px;
@@ -754,7 +681,6 @@ a:focus-visible {
     font-weight: 400;
     font-variant-numeric: tabular-nums;
 }
-
 
 /* =========================================================
    BOTTOM ACTIONS
@@ -771,7 +697,6 @@ a:focus-visible {
 
     gap: 6px;
 }
-
 
 /* =========================================================
    ANALYZE FILE BUTTON
@@ -791,7 +716,7 @@ a:focus-visible {
 
     line-height: 1;
 
-    letter-spacing: 0.10em;
+    letter-spacing: 0.1em;
 
     transition:
         color var(--transition-fast),
@@ -800,16 +725,13 @@ a:focus-visible {
         text-shadow var(--transition-fast);
 }
 
-
 .analyze-button:hover {
     color: var(--accent-light);
 
     background: rgba(200, 233, 87, 0.055);
 
-    text-shadow:
-        0 0 7px rgba(200, 233, 87, 0.20);
+    text-shadow: 0 0 7px rgba(200, 233, 87, 0.2);
 }
-
 
 .analyze-button:active {
     color: var(--accent-light);
@@ -818,10 +740,8 @@ a:focus-visible {
 
     transform: translateY(1px);
 
-    text-shadow:
-        0 0 8px rgba(200, 233, 87, 0.24);
+    text-shadow: 0 0 8px rgba(200, 233, 87, 0.24);
 }
-
 
 .analyze-button:disabled {
     cursor: default;
@@ -830,7 +750,6 @@ a:focus-visible {
 
     text-shadow: none;
 }
-
 
 /* =========================================================
    RESET BUTTON
@@ -850,7 +769,7 @@ a:focus-visible {
 
     line-height: 1;
 
-    letter-spacing: 0.10em;
+    letter-spacing: 0.1em;
 
     transition:
         color var(--transition-fast),
@@ -858,22 +777,19 @@ a:focus-visible {
         transform var(--transition-fast);
 }
 
-
 .reset-button:hover {
     color: rgba(240, 242, 236, 0.68);
 
     background: rgba(255, 255, 255, 0.035);
 }
 
-
 .reset-button:active {
-    color: rgba(240, 242, 236, 0.50);
+    color: rgba(240, 242, 236, 0.5);
 
     background: rgba(255, 255, 255, 0.055);
 
     transform: translateY(1px);
 }
-
 
 /* =========================================================
    SETTINGS SIDE
@@ -888,7 +804,6 @@ a:focus-visible {
 
     padding: 11px 15px 10px;
 }
-
 
 /* =========================================================
    SETTINGS HEADER
@@ -906,11 +821,10 @@ a:focus-visible {
 
     line-height: 1;
 
-    letter-spacing: 0.10em;
+    letter-spacing: 0.1em;
 
     text-align: center;
 }
-
 
 /* =========================================================
    SETTINGS ROWS
@@ -929,9 +843,8 @@ a:focus-visible {
     border-bottom: none;
 }
 
-
 .setting-row__label {
-    color: rgba(240, 242, 236, 0.50);
+    color: rgba(240, 242, 236, 0.5);
 
     font-size: 10.5px;
     font-weight: 480;
@@ -942,7 +855,6 @@ a:focus-visible {
 
     white-space: nowrap;
 }
-
 
 /* =========================================================
    SETTING CONTROL BASE
@@ -965,7 +877,7 @@ a:focus-visible {
 
     background: rgba(255, 255, 255, 0.025);
 
-    color: rgba(240, 242, 236, 0.70);
+    color: rgba(240, 242, 236, 0.7);
 
     font-size: 9.5px;
     font-weight: 570;
@@ -981,26 +893,22 @@ a:focus-visible {
         box-shadow var(--transition-fast);
 }
 
-
 .setting-control:hover {
     background: rgba(255, 255, 255, 0.055);
 
-    border-color: rgba(255, 255, 255, 0.10);
+    border-color: rgba(255, 255, 255, 0.1);
 
     color: rgba(240, 242, 236, 0.86);
 }
-
 
 .setting-control:active,
 .setting-control.is-open {
     background: rgba(255, 255, 255, 0.075);
 
-    border-color: rgba(200, 233, 87, 0.20);
+    border-color: rgba(200, 233, 87, 0.2);
 
-    box-shadow:
-        0 0 8px rgba(200, 233, 87, 0.06);
+    box-shadow: 0 0 8px rgba(200, 233, 87, 0.06);
 }
-
 
 /* =========================================================
    TAP KEY CONTROL
@@ -1012,35 +920,28 @@ a:focus-visible {
     text-transform: uppercase;
 }
 
-
 #tapKeyControl.is-listening {
     min-width: 83px;
 
-    border-color: rgba(200, 233, 87, 0.30);
+    border-color: rgba(200, 233, 87, 0.3);
 
     background: rgba(200, 233, 87, 0.08);
 
     color: var(--accent-light);
 
-    animation:
-        listening-pulse 900ms ease-in-out infinite;
+    animation: listening-pulse 900ms ease-in-out infinite;
 }
 
-
 @keyframes listening-pulse {
-
     0%,
     100% {
-        box-shadow:
-            0 0 0 rgba(200, 233, 87, 0);
+        box-shadow: 0 0 0 rgba(200, 233, 87, 0);
     }
 
     50% {
-        box-shadow:
-            0 0 12px rgba(200, 233, 87, 0.12);
+        box-shadow: 0 0 12px rgba(200, 233, 87, 0.12);
     }
 }
-
 
 /* =========================================================
    DROPDOWN CONTROL
@@ -1051,7 +952,6 @@ a:focus-visible {
 
     user-select: none;
 }
-
 
 /* ---------------------------------------------------------
    Dropdown arrow
@@ -1069,21 +969,14 @@ a:focus-visible {
     border-right: 1px solid rgba(240, 242, 236, 0.48);
     border-bottom: 1px solid rgba(240, 242, 236, 0.48);
 
-    transform:
-        translateY(-65%)
-        rotate(45deg);
+    transform: translateY(-65%) rotate(45deg);
 
-    transition:
-        transform var(--transition-fast);
+    transition: transform var(--transition-fast);
 }
-
 
 .setting-dropdown.is-open .dropdown-arrow {
-    transform:
-        translateY(-25%)
-        rotate(225deg);
+    transform: translateY(-25%) rotate(225deg);
 }
-
 
 /* =========================================================
    DROPDOWN MENU
@@ -1107,12 +1000,7 @@ a:focus-visible {
     border: 1px solid rgba(255, 255, 255, 0.075);
     border-radius: 6px;
 
-    background:
-        linear-gradient(
-            180deg,
-            #25292b 0%,
-            #1b1e20 100%
-        );
+    background: linear-gradient(180deg, #25292b 0%, #1b1e20 100%);
 
     box-shadow:
         0 10px 25px rgba(0, 0, 0, 0.42),
@@ -1122,9 +1010,7 @@ a:focus-visible {
     visibility: hidden;
     pointer-events: none;
 
-    transform:
-        translateY(-3px)
-        scale(0.98);
+    transform: translateY(-3px) scale(0.98);
 
     transform-origin: top right;
 
@@ -1134,17 +1020,13 @@ a:focus-visible {
         transform 110ms ease;
 }
 
-
 .setting-dropdown.is-open .dropdown-menu {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
 
-    transform:
-        translateY(0)
-        scale(1);
+    transform: translateY(0) scale(1);
 }
-
 
 /* =========================================================
    DROPDOWN OPTION
@@ -1180,20 +1062,17 @@ a:focus-visible {
         color var(--transition-fast);
 }
 
-
 .dropdown-option:hover {
     background: rgba(255, 255, 255, 0.055);
 
     color: rgba(240, 242, 236, 0.86);
 }
 
-
 .dropdown-option.is-selected {
     color: var(--accent-light);
 
     background: rgba(200, 233, 87, 0.075);
 }
-
 
 .dropdown-option.is-selected::after {
     margin-left: auto;
@@ -1205,7 +1084,6 @@ a:focus-visible {
     font-size: 9.5px;
 }
 
-
 /* =========================================================
    LANGUAGE ROW
    ========================================================= */
@@ -1213,7 +1091,6 @@ a:focus-visible {
 .setting-row--language {
     min-height: 31px;
 }
-
 
 /* =========================================================
    LANGUAGE SWITCHER
@@ -1241,7 +1118,6 @@ a:focus-visible {
 
     box-shadow: none;
 }
-
 
 /* ---------------------------------------------------------
    Language buttons
@@ -1280,15 +1156,13 @@ a:focus-visible {
         box-shadow var(--transition-fast);
 }
 
-
 .language-button:hover {
     background: rgba(255, 255, 255, 0.055);
 
-    border-color: rgba(255, 255, 255, 0.10);
+    border-color: rgba(255, 255, 255, 0.1);
 
     color: rgba(240, 242, 236, 0.78);
 }
-
 
 .language-button.is-active {
     background: var(--accent-primary);
@@ -1297,10 +1171,8 @@ a:focus-visible {
 
     color: #20251a;
 
-    box-shadow:
-        0 0 8px rgba(200, 233, 87, 0.13);
+    box-shadow: 0 0 8px rgba(200, 233, 87, 0.13);
 }
-
 
 /* =========================================================
    SETTINGS FOOTER DIVIDER
@@ -1318,7 +1190,6 @@ a:focus-visible {
     opacity: 0.8;
 }
 
-
 /* =========================================================
    SETTINGS ABOUT
    ========================================================= */
@@ -1330,7 +1201,6 @@ a:focus-visible {
 
     text-align: center;
 }
-
 
 /* ---------------------------------------------------------
    WM Tapper
@@ -1344,7 +1214,6 @@ a:focus-visible {
 
     line-height: 1;
 }
-
 
 /* ---------------------------------------------------------
    Made by
@@ -1360,7 +1229,6 @@ a:focus-visible {
 
     line-height: 1;
 }
-
 
 /* ---------------------------------------------------------
    GitHub link
@@ -1380,22 +1248,18 @@ a:focus-visible {
 
     text-decoration: none;
 
-    transition:
-        color var(--transition-fast);
+    transition: color var(--transition-fast);
 }
-
 
 .settings-about__link:hover {
     color: rgba(200, 233, 87, 0.78);
 }
-
 
 /* =========================================================
    REDUCED MOTION
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-
     *,
     *::before,
     *::after {
@@ -1407,7 +1271,6 @@ a:focus-visible {
     }
 }
 
-
 /* =========================================================
    AUDIO ANALYSIS PANEL
    ========================================================= */
@@ -1415,7 +1278,6 @@ a:focus-visible {
 .app-window {
     position: relative;
 }
-
 
 /* ---------------------------------------------------------
    Panel
@@ -1428,7 +1290,7 @@ a:focus-visible {
     left: 50%;
 
     width: calc(100% - 24px);
-    height: 143px;
+    height: 170px;
 
     z-index: 100;
 
@@ -1442,12 +1304,7 @@ a:focus-visible {
     border-top: 0;
     border-radius: 0 0 10px 10px;
 
-    background:
-        linear-gradient(
-            180deg,
-            #202426 0%,
-            #181b1d 100%
-        );
+    background: linear-gradient(180deg, #202426 0%, #181b1d 100%);
 
     box-shadow:
         0 14px 30px rgba(0, 0, 0, 0.42),
@@ -1458,41 +1315,27 @@ a:focus-visible {
     visibility: hidden;
     pointer-events: none;
 
-    transform:
-        translateX(-50%)
-        translateY(-8px)
-        scaleY(0.92);
+    transform: translateX(-50%) translateY(-8px) scaleY(0.92);
 
     transform-origin: top center;
 
     transition:
         opacity 180ms ease,
         visibility 180ms ease,
-        transform 220ms cubic-bezier(
-            0.22,
-            0.61,
-            0.36,
-            1
-        );
+        transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-
 
 .app-window.analysis-panel-open {
     overflow: visible;
 }
-
 
 .app-window.analysis-panel-open .analysis-panel {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
 
-    transform:
-        translateX(-50%)
-        translateY(0)
-        scaleY(1);
+    transform: translateX(-50%) translateY(0) scaleY(1);
 }
-
 
 /* =========================================================
    WAVEFORM
@@ -1511,10 +1354,8 @@ a:focus-visible {
     border: 1px solid rgba(255, 255, 255, 0.045);
     border-radius: 5px;
 
-    background:
-        #141619;
+    background: #141619;
 }
-
 
 /* ---------------------------------------------------------
    Waveform Canvas
@@ -1535,7 +1376,6 @@ a:focus-visible {
     color: rgba(222, 238, 176, 0.66);
 }
 
-
 /* =========================================================
    RANGE OVERLAYS
    ========================================================= */
@@ -1546,8 +1386,7 @@ a:focus-visible {
     top: 0;
     bottom: 0;
 
-    background:
-        rgba(8, 10, 11, 0.68);
+    background: rgba(8, 10, 11, 0.68);
 
     pointer-events: none;
 
@@ -1556,20 +1395,17 @@ a:focus-visible {
         width 70ms ease;
 }
 
-
 .analysis-range-overlay--left {
     left: 0;
 
     width: 0;
 }
 
-
 .analysis-range-overlay--right {
     right: 0;
 
     width: 0;
 }
-
 
 /* =========================================================
    ACTIVE SELECTION
@@ -1584,11 +1420,10 @@ a:focus-visible {
     left: 0;
     width: 100%;
 
-    border-top: 1px solid rgba(200, 233, 87, 0.10);
+    border-top: 1px solid rgba(200, 233, 87, 0.1);
     border-bottom: 1px solid rgba(200, 233, 87, 0.08);
 
-    background:
-        rgba(200, 233, 87, 0.025);
+    background: rgba(200, 233, 87, 0.025);
 
     pointer-events: none;
 
@@ -1596,7 +1431,6 @@ a:focus-visible {
         left 70ms ease,
         width 70ms ease;
 }
-
 
 /* =========================================================
    RANGE HANDLES
@@ -1607,7 +1441,7 @@ a:focus-visible {
 
     top: -1px;
 
-    width: 11px;
+    width: 17px;
     height: calc(100% + 2px);
 
     padding: 0;
@@ -1622,10 +1456,8 @@ a:focus-visible {
 
     touch-action: none;
 
-    transform:
-        translateX(-50%);
+    transform: translateX(-50%);
 }
-
 
 .analysis-handle span {
     position: absolute;
@@ -1635,12 +1467,11 @@ a:focus-visible {
 
     left: 50%;
 
-    width: 1px;
+    width: 5px;
 
     background: var(--accent-primary);
 
-    box-shadow:
-        0 0 6px rgba(200, 233, 87, 0.28);
+    box-shadow: 0 0 7px rgba(200, 233, 87, 0.3);
 
     transform: translateX(-50%);
 
@@ -1650,68 +1481,40 @@ a:focus-visible {
 }
 
 
-.analysis-handle::before,
-.analysis-handle::after {
-    position: absolute;
-
-    left: 50%;
-
-    width: 7px;
-    height: 1px;
-
-    content: "";
-
-    border-radius: 1px;
-
-    background: var(--accent-primary);
-
-    transform:
-        translateX(-50%);
-}
-
-
-.analysis-handle::before {
-    top: 4px;
-}
-
-
-.analysis-handle::after {
-    bottom: 4px;
-}
-
+/* ---------------------------------------------------------
+   Hover / active
+   --------------------------------------------------------- */
 
 .analysis-handle:hover span {
-    width: 2px;
+    width: 5px;
 
-    box-shadow:
-        0 0 9px rgba(200, 233, 87, 0.42);
+    box-shadow: 0 0 10px rgba(200, 233, 87, 0.45);
 }
-
 
 .analysis-handle:active span {
-    width: 2px;
+    width: 3px;
 
-    box-shadow:
-        0 0 11px rgba(200, 233, 87, 0.52);
+    box-shadow: 0 0 12px rgba(200, 233, 87, 0.55);
 }
 
+.analysis-handle:hover::before,
+.analysis-handle:hover::after {
+    filter: drop-shadow(0 0 5px rgba(200, 233, 87, 0.35));
+}
 
 .analysis-handle--start {
     left: 0;
 }
 
-
 .analysis-handle--end {
-    left: 100%;
+    left: calc(100% - 1px);
 }
-
 
 /* ---------------------------------------------------------
    Fast mode handle state
    --------------------------------------------------------- */
 
-.analysis-panel.analysis-panel--fast
-    .analysis-handle {
+.analysis-panel.analysis-panel--fast .analysis-handle {
     opacity: 0.34;
 
     cursor: default;
@@ -1745,13 +1548,11 @@ a:focus-visible {
     font-variant-numeric: tabular-nums;
 }
 
-
 .analysis-time__separator {
     margin: 0 5px;
 
     color: rgba(240, 242, 236, 0.22);
 }
-
 
 /* =========================================================
    MODE DROPDOWN
@@ -1760,11 +1561,10 @@ a:focus-visible {
 .analysis-mode {
     position: relative;
 
-    width: 86px;
+    width: 125px;
 
     margin-top: 7px;
 }
-
 
 .analysis-mode__control {
     position: relative;
@@ -1798,7 +1598,6 @@ a:focus-visible {
         color var(--transition-fast);
 }
 
-
 .analysis-mode__control:hover,
 .analysis-mode.is-open .analysis-mode__control {
     background: rgba(255, 255, 255, 0.055);
@@ -1807,7 +1606,6 @@ a:focus-visible {
 
     color: rgba(240, 242, 236, 0.84);
 }
-
 
 .analysis-mode__arrow {
     position: absolute;
@@ -1821,21 +1619,14 @@ a:focus-visible {
     border-right: 1px solid rgba(240, 242, 236, 0.44);
     border-bottom: 1px solid rgba(240, 242, 236, 0.44);
 
-    transform:
-        translateY(-65%)
-        rotate(45deg);
+    transform: translateY(-65%) rotate(45deg);
 
-    transition:
-        transform var(--transition-fast);
+    transition: transform var(--transition-fast);
 }
-
 
 .analysis-mode.is-open .analysis-mode__arrow {
-    transform:
-        translateY(-25%)
-        rotate(225deg);
+    transform: translateY(-25%) rotate(225deg);
 }
-
 
 /* ---------------------------------------------------------
    Mode menu
@@ -1844,7 +1635,7 @@ a:focus-visible {
 .analysis-mode__menu {
     position: absolute;
 
-    top: calc(100% + 3px);
+    bottom: calc(100% + 3px);
     left: 0;
     right: 0;
 
@@ -1858,26 +1649,19 @@ a:focus-visible {
     border: 1px solid rgba(255, 255, 255, 0.075);
     border-radius: 5px;
 
-    background:
-        linear-gradient(
-            180deg,
-            #25292b 0%,
-            #1b1e20 100%
-        );
+    background: linear-gradient(180deg, #25292b 0%, #1b1e20 100%);
 
     box-shadow:
-        0 9px 19px rgba(0, 0, 0, 0.40),
+        0 9px 19px rgba(0, 0, 0, 0.4),
         0 2px 7px rgba(0, 0, 0, 0.25);
 
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
 
-    transform:
-        translateY(-3px)
-        scale(0.98);
+    transform: translateY(3px) scale(0.98);
 
-    transform-origin: top center;
+    transform-origin: bottom center;
 
     transition:
         opacity 100ms ease,
@@ -1885,17 +1669,13 @@ a:focus-visible {
         transform 100ms ease;
 }
 
-
 .analysis-mode.is-open .analysis-mode__menu {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
 
-    transform:
-        translateY(0)
-        scale(1);
+    transform: translateY(0) scale(1);
 }
-
 
 /* ---------------------------------------------------------
    Mode option
@@ -1929,15 +1709,199 @@ a:focus-visible {
         color var(--transition-fast);
 }
 
-
 .analysis-mode__option:hover {
     background: rgba(255, 255, 255, 0.055);
 
     color: rgba(240, 242, 236, 0.86);
 }
 
-
 .analysis-mode__option.is-selected {
+    color: var(--accent-light);
+
+    background: rgba(200, 233, 87, 0.075);
+}
+
+
+/* =========================================================
+   GENRE DROPDOWN
+   ========================================================= */
+
+.analysis-genre {
+    position: relative;
+
+    width: 125px;
+
+    margin-top: 6px;
+}
+
+/* ---------------------------------------------------------
+   Genre control
+   --------------------------------------------------------- */
+
+.analysis-genre__control {
+    position: relative;
+
+    width: 100%;
+    height: 21px;
+
+    padding: 0 19px 0 7px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(255, 255, 255, 0.055);
+    border-radius: 4px;
+
+    background: rgba(255, 255, 255, 0.025);
+
+    color: rgba(240, 242, 236, 0.67);
+
+    font-size: 9.5px;
+    font-weight: 570;
+
+    line-height: 1;
+
+    letter-spacing: 0.06em;
+
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.analysis-genre__control:hover,
+.analysis-genre.is-open .analysis-genre__control {
+    background: rgba(255, 255, 255, 0.055);
+
+    border-color: rgba(255, 255, 255, 0.095);
+
+    color: rgba(240, 242, 236, 0.84);
+}
+
+/* ---------------------------------------------------------
+   Genre arrow
+   --------------------------------------------------------- */
+
+.analysis-genre__arrow {
+    position: absolute;
+
+    top: 50%;
+    right: 7px;
+
+    width: 5px;
+    height: 5px;
+
+    border-right: 1px solid rgba(240, 242, 236, 0.44);
+    border-bottom: 1px solid rgba(240, 242, 236, 0.44);
+
+    transform: translateY(-25%) rotate(225deg);
+
+    transition: transform var(--transition-fast);
+}
+
+.analysis-genre.is-open .analysis-genre__arrow {
+    transform: translateY(-65%) rotate(45deg);
+}
+
+/* ---------------------------------------------------------
+   Genre menu
+   --------------------------------------------------------- */
+
+.analysis-genre__menu {
+    position: absolute;
+
+    bottom: calc(100% + 3px);
+    left: 0;
+    right: 0;
+
+    z-index: 20;
+
+    max-height: 300px;
+
+    overflow-y: auto;
+
+    padding: 3px;
+
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid rgba(255, 255, 255, 0.075);
+    border-radius: 5px;
+
+    background: linear-gradient(180deg, #25292b 0%, #1b1e20 100%);
+
+    box-shadow:
+        0 9px 19px rgba(0, 0, 0, 0.4),
+        0 2px 7px rgba(0, 0, 0, 0.25);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transform: translateY(3px) scale(0.98);
+
+    transform-origin: bottom center;
+
+    transition:
+        opacity 100ms ease,
+        visibility 100ms ease,
+        transform 100ms ease;
+
+    scrollbar-width: thin;
+}
+
+.analysis-genre.is-open .analysis-genre__menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transform: translateY(0) scale(1);
+}
+
+/* ---------------------------------------------------------
+   Genre option
+   --------------------------------------------------------- */
+
+.analysis-genre__option {
+    width: 100%;
+    min-height: 19px;
+
+    flex-shrink: 0;
+
+    padding: 0 6px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 3px;
+
+    background: transparent;
+
+    color: rgba(240, 242, 236, 0.52);
+
+    font-size: 9.5px;
+    font-weight: 520;
+
+    line-height: 1;
+
+    letter-spacing: 0.035em;
+
+    white-space: nowrap;
+
+    transition:
+        background-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.analysis-genre__option:hover {
+    background: rgba(255, 255, 255, 0.055);
+
+    color: rgba(240, 242, 236, 0.86);
+}
+
+.analysis-genre__option.is-selected {
     color: var(--accent-light);
 
     background: rgba(200, 233, 87, 0.075);
@@ -1959,12 +1923,11 @@ a:focus-visible {
     border: 1px solid rgba(200, 233, 87, 0.16);
     border-radius: 5px;
 
-    background:
-        linear-gradient(
-            180deg,
-            rgba(200, 233, 87, 0.105),
-            rgba(200, 233, 87, 0.055)
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(200, 233, 87, 0.105),
+        rgba(200, 233, 87, 0.055)
+    );
 
     color: rgba(200, 233, 87, 0.82);
 
@@ -1983,42 +1946,35 @@ a:focus-visible {
         box-shadow var(--transition-fast);
 }
 
-
 .analysis-run-button:hover {
-    background:
-        linear-gradient(
-            180deg,
-            rgba(200, 233, 87, 0.15),
-            rgba(200, 233, 87, 0.075)
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(200, 233, 87, 0.15),
+        rgba(200, 233, 87, 0.075)
+    );
 
     border-color: rgba(200, 233, 87, 0.25);
 
     color: var(--accent-light);
 
-    box-shadow:
-        0 0 12px rgba(200, 233, 87, 0.07);
+    box-shadow: 0 0 12px rgba(200, 233, 87, 0.07);
 }
-
 
 .analysis-run-button:active {
     transform: translateY(1px);
 
-    background:
-        linear-gradient(
-            180deg,
-            rgba(200, 233, 87, 0.10),
-            rgba(200, 233, 87, 0.05)
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(200, 233, 87, 0.1),
+        rgba(200, 233, 87, 0.05)
+    );
 }
-
 
 /* =========================================================
    REDUCED MOTION
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-
     .analysis-panel,
     .analysis-mode__menu,
     .analysis-waveform,
@@ -2026,4 +1982,191 @@ a:focus-visible {
     .analysis-range-overlay {
         transition-duration: 0.01ms !important;
     }
+}
+
+/* =========================================================
+   ANALYSIS BUSY STATE
+   ========================================================= */
+
+.analysis-busy-overlay {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    z-index: 200;
+
+    border-radius: 12px;
+
+    background: rgba(8, 10, 11, 0.34);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity 140ms ease,
+        visibility 140ms ease;
+}
+
+.analysis-busy-overlay.is-visible {
+    opacity: 1;
+    visibility: visible;
+
+    pointer-events: auto;
+}
+
+.app-window.analysis-panel-open .analysis-busy-overlay.is-visible {
+    height: calc(100% + 171px);
+
+    border-radius: 12px 12px 0 0;
+}
+
+/* =========================================================
+   ANALYSIS PANEL BUSY OVERLAY
+   ========================================================= */
+
+.analysis-panel::before {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 250;
+
+    content: "";
+
+    border-radius: 0 0 10px 10px;
+
+    background: rgba(8, 10, 11, 0.36);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    pointer-events: none;
+
+    transition:
+        opacity 140ms ease,
+        visibility 140ms ease;
+}
+
+.analysis-panel.analysis-panel--busy::before {
+    opacity: 1;
+
+    visibility: visible;
+
+    pointer-events: auto;
+}
+
+/* =========================================================
+   ANALYSIS BUTTON
+   ========================================================= */
+
+.analysis-run-button {
+    position: relative;
+
+    z-index: 301;
+}
+
+.analysis-run-button.is-analyzing {
+    cursor: default;
+
+    animation: analysis-button-pulse 1.45s ease-in-out infinite;
+
+    background: linear-gradient(
+        180deg,
+        rgba(200, 233, 87, 0.19),
+        rgba(200, 233, 87, 0.085)
+    );
+
+    border-color: rgba(200, 233, 87, 0.34);
+
+    color: var(--accent-light);
+
+    box-shadow: 0 0 13px rgba(200, 233, 87, 0.1);
+}
+
+.analysis-run-button.is-analyzing:hover,
+.analysis-run-button.is-analyzing:active {
+    background: linear-gradient(
+        180deg,
+        rgba(200, 233, 87, 0.19),
+        rgba(200, 233, 87, 0.085)
+    );
+
+    transform: none;
+}
+
+@keyframes analysis-button-pulse {
+    0%,
+    100% {
+        opacity: 0.68;
+
+        transform: scale(0.985);
+
+        box-shadow: 0 0 7px rgba(200, 233, 87, 0.05);
+    }
+
+    50% {
+        opacity: 1;
+
+        transform: scale(1);
+
+        box-shadow: 0 0 17px rgba(200, 233, 87, 0.16);
+    }
+}
+
+/* =========================================================
+   ANALYSIS RESULT
+   ========================================================= */
+
+.tap-button__confidence {
+    position: absolute;
+
+    top: 35px;
+    left: 50%;
+
+    z-index: 2;
+
+    width: calc(100% - 20px);
+
+    color: rgba(36, 41, 26, 0.54);
+
+    font-size: 11px;
+    font-weight: 500;
+
+    line-height: 1;
+
+    letter-spacing: 0.075em;
+
+    text-align: center;
+
+    transform: translateX(-50%);
+}
+
+.tap-button__key {
+    position: absolute;
+
+    bottom: 34px;
+    left: 50%;
+
+    z-index: 2;
+
+    width: calc(100% - 20px);
+
+    color: rgba(36, 41, 26, 0.56);
+
+    font-size: 13px;
+    font-weight: 500;
+
+    line-height: 1;
+
+    letter-spacing: 0.045em;
+
+    text-align: center;
+
+    transform: translateX(-50%);
 }

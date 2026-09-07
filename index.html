@@ -1,682 +1,766 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+    <head>
+        <meta charset="UTF-8" />
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>WM Tapper</title>
+        <title>WM Tapper</title>
 
-    <link
-        rel="stylesheet"
-        href="src/css/main.css"
-    >
-</head>
+        <link rel="stylesheet" href="src/css/main.css" />
+    </head>
 
-<body>
-
-    <!-- =====================================================
+    <body>
+        <!-- =====================================================
          APPLICATION WINDOW
          ===================================================== -->
-    <main class="app-window">
-
-        <!-- =================================================
+        <main class="app-window">
+            <!-- =================================================
              TITLE BAR
              ================================================= -->
-        <header class="title-bar">
+            <header class="title-bar">
+                <div class="title-bar__title">WM Tapper</div>
 
-            <div class="title-bar__title">
-                WM Tapper
-            </div>
-
-            <div class="title-bar__controls">
-
-                <!-- Settings -->
-                <button
-                    class="window-control window-control--settings"
-                    id="settingsButton"
-                    type="button"
-                    aria-label="Settings"
-                >
-                    <img
-                        class="settings-icon"
-                        src="assets/icons/settings.svg"
-                        alt=""
+        <div class="title-bar__controls">
+            <!-- Donate -->
+            <button
+                class="window-control window-control--donate"
+                id="donateButton"
+                type="button"
+                aria-label="Donate"
+            >
+                <img
+                    class="settings-icon"
+                    src="assets/icons/donate.svg"
+                    alt=""
+                />
+            </button>
+        
+            <!-- Settings -->
+            <button
+                class="window-control window-control--settings"
+                id="settingsButton"
+                type="button"
+                aria-label="Settings"
+            >
+                <img
+                    class="settings-icon"
+                    src="assets/icons/settings.svg"
+                    alt=""
+                />
+            </button>
+        
+            <!-- Minimize -->
+                    <button
+                        class="window-control window-control--minimize"
+                        id="minimizeButton"
+                        type="button"
+                        aria-label="Minimize"
                     >
-                </button>
+                        <span></span>
+                    </button>
 
-                <!-- Minimize -->
-                <button
-                    class="window-control window-control--minimize"
-                    id="minimizeButton"
-                    type="button"
-                    aria-label="Minimize"
-                >
-                    <span></span>
-                </button>
+                    <!-- Close -->
+                    <button
+                        class="window-control window-control--close"
+                        id="closeButton"
+                        type="button"
+                        aria-label="Close"
+                    >
+                        <span></span>
+                    </button>
+                </div>
+            </header>
 
-                <!-- Close -->
-                <button
-                    class="window-control window-control--close"
-                    id="closeButton"
-                    type="button"
-                    aria-label="Close"
-                >
-                    <span></span>
-                </button>
-
-            </div>
-
-        </header>
-
-
-        <!-- =================================================
+            <!-- =================================================
              FLIP CONTAINER
              ================================================= -->
-        <section class="flip-container">
-
-            <div
-                class="flip-card"
-                id="flipCard"
-            >
-
-                <!-- =========================================
+            <section class="flip-container">
+                <div class="flip-card" id="flipCard">
+                    <!-- =========================================
                      FRONT - TAPPER
                      ========================================= -->
-                <div class="flip-side flip-side--front">
-
-                    <div class="app-content">
-
-                        <!-- =================================
+                    <div class="flip-side flip-side--front">
+                        <div class="app-content">
+                            <!-- =================================
                              TAP BUTTON
                              ================================= -->
-                        <button
-                            class="tap-button"
-                            id="tapButton"
-                            type="button"
-                            aria-label="Tap tempo"
-                        >
-                            <span
-                                class="tap-button__value"
-                                id="tapValue"
+                            <button
+                                class="tap-button"
+                                id="tapButton"
+                                type="button"
+                                aria-label="Tap tempo"
                             >
-                                TAP
-                            </span>
-                        </button>
+                                <span
+                                    class="tap-button__confidence"
+                                    id="tapConfidence"
+                                ></span>
 
+                                <span class="tap-button__value" id="tapValue">
+                                    TAP
+                                </span>
 
-                        <!-- =================================
+                                <span
+                                    class="tap-button__key"
+                                    id="tapKey"
+                                ></span>
+                            </button>
+
+                            <!-- =================================
                              TAP HISTORY
                              ================================= -->
-                        <div
-                            class="tap-history"
-                            id="tapHistory"
-                            aria-label="Tap history"
-                        ></div>
+                            <div
+                                class="tap-history"
+                                id="tapHistory"
+                                aria-label="Tap history"
+                            ></div>
 
-
-                        <!-- =================================
+                            <!-- =================================
                              AVERAGE BPM
                              ================================= -->
-                        <div class="average">
+                            <div class="average">
+                                <span class="average__label">
+                                    Average BPM:
+                                </span>
 
-                            <span class="average__label">
-                                Average BPM:
-                            </span>
+                                <span class="average__value" id="averageValue">
+                                    -
+                                </span>
+                            </div>
 
-                            <span
-                                class="average__value"
-                                id="averageValue"
-                            >
-                                -
-                            </span>
-
-                        </div>
-
-
-                        <!-- =================================
+                            <!-- =================================
                              BOTTOM ACTIONS
                              ================================= -->
-                        <div class="bottom-actions">
-                        
-                            <button
-                                class="analyze-button"
-                                id="analyzeButton"
-                                type="button"
-                            >
-                                ANALYZE FILE
-                            </button>
-                        
-                            <button
-                                class="reset-button"
-                                id="resetButton"
-                                type="button"
-                            >
-                                RESET
-                            </button>
-                        
-                        </div>
+                            <div class="bottom-actions">
+                                <button
+                                    class="analyze-button"
+                                    id="analyzeButton"
+                                    type="button"
+                                >
+                                    ANALYZE FILE
+                                </button>
 
+                                <button
+                                    class="reset-button"
+                                    id="resetButton"
+                                    type="button"
+                                >
+                                    RESET
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                </div>
-
-
-                <!-- =========================================
+                    <!-- =========================================
                      BACK - SETTINGS
                      ========================================= -->
-                <div class="flip-side flip-side--back">
-
-                    <div class="settings-content">
-
-                        <!-- =================================
+                    <div class="flip-side flip-side--back">
+                        <div class="settings-content">
+                            <!-- =================================
                              SETTINGS HEADER
                              ================================= -->
-                        <div
-                            class="settings-content__header"
-                            id="settingsHeader"
-                        >
-                            SETTINGS
-                        </div>
+                            <div
+                                class="settings-content__header"
+                                id="settingsHeader"
+                            >
+                                SETTINGS
+                            </div>
 
-
-                        <!-- =================================
+                            <!-- =================================
                              TAP KEY
                              ================================= -->
-                        <div class="setting-row">
+                            <div class="setting-row">
+                                <div
+                                    class="setting-row__label"
+                                    id="tapKeyLabel"
+                                >
+                                    Tap Key
+                                </div>
 
-                            <div
-                                class="setting-row__label"
-                                id="tapKeyLabel"
-                            >
-                                Tap Key
+                                <button
+                                    class="setting-row__value setting-control"
+                                    id="tapKeyControl"
+                                    type="button"
+                                >
+                                    <span id="tapKeyValue"> SPACE </span>
+                                </button>
                             </div>
 
-                            <button
-                                class="setting-row__value setting-control"
-                                id="tapKeyControl"
-                                type="button"
-                            >
-                                <span id="tapKeyValue">
-                                    SPACE
-                                </span>
-                            </button>
-
-                        </div>
-
-
-                        <!-- =================================
+                            <!-- =================================
                              NEW SESSION AFTER
                              ================================= -->
-                        <div class="setting-row">
-
-                            <div
-                                class="setting-row__label"
-                                id="sessionLabel"
-                            >
-                                New Session After
-                            </div>
-
-                            <div
-                                class="setting-row__value setting-control setting-dropdown"
-                                id="sessionControl"
-                                role="button"
-                                tabindex="0"
-                                aria-haspopup="listbox"
-                                aria-expanded="false"
-                            >
-
-                                <span id="sessionValue">
-                                    3.0 SEC
-                                </span>
-
-                                <span class="dropdown-arrow"></span>
-
+                            <div class="setting-row">
                                 <div
-                                    class="dropdown-menu"
-                                    id="sessionMenu"
-                                    role="listbox"
+                                    class="setting-row__label"
+                                    id="sessionLabel"
                                 >
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="1.5"
-                                        role="option"
-                                    >
-                                        1.5 SEC
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="2"
-                                        role="option"
-                                    >
-                                        2.0 SEC
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="2.5"
-                                        role="option"
-                                    >
-                                        2.5 SEC
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="3"
-                                        role="option"
-                                        aria-selected="true"
-                                    >
-                                        3.0 SEC
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="3.5"
-                                        role="option"
-                                    >
-                                        3.5 SEC
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="4"
-                                        role="option"
-                                    >
-                                        4.0 SEC
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="4.5"
-                                        role="option"
-                                    >
-                                        4.5 SEC
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="5"
-                                        role="option"
-                                    >
-                                        5.0 SEC
-                                    </button>
-
+                                    New Session After
                                 </div>
 
+                                <div
+                                    class="setting-row__value setting-control setting-dropdown"
+                                    id="sessionControl"
+                                    role="button"
+                                    tabindex="0"
+                                    aria-haspopup="listbox"
+                                    aria-expanded="false"
+                                >
+                                    <span id="sessionValue"> 3.0 SEC </span>
+
+                                    <span class="dropdown-arrow"></span>
+
+                                    <div
+                                        class="dropdown-menu"
+                                        id="sessionMenu"
+                                        role="listbox"
+                                    >
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="1.5"
+                                            role="option"
+                                        >
+                                            1.5 SEC
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="2"
+                                            role="option"
+                                        >
+                                            2.0 SEC
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="2.5"
+                                            role="option"
+                                        >
+                                            2.5 SEC
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="3"
+                                            role="option"
+                                            aria-selected="true"
+                                        >
+                                            3.0 SEC
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="3.5"
+                                            role="option"
+                                        >
+                                            3.5 SEC
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="4"
+                                            role="option"
+                                        >
+                                            4.0 SEC
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="4.5"
+                                            role="option"
+                                        >
+                                            4.5 SEC
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="5"
+                                            role="option"
+                                        >
+                                            5.0 SEC
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
-                        </div>
-
-
-                        <!-- =================================
+                            <!-- =================================
                              HISTORY
                              ================================= -->
-                        <div class="setting-row">
-
-                            <div
-                                class="setting-row__label"
-                                id="historyLabel"
-                            >
-                                History
-                            </div>
-
-                            <div
-                                class="setting-row__value setting-control setting-dropdown"
-                                id="historyControl"
-                                role="button"
-                                tabindex="0"
-                                aria-haspopup="listbox"
-                                aria-expanded="false"
-                            >
-
-                                <span id="historyValue">
-                                    12 TAPS
-                                </span>
-
-                                <span class="dropdown-arrow"></span>
-
+                            <div class="setting-row">
                                 <div
-                                    class="dropdown-menu"
-                                    id="historyMenu"
-                                    role="listbox"
+                                    class="setting-row__label"
+                                    id="historyLabel"
                                 >
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="8"
-                                        role="option"
-                                    >
-                                        8 TAPS
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="12"
-                                        role="option"
-                                        aria-selected="true"
-                                    >
-                                        12 TAPS
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="16"
-                                        role="option"
-                                    >
-                                        16 TAPS
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="20"
-                                        role="option"
-                                    >
-                                        20 TAPS
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="dropdown-option"
-                                        data-value="24"
-                                        role="option"
-                                    >
-                                        24 TAPS
-                                    </button>
-
+                                    History
                                 </div>
 
+                                <div
+                                    class="setting-row__value setting-control setting-dropdown"
+                                    id="historyControl"
+                                    role="button"
+                                    tabindex="0"
+                                    aria-haspopup="listbox"
+                                    aria-expanded="false"
+                                >
+                                    <span id="historyValue"> 12 TAPS </span>
+
+                                    <span class="dropdown-arrow"></span>
+
+                                    <div
+                                        class="dropdown-menu"
+                                        id="historyMenu"
+                                        role="listbox"
+                                    >
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="8"
+                                            role="option"
+                                        >
+                                            8 TAPS
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="12"
+                                            role="option"
+                                            aria-selected="true"
+                                        >
+                                            12 TAPS
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="16"
+                                            role="option"
+                                        >
+                                            16 TAPS
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="20"
+                                            role="option"
+                                        >
+                                            20 TAPS
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="dropdown-option"
+                                            data-value="24"
+                                            role="option"
+                                        >
+                                            24 TAPS
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
-                        </div>
-
-
-                        <!-- =================================
+                            <!-- =================================
                              LANGUAGE
                              ================================= -->
-                        <div class="setting-row setting-row--language">
+                            <div class="setting-row setting-row--language">
+                                <div
+                                    class="setting-row__label"
+                                    id="languageLabel"
+                                >
+                                    Language
+                                </div>
 
-                            <div
-                                class="setting-row__label"
-                                id="languageLabel"
-                            >
-                                Language
+                                <div
+                                    class="setting-row__value language-switcher"
+                                    id="languageSwitcher"
+                                >
+                                    <button
+                                        type="button"
+                                        class="language-button"
+                                        data-language="en"
+                                    >
+                                        EN
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="language-button"
+                                        data-language="ru"
+                                    >
+                                        RU
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="language-button"
+                                        data-language="az"
+                                    >
+                                        AZ
+                                    </button>
+                                </div>
                             </div>
 
-                            <div
-                                class="setting-row__value language-switcher"
-                                id="languageSwitcher"
-                            >
-
-                                <button
-                                    type="button"
-                                    class="language-button"
-                                    data-language="en"
-                                >
-                                    EN
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="language-button"
-                                    data-language="ru"
-                                >
-                                    RU
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="language-button"
-                                    data-language="az"
-                                >
-                                    AZ
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- =================================
+                            <!-- =================================
                              FOOTER DIVIDER
                              ================================= -->
-                        <div class="settings-divider"></div>
+                            <div class="settings-divider"></div>
 
-
-                        <!-- =================================
+                            <!-- =================================
                              ABOUT
                              ================================= -->
-                        <div class="settings-about">
+                            <div class="settings-about">
+                                <div class="settings-about__brand">
+                                    WM Tapper
+                                </div>
 
-                            <div class="settings-about__brand">
-                                WM Tapper
+                                <div
+                                    class="settings-about__text"
+                                    id="madeByText"
+                                >
+                                    Made by WHT MST
+                                </div>
+
+                                <a
+                                    class="settings-about__link"
+                                    href="https://github.com/whtmst/wm-tapper"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    github.com/whtmst/wm-tapper
+                                </a>
                             </div>
-
-                            <div
-                                class="settings-about__text"
-                                id="madeByText"
-                            >
-                                Made by WHT MST
-                            </div>
-
-                            <a
-                                class="settings-about__link"
-                                href="https://github.com/whtmst/wm-tapper"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                github.com/whtmst/wm-tapper
-                            </a>
-
                         </div>
-
                     </div>
-
                 </div>
+            </section>
 
-            </div>
+            <!-- =================================================
+             ANALYSIS BUSY OVERLAY
+             ================================================= -->
+            <div
+                class="analysis-busy-overlay"
+                id="analysisBusyOverlay"
+                aria-hidden="true"
+            ></div>
 
-        </section>
-
-        <!-- =================================================
+            <!-- =================================================
              AUDIO ANALYSIS PANEL
              ================================================= -->
-        <section
-            class="analysis-panel"
-            id="analysisPanel"
-            aria-hidden="true"
-        >
-
-            <!-- =============================================
+            <section
+                class="analysis-panel"
+                id="analysisPanel"
+                aria-hidden="true"
+            >
+                <!-- =============================================
                  WAVEFORM
                  ============================================= -->
                 <div class="analysis-waveform" id="analysisWaveform">
-                
                     <canvas
                         class="analysis-waveform__canvas"
                         id="analysisWaveformCanvas"
                         aria-hidden="true"
                     ></canvas>
 
-
-                <!-- =========================================
+                    <!-- =========================================
                      UNSELECTED AREA - LEFT
                      ========================================= -->
-                <div
-                    class="analysis-range-overlay analysis-range-overlay--left"
-                    id="analysisOverlayLeft"
-                ></div>
+                    <div
+                        class="analysis-range-overlay analysis-range-overlay--left"
+                        id="analysisOverlayLeft"
+                    ></div>
 
-
-                <!-- =========================================
+                    <!-- =========================================
                      UNSELECTED AREA - RIGHT
                      ========================================= -->
-                <div
-                    class="analysis-range-overlay analysis-range-overlay--right"
-                    id="analysisOverlayRight"
-                ></div>
+                    <div
+                        class="analysis-range-overlay analysis-range-overlay--right"
+                        id="analysisOverlayRight"
+                    ></div>
 
-
-                <!-- =========================================
+                    <!-- =========================================
                      ACTIVE SELECTION
                      ========================================= -->
-                <div
-                    class="analysis-selection"
-                    id="analysisSelection"
-                ></div>
+                    <div
+                        class="analysis-selection"
+                        id="analysisSelection"
+                    ></div>
 
-
-                <!-- =========================================
+                    <!-- =========================================
                      START HANDLE
                      ========================================= -->
-                <button
-                    class="analysis-handle analysis-handle--start"
-                    id="analysisStartHandle"
-                    type="button"
-                    aria-label="Analysis start"
-                >
-                    <span></span>
-                </button>
+                    <button
+                        class="analysis-handle analysis-handle--start"
+                        id="analysisStartHandle"
+                        type="button"
+                        aria-label="Analysis start"
+                    >
+                        <span></span>
+                    </button>
 
-
-                <!-- =========================================
+                    <!-- =========================================
                      END HANDLE
                      ========================================= -->
-                <button
-                    class="analysis-handle analysis-handle--end"
-                    id="analysisEndHandle"
-                    type="button"
-                    aria-label="Analysis end"
-                >
-                    <span></span>
-                </button>
-
-            </div>
-
-
-            <!-- =============================================
-                 TIME RANGE
-                 ============================================= -->
-            <div class="analysis-time">
-
-                <span id="analysisStartTime">
-                    00:00.0
-                </span>
-
-                <span class="analysis-time__separator">
-                    -
-                </span>
-
-                <span id="analysisEndTime">
-                    --:--.-
-                </span>
-
-            </div>
-
-
-            <!-- =============================================
-                 MODE DROPDOWN
-                 ============================================= -->
-            <div
-                class="analysis-mode"
-                id="analysisMode"
-            >
-
-                <button
-                    class="analysis-mode__control"
-                    id="analysisModeControl"
-                    type="button"
-                    aria-haspopup="listbox"
-                    aria-expanded="false"
-                >
-                    <span id="analysisModeValue">
-                        FULL
-                    </span>
-
-                    <span class="analysis-mode__arrow"></span>
-                </button>
-
-
-                <div
-                    class="analysis-mode__menu"
-                    id="analysisModeMenu"
-                    role="listbox"
-                >
-
                     <button
-                        class="analysis-mode__option is-selected"
+                        class="analysis-handle analysis-handle--end"
+                        id="analysisEndHandle"
                         type="button"
-                        data-value="full"
-                        role="option"
-                        aria-selected="true"
+                        aria-label="Analysis end"
                     >
-                        FULL
+                        <span></span>
                     </button>
-
-                    <button
-                        class="analysis-mode__option"
-                        type="button"
-                        data-value="selection"
-                        role="option"
-                        aria-selected="false"
-                    >
-                        SELECTION
-                    </button>
-
-                    <button
-                        class="analysis-mode__option"
-                        type="button"
-                        data-value="fast"
-                        role="option"
-                        aria-selected="false"
-                    >
-                        FAST
-                    </button>
-
                 </div>
 
-            </div>
+                <!-- =============================================
+                 TIME RANGE
+                 ============================================= -->
+                <div class="analysis-time">
+                    <span id="analysisStartTime"> 00:00.0 </span>
 
+                    <span class="analysis-time__separator"> - </span>
 
-            <!-- =============================================
+                    <span id="analysisEndTime"> --:--.- </span>
+                </div>
+
+                <!-- =============================================
+                 MODE DROPDOWN
+                 ============================================= -->
+                <div class="analysis-mode" id="analysisMode">
+                    <button
+                        class="analysis-mode__control"
+                        id="analysisModeControl"
+                        type="button"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                    >
+                        <span id="analysisModeValue"> FULL </span>
+
+                        <span class="analysis-mode__arrow"></span>
+                    </button>
+
+                    <div
+                        class="analysis-mode__menu"
+                        id="analysisModeMenu"
+                        role="listbox"
+                    >
+                        <button
+                            class="analysis-mode__option is-selected"
+                            type="button"
+                            data-value="full"
+                            role="option"
+                            aria-selected="true"
+                        >
+                            FULL
+                        </button>
+
+                        <button
+                            class="analysis-mode__option"
+                            type="button"
+                            data-value="selection"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            SELECTION
+                        </button>
+
+                        <button
+                            class="analysis-mode__option"
+                            type="button"
+                            data-value="fast"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            FAST
+                        </button>
+                    </div>
+                </div>
+
+                <!-- =============================================
+                 GENRE DROPDOWN
+                 ============================================= -->
+                <div class="analysis-genre" id="analysisGenre">
+                    <button
+                        class="analysis-genre__control"
+                        id="analysisGenreControl"
+                        type="button"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                    >
+                        <span id="analysisGenreValue"> AUTO </span>
+
+                        <span class="analysis-genre__arrow"></span>
+                    </button>
+
+                    <div
+                        class="analysis-genre__menu"
+                        id="analysisGenreMenu"
+                        role="listbox"
+                    >
+                        <button
+                            class="analysis-genre__option is-selected"
+                            type="button"
+                            data-value="auto"
+                            role="option"
+                            aria-selected="true"
+                        >
+                            AUTO
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="house"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            HOUSE
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="techno"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            TECHNO
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="trance"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            TRANCE
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="drum-and-bass"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            DRUM &amp; BASS
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="dubstep"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            DUBSTEP
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="hardstyle"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            HARDSTYLE
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="hardcore"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            HARDCORE
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="frenchcore"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            FRENCHCORE
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="hip-hop-trap"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            HIP-HOP / TRAP
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="pop"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            POP
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="rock"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            ROCK
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="other-electronic"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            OTHER ELECTRONIC
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="other"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            OTHER
+                        </button>
+                    </div>
+                </div>
+
+                <!-- =============================================
                  ANALYZE BUTTON
                  ============================================= -->
-            <button
-                class="analysis-run-button"
-                id="analysisRunButton"
-                type="button"
-            >
-                ANALYZE
-            </button>
+                <button
+                    class="analysis-run-button"
+                    id="analysisRunButton"
+                    type="button"
+                >
+                    ANALYZE
+                </button>
+            </section>
+        </main>
 
-        </section>
-
-    </main>
-
-
-    <!-- =====================================================
+        <!-- =====================================================
          APPLICATION SCRIPT
          ===================================================== -->
-    <script
-        type="module"
-        src="js/app.js"
-    ></script>
-
-</body>
+        <script type="module" src="js/app.js"></script>
+    </body>
 </html>

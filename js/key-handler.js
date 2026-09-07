@@ -3,20 +3,13 @@
    Tap Key Handler
    ========================================================= */
 
-
 /* =========================================================
    IMPORTS
    ========================================================= */
 
-import {
-    settings,
-    isAllowedTapKey
-} from "./settings.js";
+import { settings, isAllowedTapKey } from "./settings.js";
 
-import {
-    getTranslations
-} from "./i18n.js";
-
+import { getTranslations } from "./i18n.js";
 
 /* =========================================================
    KEY DISPLAY NAME
@@ -29,51 +22,30 @@ import {
  * @returns {string}
  */
 export function getKeyDisplayName(code) {
-
     /* Letters */
 
-    if (
-        /^Key[A-Z]$/.test(code)
-    ) {
-        return code.replace(
-            "Key",
-            ""
-        );
+    if (/^Key[A-Z]$/.test(code)) {
+        return code.replace("Key", "");
     }
-
 
     /* Numbers */
 
-    if (
-        /^Digit[0-9]$/.test(code)
-    ) {
-        return code.replace(
-            "Digit",
-            ""
-        );
+    if (/^Digit[0-9]$/.test(code)) {
+        return code.replace("Digit", "");
     }
-
 
     /* Numpad numbers */
 
-    if (
-        /^Numpad[0-9]$/.test(code)
-    ) {
-        return `NUM ${code.replace(
-            "Numpad",
-            ""
-        )}`;
+    if (/^Numpad[0-9]$/.test(code)) {
+        return `NUM ${code.replace("Numpad", "")}`;
     }
 
-
     const specialNames = {
-
         Space: "SPACE",
 
         Enter: "ENTER",
 
         Tab: "TAB",
-
 
         F1: "F1",
         F2: "F2",
@@ -88,70 +60,54 @@ export function getKeyDisplayName(code) {
         F11: "F11",
         F12: "F12",
 
-
         ArrowUp: "↑",
         ArrowDown: "↓",
         ArrowLeft: "←",
         ArrowRight: "→",
 
-
         Home: "HOME",
         End: "END",
-
 
         PageUp: "PAGE UP",
         PageDown: "PAGE DOWN",
 
-
         Insert: "INSERT",
         Delete: "DELETE",
-
 
         NumpadAdd: "NUM +",
         NumpadSubtract: "NUM −",
         NumpadMultiply: "NUM ×",
         NumpadDivide: "NUM ÷",
         NumpadDecimal: "NUM .",
-        NumpadEnter: "NUM ENTER"
+        NumpadEnter: "NUM ENTER",
     };
 
-
-    return (
-        specialNames[code] ||
-        code.toUpperCase()
-    );
+    return specialNames[code] || code.toUpperCase();
 }
-
 
 /* =========================================================
    TAP KEY CONTROLLER
    ========================================================= */
 
 export class TapKeyController {
-
     /**
      * @param {Object} elements
      * @param {HTMLElement} elements.control
      * @param {HTMLElement} elements.value
      */
     constructor(elements) {
-
-        this.control =
-            elements.control;
-
-        this.value =
-            elements.value;
-
-        this.isCapturing =
-            false;
-
-        this.previousKey =
-            settings.get("tapKey");
-
-        this.handleKeyDown =
-            this.handleKeyDown.bind(this);
+        this.control = elements.control;
+    
+        this.value = elements.value;
+    
+        this.onTap = elements.onTap;
+    
+        this.isCapturing = false;
+    
+        this.previousKey = settings.get("tapKey");
+    
+        this.handleKeyDown = this.handleKeyDown.bind(this);
     }
-
 
     /**
      * Get current language.
@@ -159,96 +115,55 @@ export class TapKeyController {
      * @returns {string}
      */
     getLanguage() {
-
-        return settings.get(
-            "language"
-        );
+        return settings.get("language");
     }
-
 
     /**
      * Update displayed key.
      */
     updateDisplay() {
-
         if (this.isCapturing) {
             return;
         }
 
-        const key =
-            settings.get("tapKey");
+        const key = settings.get("tapKey");
 
-
-        this.value.textContent =
-            getKeyDisplayName(key);
+        this.value.textContent = getKeyDisplayName(key);
     }
-
 
     /**
      * Start capture mode.
      */
     startCapture() {
-
         if (this.isCapturing) {
             return;
         }
 
+        this.previousKey = settings.get("tapKey");
 
-        this.previousKey =
-            settings.get("tapKey");
+        this.isCapturing = true;
 
+        this.control.classList.add("is-listening");
 
-        this.isCapturing =
-            true;
+        const text = getTranslations(this.getLanguage());
 
+        this.value.textContent = text.pressKey;
 
-        this.control.classList.add(
-            "is-listening"
-        );
-
-
-        const text =
-            getTranslations(
-                this.getLanguage()
-            );
-
-
-        this.value.textContent =
-            text.pressKey;
-
-
-        document.addEventListener(
-            "keydown",
-            this.handleKeyDown,
-            true
-        );
+        document.addEventListener("keydown", this.handleKeyDown, true);
     }
-
 
     /**
      * Stop capture mode.
      */
     stopCapture() {
+        this.isCapturing = false;
 
-        this.isCapturing =
-            false;
+        this.control.classList.remove("is-listening");
 
-
-        this.control.classList.remove(
-            "is-listening"
-        );
-
-
-        document.removeEventListener(
-            "keydown",
-            this.handleKeyDown,
-            true
-        );
-
+        document.removeEventListener("keydown", this.handleKeyDown, true);
 
         this.updateDisplay();
     }
-
 
     /**
      * Handle captured key.
@@ -256,91 +171,92 @@ export class TapKeyController {
      * @param {KeyboardEvent} event
      */
     handleKeyDown(event) {
-
         /* -----------------------------------------
            Escape = cancel
            ----------------------------------------- */
 
-        if (
-            event.code === "Escape"
-        ) {
-
+        if (event.code === "Escape") {
             event.preventDefault();
             event.stopPropagation();
 
-
-            settings.set(
-                "tapKey",
-                this.previousKey
-            );
-
+            settings.set("tapKey", this.previousKey);
 
             this.stopCapture();
 
             return;
         }
 
-
         /* -----------------------------------------
            Reject modifier combinations
            ----------------------------------------- */
 
-        if (
-            event.ctrlKey ||
-            event.shiftKey ||
-            event.altKey ||
-            event.metaKey
-        ) {
+        if (event.ctrlKey || event.shiftKey || event.altKey || event.metaKey) {
             return;
         }
-
 
         /* -----------------------------------------
            Check key
            ----------------------------------------- */
 
-        if (
-            !isAllowedTapKey(
-                event.code
-            )
-        ) {
+        if (!isAllowedTapKey(event.code)) {
             return;
         }
 
-
         event.preventDefault();
         event.stopPropagation();
-
 
         /* -----------------------------------------
            Save immediately
            ----------------------------------------- */
 
-        settings.set(
-            "tapKey",
-            event.code
-        );
-
+        settings.set("tapKey", event.code);
 
         this.stopCapture();
     }
 
+    /**
+     * Handle normal tap key press.
+     *
+     * @param {KeyboardEvent} event
+     */
+    handleTapKeyDown(event) {
+        if (this.isCapturing) {
+            return;
+        }
+
+        const tapKey = settings.get("tapKey");
+
+        if (event.code !== tapKey) {
+            return;
+        }
+
+        if (event.ctrlKey || event.shiftKey || event.altKey || event.metaKey) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.onTap();
+    }
 
     /**
      * Initialize the controller.
      */
     initialize() {
-
-        this.control.addEventListener(
-            "click",
-            () => {
-
-                this.startCapture();
-
-            }
+        this.control.addEventListener("click", () => {
+            this.startCapture();
+        });
+    
+        this.handleTapKeyDown =
+            this.handleTapKeyDown.bind(this);
+    
+        document.addEventListener(
+            "keydown",
+            this.handleTapKeyDown,
+            true,
         );
-
-
+    
         this.updateDisplay();
     }
 }

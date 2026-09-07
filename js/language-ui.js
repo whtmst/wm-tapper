@@ -3,7 +3,6 @@
    Language UI
    ========================================================= */
 
-
 /* =========================================================
    FACTORY
    ========================================================= */
@@ -29,12 +28,16 @@
  * @param {HTMLElement} elements.sessionMenu
  * @param {HTMLElement} elements.historyValue
  * @param {HTMLElement} elements.historyMenu
+ * @param {HTMLElement} elements.tapConfidence
+ * @param {HTMLElement} elements.tapKey
  *
  * @param {Object} dependencies
  * @param {Object} dependencies.settings
  * @param {Array<string>} dependencies.supportedLanguages
  * @param {Function} dependencies.getTranslations
  * @param {Function} dependencies.formatDecimal
+ * @param {Function} dependencies.formatAnalysisKey
+ * @param {Function} dependencies.formatConfidence
  * @param {Object} dependencies.tapKeyController
  * @param {Object} dependencies.tapUI
  * @param {Object} dependencies.dropdowns
@@ -59,442 +62,349 @@ export function createLanguageUI(
         sessionValue,
         sessionMenu,
         historyValue,
-        historyMenu
+        historyMenu,
+        tapConfidence,
+        tapKey,
     },
     {
         settings,
         supportedLanguages,
         getTranslations,
         formatDecimal,
+        formatAnalysisKey,
+        formatConfidence,
         tapKeyController,
         tapUI,
-        dropdowns
-    }
+        dropdowns,
+    },
 ) {
-
-
     /* =====================================================
        CURRENT LANGUAGE
        ===================================================== */
 
     function getCurrentLanguage() {
+        const language = settings.get("language");
 
-        const language =
-            settings.get(
-                "language"
-            );
-
-
-        if (
-            supportedLanguages.includes(
-                language
-            )
-        ) {
-
+        if (supportedLanguages.includes(language)) {
             return language;
         }
-
 
         return "en";
     }
 
+    /* =====================================================
+       ANALYSIS RESULT
+       ===================================================== */
+
+    let analysisResult = null;
+
+    function updateAnalysisResult(result) {
+        analysisResult = result || null;
+
+        renderAnalysisResult();
+    }
+
+    function renderAnalysisResult() {
+        const language = getCurrentLanguage();
+
+        if (!analysisResult) {
+            if (tapConfidence) {
+                tapConfidence.textContent = "";
+            }
+
+            if (tapKey) {
+                tapKey.textContent = "";
+            }
+
+            return;
+        }
+
+        /* -----------------------------------------
+           Confidence
+           ----------------------------------------- */
+
+        if (tapConfidence && Number.isFinite(analysisResult.strength)) {
+            tapConfidence.textContent = formatConfidence(
+                analysisResult.strength,
+                language,
+            );
+        } else if (tapConfidence) {
+            tapConfidence.textContent = "";
+        }
+
+        /* -----------------------------------------
+           Key
+           ----------------------------------------- */
+
+        if (tapKey && analysisResult.key && analysisResult.scale) {
+            tapKey.textContent = formatAnalysisKey(
+                analysisResult.key,
+                analysisResult.scale,
+                language,
+            );
+        } else if (tapKey) {
+            tapKey.textContent = "";
+        }
+    }
 
     /* =====================================================
        LANGUAGE BUTTONS
        ===================================================== */
 
-    function updateLanguageButtons(
-        language
-    ) {
+    function updateLanguageButtons(language) {
+        const buttons = languageSwitcher.querySelectorAll(".language-button");
 
-        const buttons =
-            languageSwitcher.querySelectorAll(
-                ".language-button"
-            );
+        buttons.forEach((button) => {
+            button.classList.remove("is-active");
 
-
-        buttons.forEach(
-            (button) => {
-
-                button.classList.remove(
-                    "is-active"
-                );
-
-
-                if (
-                    button.dataset.language ===
-                    language
-                ) {
-
-                    button.classList.add(
-                        "is-active"
-                    );
-                }
+            if (button.dataset.language === language) {
+                button.classList.add("is-active");
             }
-        );
+        });
     }
-
 
     /* =====================================================
        SESSION DISPLAY
        ===================================================== */
 
     function updateSessionDisplay() {
+        const language = getCurrentLanguage();
 
-        const language =
-            getCurrentLanguage();
+        const text = getTranslations(language);
 
+        const value = Number(settings.get("sessionTimeout"));
 
-        const text =
-            getTranslations(
-                language
-            );
+        sessionValue.textContent = `${formatDecimal(
+            value,
+            language,
+        )} ${text.seconds}`;
 
-
-        const value =
-            Number(
-                settings.get(
-                    "sessionTimeout"
-                )
-            );
-
-
-        sessionValue.textContent =
-            `${formatDecimal(
-                value,
-                language
-            )} ${text.seconds}`;
-
-
-        dropdowns.updateSelectedOption(
-            sessionMenu,
-            String(value)
-        );
+        dropdowns.updateSelectedOption(sessionMenu, String(value));
     }
-
 
     /* =====================================================
        HISTORY DISPLAY
        ===================================================== */
 
     function updateHistoryDisplay() {
+        const language = getCurrentLanguage();
 
-        const language =
-            getCurrentLanguage();
+        const text = getTranslations(language);
 
+        const value = Number(settings.get("historyLength"));
 
-        const text =
-            getTranslations(
-                language
-            );
+        historyValue.textContent = `${value} ${text.taps}`;
 
-
-        const value =
-            Number(
-                settings.get(
-                    "historyLength"
-                )
-            );
-
-
-        historyValue.textContent =
-            `${value} ${text.taps}`;
-
-
-        dropdowns.updateSelectedOption(
-            historyMenu,
-            String(value)
-        );
+        dropdowns.updateSelectedOption(historyMenu, String(value));
     }
-
 
     /* =====================================================
        ANALYSIS MODE DISPLAY
        ===================================================== */
 
     function updateAnalysisModeDisplay() {
-
-        if (
-            !analysisModeValue ||
-            !analysisModeMenu
-        ) {
-
+        if (!analysisModeValue || !analysisModeMenu) {
             return;
         }
 
+        const language = getCurrentLanguage();
 
-        const language =
-            getCurrentLanguage();
+        const text = getTranslations(language);
 
+        const selectedOption = analysisModeMenu.querySelector(
+            ".analysis-mode__option.is-selected",
+        );
 
-        const text =
-            getTranslations(
-                language
-            );
-
-
-        const selectedOption =
-            analysisModeMenu.querySelector(
-                ".analysis-mode__option.is-selected"
-            );
-
-
-        if (
-            !selectedOption
-        ) {
-
+        if (!selectedOption) {
             return;
         }
 
+        const value = selectedOption.dataset.value;
 
-        const value =
-            selectedOption.dataset.value;
-
-
-        if (
-            !value ||
-            !text[value]
-        ) {
-
+        if (!value || !text[value]) {
             return;
         }
 
-
-        analysisModeValue.textContent =
-            text[value];
+        analysisModeValue.textContent = text[value];
     }
-
 
     /* =====================================================
        DROPDOWN TRANSLATIONS
        ===================================================== */
 
-    function updateDropdownTranslations(
-        language
-    ) {
-
-        const text =
-            getTranslations(
-                language
-            );
-
-
-        /* -----------------------------------------
-           Session
-           ----------------------------------------- */
-
-        sessionMenu
-            .querySelectorAll(
-                ".dropdown-option"
-            )
-            .forEach(
-                (option) => {
-
-                    const value =
-                        Number(
-                            option.dataset.value
-                        );
-
-
-                    if (
-                        Number.isNaN(value)
-                    ) {
-
-                        return;
-                    }
-
-
-                    option.textContent =
-                        `${formatDecimal(
-                            value,
-                            language
-                        )} ${text.seconds}`;
-                }
-            );
-
-
-        /* -----------------------------------------
-           History
-           ----------------------------------------- */
-
-        historyMenu
-            .querySelectorAll(
-                ".dropdown-option"
-            )
-            .forEach(
-                (option) => {
-
-                    const value =
-                        Number(
-                            option.dataset.value
-                        );
-
-
-                    if (
-                        Number.isNaN(value)
-                    ) {
-
-                        return;
-                    }
-
-
-                    option.textContent =
-                        `${value} ${text.taps}`;
-                }
-            );
-
-
-        /* -----------------------------------------
-           Analysis Mode
-           ----------------------------------------- */
-
-        analysisModeMenu
-            .querySelectorAll(
-                ".analysis-mode__option"
-            )
-            .forEach(
-                (option) => {
-
-                    const value =
-                        option.dataset.value;
-
-
-                    if (
-                        !value ||
-                        !text[value]
-                    ) {
-
-                        return;
-                    }
-
-
-                    option.textContent =
-                        text[value];
-                }
-            );
-
-
-        updateAnalysisModeDisplay();
-    }
-
+      function updateDropdownTranslations(language) {
+          const text = getTranslations(language);
+      
+          /* -----------------------------------------
+             Session
+             ----------------------------------------- */
+      
+          sessionMenu.querySelectorAll(".dropdown-option").forEach((option) => {
+              const value = Number(option.dataset.value);
+      
+              if (Number.isNaN(value)) {
+                  return;
+              }
+      
+              option.textContent = `${formatDecimal(
+                  value,
+                  language,
+              )} ${text.seconds}`;
+          });
+      
+          /* -----------------------------------------
+             History
+             ----------------------------------------- */
+      
+          historyMenu.querySelectorAll(".dropdown-option").forEach((option) => {
+              const value = Number(option.dataset.value);
+      
+              if (Number.isNaN(value)) {
+                  return;
+              }
+      
+              option.textContent = `${value} ${text.taps}`;
+          });
+      
+          /* -----------------------------------------
+             Analysis Mode
+             ----------------------------------------- */
+      
+          analysisModeMenu
+              .querySelectorAll(".analysis-mode__option")
+              .forEach((option) => {
+                  const value = option.dataset.value;
+      
+                  if (!value || !text[value]) {
+                      return;
+                  }
+      
+                  option.textContent = text[value];
+              });
+      
+          /* -----------------------------------------
+             Analysis Genre
+             ----------------------------------------- */
+      
+          const genreTranslations = {
+              auto: text.genreAuto,
+              house: text.genreHouse,
+              techno: text.genreTechno,
+              trance: text.genreTrance,
+              "drum-and-bass": text.genreDrumAndBass,
+              dubstep: text.genreDubstep,
+              hardstyle: text.genreHardstyle,
+              hardcore: text.genreHardcore,
+              frenchcore: text.genreFrenchcore,
+              "hip-hop-trap": text.genreHipHopTrap,
+              pop: text.genrePop,
+              rock: text.genreRock,
+              "other-electronic": text.genreOtherElectronic,
+              other: text.genreOther,
+          };
+      
+          const analysisGenreMenu = document.getElementById("analysisGenreMenu");
+          const analysisGenreValue =
+              document.getElementById("analysisGenreValue");
+      
+          if (analysisGenreMenu) {
+              analysisGenreMenu
+                  .querySelectorAll(".analysis-genre__option")
+                  .forEach((option) => {
+                      const value = option.dataset.value;
+                      const translatedValue = genreTranslations[value];
+      
+                      if (!translatedValue) {
+                          return;
+                      }
+      
+                      option.textContent = translatedValue;
+                  });
+          }
+      
+          if (analysisGenreValue) {
+              const selectedGenre =
+                  analysisGenreMenu?.querySelector(
+                      ".analysis-genre__option.is-selected",
+                  );
+      
+              if (selectedGenre) {
+                  const value = selectedGenre.dataset.value;
+                  const translatedValue = genreTranslations[value];
+      
+                  if (translatedValue) {
+                      analysisGenreValue.textContent = translatedValue;
+                  }
+              }
+          }
+      
+          updateAnalysisModeDisplay();
+      }
 
     /* =====================================================
        SET LANGUAGE
        ===================================================== */
 
-    function setLanguage(
-        language
-    ) {
-
-        if (
-            !supportedLanguages.includes(
-                language
-            )
-        ) {
-
+    function setLanguage(language) {
+        if (!supportedLanguages.includes(language)) {
             return;
         }
 
+        settings.set("language", language);
 
-        settings.set(
-            "language",
-            language
-        );
+        applyLanguage(language);
 
-
-        applyLanguage(
-            language
-        );
-
-
-        updateLanguageButtons(
-            language
-        );
+        updateLanguageButtons(language);
     }
-
 
     /* =====================================================
        APPLY LANGUAGE
        ===================================================== */
 
-    function applyLanguage(
-        language
-    ) {
-
-        const text =
-            getTranslations(
-                language
-            );
-
+    function applyLanguage(language) {
+        const text = getTranslations(language);
 
         /* -----------------------------------------
            Front side
            ----------------------------------------- */
 
-        averageLabel.textContent =
-            text.average;
+        averageLabel.textContent = text.average;
 
+        analyzeButton.textContent = text.analyzeFile;
 
-        analyzeButton.textContent =
-            text.analyzeFile;
+        resetButton.textContent = text.reset;
 
-
-        resetButton.textContent =
-            text.reset;
-
-
-        if (
-            analysisRunButton
-        ) {
-
-            analysisRunButton.textContent =
-                text.analyze;
+        if (analysisRunButton) {
+            analysisRunButton.textContent = text.analyze;
         }
-
 
         /* -----------------------------------------
            Settings
            ----------------------------------------- */
 
-        settingsHeader.textContent =
-            text.settings;
+        settingsHeader.textContent = text.settings;
 
+        tapKeyLabel.textContent = text.tapKey;
 
-        tapKeyLabel.textContent =
-            text.tapKey;
+        sessionLabel.textContent = text.newSession;
 
+        historyLabel.textContent = text.history;
 
-        sessionLabel.textContent =
-            text.newSession;
-
-
-        historyLabel.textContent =
-            text.history;
-
-
-        languageLabel.textContent =
-            text.language;
-
+        languageLabel.textContent = text.language;
 
         /* -----------------------------------------
            Footer
            ----------------------------------------- */
 
-        if (
-            madeByText
-        ) {
-
-            madeByText.textContent =
-                text.madeBy;
+        if (madeByText) {
+            madeByText.textContent = text.madeBy;
         }
-
 
         /* -----------------------------------------
            Tap Key
            ----------------------------------------- */
 
         tapKeyController.updateDisplay();
-
 
         /* -----------------------------------------
            Session / History
@@ -504,68 +414,48 @@ export function createLanguageUI(
 
         updateHistoryDisplay();
 
-
         /* -----------------------------------------
            Dropdown translations
            ----------------------------------------- */
 
-        updateDropdownTranslations(
-            language
-        );
-
+        updateDropdownTranslations(language);
 
         /* -----------------------------------------
            Language buttons
            ----------------------------------------- */
 
-        updateLanguageButtons(
-            language
-        );
-
+        updateLanguageButtons(language);
 
         /* -----------------------------------------
            Tap UI
            ----------------------------------------- */
 
-        tapUI.updateLanguage(
-            language
-        );
-    }
+        tapUI.updateLanguage(language);
 
+        /* -----------------------------------------
+           Analysis result
+           ----------------------------------------- */
+
+        renderAnalysisResult();
+    }
 
     /* =====================================================
        LANGUAGE EVENTS
        ===================================================== */
 
-    languageSwitcher
-        .querySelectorAll(
-            ".language-button"
-        )
-        .forEach(
-            (button) => {
+    languageSwitcher.querySelectorAll(".language-button").forEach((button) => {
+        button.addEventListener("click", (event) => {
+            event.stopPropagation();
 
-                button.addEventListener(
-                    "click",
-                    (event) => {
-
-                        event.stopPropagation();
-
-
-                        setLanguage(
-                            button.dataset.language
-                        );
-                    }
-                );
-            }
-        );
-
+            setLanguage(button.dataset.language);
+        });
+    });
 
     /* =====================================================
        PUBLIC API
        ===================================================== */
 
     return {
-
         getCurrentLanguage,
 
         updateLanguageButtons,
@@ -578,8 +468,10 @@ export function createLanguageUI(
 
         updateDropdownTranslations,
 
+        updateAnalysisResult,
+
         setLanguage,
 
-        applyLanguage
+        applyLanguage,
     };
 }
