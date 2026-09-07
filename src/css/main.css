@@ -1467,7 +1467,7 @@ a:focus-visible {
 
     left: 50%;
 
-    width: 2px;
+    width: 5px;
 
     background: var(--accent-primary);
 
@@ -1543,7 +1543,7 @@ a:focus-visible {
    --------------------------------------------------------- */
 
 .analysis-handle:hover span {
-    width: 3px;
+    width: 5px;
 
     box-shadow: 0 0 10px rgba(200, 233, 87, 0.45);
 }
