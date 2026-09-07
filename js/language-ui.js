@@ -28,12 +28,16 @@
  * @param {HTMLElement} elements.sessionMenu
  * @param {HTMLElement} elements.historyValue
  * @param {HTMLElement} elements.historyMenu
+ * @param {HTMLElement} elements.tapConfidence
+ * @param {HTMLElement} elements.tapKey
  *
  * @param {Object} dependencies
  * @param {Object} dependencies.settings
  * @param {Array<string>} dependencies.supportedLanguages
  * @param {Function} dependencies.getTranslations
  * @param {Function} dependencies.formatDecimal
+ * @param {Function} dependencies.formatAnalysisKey
+ * @param {Function} dependencies.formatConfidence
  * @param {Object} dependencies.tapKeyController
  * @param {Object} dependencies.tapUI
  * @param {Object} dependencies.dropdowns
@@ -59,12 +63,16 @@ export function createLanguageUI(
         sessionMenu,
         historyValue,
         historyMenu,
+        tapConfidence,
+        tapKey,
     },
     {
         settings,
         supportedLanguages,
         getTranslations,
         formatDecimal,
+        formatAnalysisKey,
+        formatConfidence,
         tapKeyController,
         tapUI,
         dropdowns,
@@ -82,6 +90,61 @@ export function createLanguageUI(
         }
 
         return "en";
+    }
+
+    /* =====================================================
+       ANALYSIS RESULT
+       ===================================================== */
+
+    let analysisResult = null;
+
+    function updateAnalysisResult(result) {
+        analysisResult = result || null;
+
+        renderAnalysisResult();
+    }
+
+    function renderAnalysisResult() {
+        const language = getCurrentLanguage();
+
+        if (!analysisResult) {
+            if (tapConfidence) {
+                tapConfidence.textContent = "";
+            }
+
+            if (tapKey) {
+                tapKey.textContent = "";
+            }
+
+            return;
+        }
+
+        /* -----------------------------------------
+           Confidence
+           ----------------------------------------- */
+
+        if (tapConfidence && Number.isFinite(analysisResult.strength)) {
+            tapConfidence.textContent = formatConfidence(
+                analysisResult.strength,
+                language,
+            );
+        } else if (tapConfidence) {
+            tapConfidence.textContent = "";
+        }
+
+        /* -----------------------------------------
+           Key
+           ----------------------------------------- */
+
+        if (tapKey && analysisResult.key && analysisResult.scale) {
+            tapKey.textContent = formatAnalysisKey(
+                analysisResult.key,
+                analysisResult.scale,
+                language,
+            );
+        } else if (tapKey) {
+            tapKey.textContent = "";
+        }
     }
 
     /* =====================================================
@@ -312,6 +375,12 @@ export function createLanguageUI(
            ----------------------------------------- */
 
         tapUI.updateLanguage(language);
+
+        /* -----------------------------------------
+           Analysis result
+           ----------------------------------------- */
+
+        renderAnalysisResult();
     }
 
     /* =====================================================
@@ -342,6 +411,8 @@ export function createLanguageUI(
         updateAnalysisModeDisplay,
 
         updateDropdownTranslations,
+
+        updateAnalysisResult,
 
         setLanguage,
 
