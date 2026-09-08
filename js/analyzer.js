@@ -296,6 +296,32 @@ async function resampleRangeTo44100(
    ========================================================= */
 
 /**
+ * Measure execution time.
+ *
+ * @param {string} label
+ * @param {Function} callback
+ * @returns {*}
+ */
+let activeTimingLog = null;
+
+function measureTime(label, callback) {
+    const start = performance.now();
+
+    const result = callback();
+
+    const elapsed = performance.now() - start;
+
+    if (activeTimingLog) {
+        activeTimingLog.push({
+            label,
+            milliseconds: Number(elapsed.toFixed(2)),
+        });
+    }
+
+    return result;
+}
+
+/**
  * Analyze one mono Float32Array.
  *
  * @param {Object} essentia
@@ -310,122 +336,189 @@ async function analyzeSignal(essentia, signal) {
     const signalVector = essentia.arrayToVector(signal);
 
     try {
-        const percivalResult = essentia.PercivalBpmEstimator(
-            signalVector,
-            1024,
-            2048,
-            128,
-            128,
-            RHYTHM_MAX_TEMPO,
-            RHYTHM_MIN_TEMPO,
-            TARGET_SAMPLE_RATE,
+        const percivalResult = measureTime("PercivalBpmEstimator", () =>
+            essentia.PercivalBpmEstimator(
+                signalVector,
+                1024,
+                2048,
+                128,
+                128,
+                RHYTHM_MAX_TEMPO,
+                RHYTHM_MIN_TEMPO,
+                TARGET_SAMPLE_RATE,
+            ),
         );
-
-        console.log("WM Tapper: PERCIVAL BPM.", {
-            bpm: percivalResult?.bpm,
-        });
 
         /* -------------------------------------------------
-       BPM
-       ------------------------------------------------- */
+   BPM
+   ------------------------------------------------- */
 
-        const rhythmResult = essentia.RhythmDescriptors(signalVector);
-
-        const rhythmTestResult = essentia.RhythmExtractor2013(
-            signalVector,
-            RHYTHM_MAX_TEMPO,
-            RHYTHM_METHOD,
-            RHYTHM_MIN_TEMPO,
+        const rhythmResult = measureTime("RhythmDescriptors", () =>
+            essentia.RhythmDescriptors(signalVector),
         );
 
-        console.log("WM Tapper: RHYTHM EXTRACTOR TEST.", {
-            bpm: rhythmTestResult?.bpm,
-            confidence: rhythmTestResult?.confidence,
-        });
-
-        console.log("WM Tapper: RHYTHM HISTOGRAM.", {
-            firstPeakBpm: rhythmResult?.first_peak_bpm,
-            firstPeakWeight: rhythmResult?.first_peak_weight,
-            secondPeakBpm: rhythmResult?.second_peak_bpm,
-            secondPeakWeight: rhythmResult?.second_peak_weight,
-
-            histogramAt92: rhythmResult?.histogram?.get
-                ? rhythmResult.histogram.get(92)
-                : null,
-
-            histogramAt185: rhythmResult?.histogram?.get
-                ? rhythmResult.histogram.get(185)
-                : null,
-
-            histogramObject: rhythmResult?.histogram,
-        });
-
-        console.log("WM Tapper: RHYTHM DESCRIPTORS RAW.", rhythmResult);
-
-        console.log(
-            "WM Tapper: RHYTHM DESCRIPTORS KEYS.",
-            Object.keys(rhythmResult || {}),
+        const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
+            essentia.RhythmExtractor2013(
+                signalVector,
+                RHYTHM_MAX_TEMPO,
+                RHYTHM_METHOD,
+                RHYTHM_MIN_TEMPO,
+            ),
         );
 
-        console.log("WM Tapper: rhythm descriptors.", {
-            bpm: rhythmResult?.bpm,
-            confidence: rhythmResult?.confidence,
+        console.table([
+            {
+                source: "PercivalBpmEstimator",
+                bpm: Number.isFinite(percivalResult?.bpm)
+                    ? Number(percivalResult.bpm.toFixed(3))
+                    : null,
+                usedInFinal: false,
+            },
 
-            bpmEstimates: rhythmResult?.bpm_estimates
-                ? Array.from(rhythmResult.bpm_estimates)
-                : [],
+            {
+                source: "RhythmDescriptors",
+                bpm: Number.isFinite(rhythmResult?.bpm)
+                    ? Number(rhythmResult.bpm.toFixed(3))
+                    : null,
+                usedInFinal: true,
+            },
 
-            bpmIntervals: rhythmResult?.bpm_intervals
-                ? Array.from(rhythmResult.bpm_intervals)
-                : [],
-
-            firstPeakBpm: rhythmResult?.first_peak_bpm,
-            firstPeakWeight: rhythmResult?.first_peak_weight,
-            firstPeakSpread: rhythmResult?.first_peak_spread,
-
-            secondPeakBpm: rhythmResult?.second_peak_bpm,
-            secondPeakWeight: rhythmResult?.second_peak_weight,
-            secondPeakSpread: rhythmResult?.second_peak_spread,
-        });
-
-        console.log("WM Tapper: rhythm raw result.", {
-            bpm: rhythmResult?.bpm,
-            confidence: rhythmResult?.confidence,
-
-            estimates: rhythmResult?.estimates
-                ? Array.from(rhythmResult.estimates)
-                : [],
-
-            bpmIntervals: rhythmResult?.bpmIntervals
-                ? Array.from(rhythmResult.bpmIntervals)
-                : [],
-        });
+            {
+                source: "RhythmExtractor2013",
+                bpm: Number.isFinite(rhythmTestResult?.bpm)
+                    ? Number(rhythmTestResult.bpm.toFixed(3))
+                    : null,
+                usedInFinal: false,
+            },
+        ]);
 
         /* -------------------------------------------------
            KEY
            ------------------------------------------------- */
 
-        const keyResult = essentia.KeyExtractor(signalVector);
+        const keyProfileTypes = [
+            "bgate",
+            "edma",
+            "edmm",
+            "braw",
+            "shaath",
+            "krumhansl",
+            "temperley",
+            "temperley2005",
+            "thpcp",
+            "gomez",
+            "noland",
+            "diatonic",
+            "tonictriad",
+            "weichai",
+        ];
+
+        const keyProfiles = [];
+
+        keyProfileTypes.forEach((profile) => {
+            try {
+                const result = measureTime(`KeyExtractor:${profile}`, () =>
+                    essentia.KeyExtractor(
+                        signalVector,
+                        true,
+                        4096,
+                        4096,
+                        36,
+                        3500,
+                        60,
+                        25,
+                        0.2,
+                        profile,
+                        TARGET_SAMPLE_RATE,
+                        0.0001,
+                        440,
+                        "cosine",
+                        "hann",
+                    ),
+                );
+
+                keyProfiles.push({
+                    profile,
+                    result,
+                });
+            } catch (error) {
+                console.warn(
+                    `WM Tapper: KEY PROFILE FAILED (${profile}).`,
+                    error,
+                );
+            }
+        });
+
+        const normalizedKeyProfiles = keyProfiles
+            .map(({ profile, result }) => {
+                const key = typeof result?.key === "string" ? result.key : null;
+
+                const scale =
+                    typeof result?.scale === "string" ? result.scale : null;
+
+                const strength = Number(result?.strength);
+
+                return {
+                    profile,
+
+                    key,
+
+                    scale,
+
+                    strength: Number.isFinite(strength) ? strength : null,
+                };
+            })
+            .filter((result) => {
+                return result.key && result.scale;
+            });
+
+        const PROFILE_FAMILIES = {
+            bgate: "beatport",
+            braw: "beatport",
+
+            edma: "edm",
+            edmm: "edm",
+
+            krumhansl: "popular",
+            shaath: "popular",
+            gomez: "popular",
+
+            temperley: "temperley",
+            temperley2005: "temperley",
+
+            noland: "noland",
+            thpcp: "thpcp",
+            diatonic: "diatonic",
+            tonictriad: "tonictriad",
+            weichai: "weichai",
+        };
+
+        console.table(
+            normalizedKeyProfiles.map((profileResult) => {
+                return {
+                    profile: profileResult.profile,
+
+                    family:
+                        PROFILE_FAMILIES[profileResult.profile] ||
+                        profileResult.profile,
+
+                    key: profileResult.key,
+
+                    scale: profileResult.scale,
+
+                    strength: Number(profileResult.strength.toFixed(4)),
+                };
+            }),
+        );
 
         const bpm = Number(rhythmResult?.bpm);
-
-        const key = typeof keyResult?.key === "string" ? keyResult.key : null;
-
-        const scale =
-            typeof keyResult?.scale === "string" ? keyResult.scale : null;
-
-        const strength = Number(keyResult?.strength);
 
         const rhythmConfidence = Number(rhythmResult?.confidence);
 
         return {
             bpm: Number.isFinite(bpm) ? bpm : null,
 
-            key,
-
-            scale,
-
-            strength: Number.isFinite(strength) ? strength : null,
+            keyProfiles: normalizedKeyProfiles,
 
             rhythmConfidence: Number.isFinite(rhythmConfidence)
                 ? rhythmConfidence
@@ -556,41 +649,331 @@ function sliceSignalByTime(signal, startTime, endTime) {
 }
 
 /**
- * Choose the strongest key result.
+ * Select final key using profile and segment consensus.
  *
- * @param {Object[]} results
+ * @param {Object[][]} profileSets
+ * @param {string} genre
  * @returns {Object|null}
  */
-function selectBestKeyResult(results) {
-    const validResults = results.filter((result) => {
-        return result && result.key && result.scale;
+function selectKeyConsensus(profileSets, genre = "auto") {
+    const candidates = [];
+
+    /*
+     * Profiles are grouped into families so closely related
+     * profiles do not count as fully independent votes.
+     */
+    const PROFILE_FAMILIES = {
+        bgate: "beatport",
+        braw: "beatport",
+
+        edma: "edm",
+        edmm: "edm",
+
+        krumhansl: "popular",
+        shaath: "popular",
+        gomez: "popular",
+
+        temperley: "temperley",
+        temperley2005: "temperley",
+
+        noland: "noland",
+
+        thpcp: "thpcp",
+
+        diatonic: "diatonic",
+
+        tonictriad: "tonictriad",
+
+        weichai: "weichai",
+    };
+
+    /*
+     * Relative major/minor belong to the same tonal pair.
+     *
+     * Example:
+     * C minor <-> Eb major
+     * F minor <-> Ab major
+     */
+    const RELATIVE_MAJOR = {
+        C: "Eb",
+        "C#": "E",
+        D: "F",
+        Eb: "F#",
+        E: "G",
+        F: "Ab",
+        "F#": "A",
+        G: "Bb",
+        Ab: "B",
+        A: "C",
+        Bb: "C#",
+        B: "D",
+    };
+
+    const getRelativeKey = (key, scale) => {
+        if (!key || !scale) {
+            return null;
+        }
+
+        if (scale === "minor") {
+            return {
+                key: RELATIVE_MAJOR[key] || null,
+                scale: "major",
+            };
+        }
+
+        const relativeMinor = Object.entries(RELATIVE_MAJOR).find(
+            ([minorKey, majorKey]) => {
+                return majorKey === key;
+            },
+        );
+
+        if (!relativeMinor) {
+            return null;
+        }
+
+        return {
+            key: relativeMinor[0],
+            scale: "minor",
+        };
+    };
+
+    profileSets.forEach((profiles, segmentIndex) => {
+        if (!Array.isArray(profiles)) {
+            return;
+        }
+
+        profiles.forEach((profileResult) => {
+            if (
+                !profileResult?.key ||
+                !profileResult?.scale ||
+                !Number.isFinite(profileResult.strength)
+            ) {
+                return;
+            }
+
+            const strength = Math.max(0, profileResult.strength);
+
+            candidates.push({
+                key: profileResult.key,
+
+                scale: profileResult.scale,
+
+                strength,
+
+                profile: profileResult.profile,
+
+                family:
+                    PROFILE_FAMILIES[profileResult.profile] ||
+                    profileResult.profile,
+
+                segmentIndex,
+            });
+        });
     });
 
-    if (validResults.length === 0) {
+    if (candidates.length === 0) {
         return null;
     }
 
-    validResults.sort((left, right) => {
-        const leftStrength = Number.isFinite(left.strength)
-            ? left.strength
-            : -Infinity;
+    const groups = new Map();
 
-        const rightStrength = Number.isFinite(right.strength)
-            ? right.strength
-            : -Infinity;
+    /*
+     * First group by exact key + scale.
+     */
+    candidates.forEach((candidate) => {
+        const id = `${candidate.key} ${candidate.scale}`;
 
-        return rightStrength - leftStrength;
+        if (!groups.has(id)) {
+            groups.set(id, {
+                key: candidate.key,
+
+                scale: candidate.scale,
+
+                profiles: [],
+
+                families: new Set(),
+
+                segments: new Set(),
+
+                strengthSum: 0,
+
+                bestStrength: -Infinity,
+            });
+        }
+
+        const group = groups.get(id);
+
+        group.profiles.push(candidate);
+
+        group.families.add(candidate.family);
+
+        group.segments.add(candidate.segmentIndex);
+
+        group.strengthSum += candidate.strength;
+
+        group.bestStrength = Math.max(group.bestStrength, candidate.strength);
     });
 
-    return validResults[0];
+    /*
+     * Calculate score for each exact key candidate.
+     *
+     * Important:
+     * - strength matters
+     * - profile agreement matters
+     * - independent profile families matter
+     *
+     * This is deliberately NOT based on the old profile weights.
+     */
+    const rankedGroups = Array.from(groups.values()).map((group) => {
+        const profileCount = group.profiles.length;
+
+        const familyCount = group.families.size;
+
+        const segmentCount = group.segments.size;
+
+        /*
+         * Average strength prevents a large number of weak
+         * profiles from winning purely by quantity.
+         */
+        const averageStrength =
+            profileCount > 0 ? group.strengthSum / profileCount : 0;
+
+        /*
+         * Agreement bonus grows slower than linearly.
+         *
+         * 1 profile  -> 1.00
+         * 4 profiles -> 2.00
+         * 9 profiles -> 3.00
+         */
+        const profileAgreement = Math.sqrt(profileCount);
+
+        /*
+         * Independent families are more valuable than
+         * multiple profiles from the same family.
+         */
+        const familyAgreement = Math.sqrt(familyCount);
+
+        /*
+         * FAST mode gets an additional segment agreement signal.
+         * FULL / SELECTION have only one segment.
+         */
+        const segmentAgreement = segmentCount > 1 ? Math.sqrt(segmentCount) : 1;
+
+        /*
+         * Base evidence.
+         */
+        let score =
+            averageStrength *
+            profileAgreement *
+            familyAgreement *
+            segmentAgreement;
+
+        /*
+         * Small bonus for the strongest individual profile.
+         *
+         * This prevents a very strong result from being
+         * completely buried by several mediocre results.
+         */
+        score += group.bestStrength * 0.35;
+
+        /*
+         * Relative-major/minor support.
+         *
+         * A relative key is not treated as direct support,
+         * but it is treated as related evidence.
+         */
+        const relativeKey = getRelativeKey(group.key, group.scale);
+
+        let relativeSupport = 0;
+
+        if (relativeKey) {
+            const relativeId = `${relativeKey.key} ${relativeKey.scale}`;
+
+            const relativeGroup = groups.get(relativeId);
+
+            if (relativeGroup) {
+                relativeSupport = relativeGroup.profiles.length;
+
+                score +=
+                    Math.sqrt(relativeSupport) *
+                    0.15 *
+                    relativeGroup.bestStrength;
+            }
+        }
+
+        return {
+            ...group,
+
+            score,
+
+            averageStrength,
+
+            profileAgreement,
+
+            familyAgreement,
+
+            segmentAgreement,
+
+            relativeSupport,
+        };
+    });
+
+    rankedGroups.sort((left, right) => {
+        return right.score - left.score;
+    });
+
+    const best = rankedGroups[0];
+
+    console.log("WM Tapper: KEY CONSENSUS.", {
+        genre,
+
+        selected: {
+            key: best.key,
+            scale: best.scale,
+            score: Number(best.score.toFixed(3)),
+            strength: Number(best.bestStrength.toFixed(3)),
+        },
+    });
+
+    console.table(
+        rankedGroups.map((group) => {
+            return {
+                key: group.key,
+
+                scale: group.scale,
+
+                score: Number(group.score.toFixed(3)),
+
+                averageStrength: Number(group.averageStrength.toFixed(3)),
+
+                bestStrength: Number(group.bestStrength.toFixed(3)),
+
+                profiles: group.profiles.length,
+
+                families: group.families.size,
+
+                segments: group.segments.size,
+
+                relativeSupport: group.relativeSupport,
+
+                profileList: group.profiles
+                    .map((profile) => {
+                        return `${profile.profile} (${profile.strength.toFixed(3)})`;
+                    })
+                    .join(", "),
+            };
+        }),
+    );
+
+    return {
+        key: best.key,
+
+        scale: best.scale,
+
+        strength: Number.isFinite(best.bestStrength) ? best.bestStrength : null,
+    };
 }
 
-/**
- * Choose the strongest BPM result.
- *
- * @param {Object[]} results
- * @returns {number|null}
- */
 /**
  * Get BPM range for the selected genre.
  *
@@ -631,10 +1014,7 @@ function getGenreBpmBonus(bpm, genre) {
         return 2;
     }
 
-    const distance =
-        bpm < range.min
-            ? range.min - bpm
-            : bpm - range.max;
+    const distance = bpm < range.min ? range.min - bpm : bpm - range.max;
 
     return Math.max(0, 1 - distance / 30);
 }
@@ -753,12 +1133,9 @@ function selectBpmResult(results, genre = "auto") {
 
         targetCluster.candidates.push(candidate);
 
-        const totalWeight = targetCluster.candidates.reduce(
-            (sum, item) => {
-                return sum + item.weight;
-            },
-            0,
-        );
+        const totalWeight = targetCluster.candidates.reduce((sum, item) => {
+            return sum + item.weight;
+        }, 0);
 
         targetCluster.center =
             targetCluster.candidates.reduce((sum, item) => {
@@ -783,17 +1160,13 @@ function selectBpmResult(results, genre = "auto") {
         const segmentScores = new Map();
 
         cluster.candidates.forEach((candidate) => {
-            const candidateScore =
-                candidate.confidence * candidate.weight;
+            const candidateScore = candidate.confidence * candidate.weight;
 
             const previousScore =
                 segmentScores.get(candidate.segmentIndex) || 0;
 
             if (candidateScore > previousScore) {
-                segmentScores.set(
-                    candidate.segmentIndex,
-                    candidateScore,
-                );
+                segmentScores.set(candidate.segmentIndex, candidateScore);
             }
         });
 
@@ -838,9 +1211,7 @@ function selectBpmResult(results, genre = "auto") {
                 candidates: cluster.candidates.map((candidate) => {
                     return {
                         bpm: Number(candidate.bpm.toFixed(3)),
-                        confidence: Number(
-                            candidate.confidence.toFixed(3),
-                        ),
+                        confidence: Number(candidate.confidence.toFixed(3)),
                         weight: candidate.weight,
                         segmentIndex: candidate.segmentIndex + 1,
                         interpretation: candidate.interpretation,
@@ -916,16 +1287,16 @@ export class TrackAnalyzer {
 
         this.isAnalyzing = true;
 
+        activeTimingLog = [];
+
         try {
             const mode = ["full", "selection", "fast"].includes(options?.mode)
                 ? options.mode
                 : "full";
-            
+
             const genre =
-                typeof options?.genre === "string"
-                    ? options.genre
-                    : "auto";
-            
+                typeof options?.genre === "string" ? options.genre : "auto";
+
             const providedAudioBuffer = options?.audioBuffer;
 
             /* -------------------------------------------------
@@ -945,14 +1316,21 @@ export class TrackAnalyzer {
             if (!decodedBuffer) {
                 console.log("WM Tapper: decoding audio...", file.name);
 
+                const decodeStartedAt = performance.now();
+
                 decodedBuffer = await decodeAudioFile(file);
+
+                const decodeElapsed = performance.now() - decodeStartedAt;
+
+                console.log("WM Tapper: TIME Decode.", {
+                    milliseconds: Number(decodeElapsed.toFixed(2)),
+                    seconds: Number((decodeElapsed / 1000).toFixed(3)),
+                });
             }
 
-            console.log("WM Tapper: decoded audio.", {
-                duration: decodedBuffer.duration,
-
+            console.log("WM Tapper: AUDIO.", {
+                duration: Number(decodedBuffer.duration.toFixed(2)),
                 sampleRate: decodedBuffer.sampleRate,
-
                 channels: decodedBuffer.numberOfChannels,
             });
 
@@ -971,26 +1349,51 @@ export class TrackAnalyzer {
             if (mode === "full") {
                 console.log("WM Tapper: analyzing FULL track.");
 
+                const resampleStartedAt = performance.now();
+
                 const signal = await resampleRangeTo44100(
                     decodedBuffer,
                     0,
                     duration,
                 );
 
-				console.log("WM Tapper: running Essentia analysis...");
-				
-				const result = await analyzeSignal(essentia, signal);
-				
-				const normalizedResult = normalizeResult(
-				   {
-					   ...result,
-				
-					   bpm: selectBpmResult([result], genre),
-				   },
-				   "full",
-				);
+                const resampleElapsed = performance.now() - resampleStartedAt;
 
-                console.log("WM Tapper: analysis complete.", normalizedResult);
+                console.log("WM Tapper: TIME Resample.", {
+                    milliseconds: Number(resampleElapsed.toFixed(2)),
+                    seconds: Number((resampleElapsed / 1000).toFixed(3)),
+                });
+
+                const result = await analyzeSignal(essentia, signal);
+
+                const keyConsensus = measureTime("KeyConsensus", () =>
+                    selectKeyConsensus([result.keyProfiles], genre),
+                );
+
+                const normalizedResult = normalizeResult(
+                    {
+                        ...result,
+
+                        bpm: selectBpmResult([result], genre),
+
+                        key: keyConsensus?.key ?? null,
+
+                        scale: keyConsensus?.scale ?? null,
+
+                        strength: keyConsensus?.strength ?? null,
+                    },
+                    "full",
+                );
+
+                console.log("WM Tapper: RESULT.", {
+                    bpm: normalizedResult.bpm,
+                    key: normalizedResult.keyLabel,
+                    strength: normalizedResult.strength,
+                });
+
+                console.log("WM Tapper: TIMING.");
+
+                console.table(activeTimingLog);
 
                 return normalizedResult;
             }
@@ -1028,26 +1431,51 @@ export class TrackAnalyzer {
                     duration: endTime - startTime,
                 });
 
+                const resampleStartedAt = performance.now();
+
                 const signal = await resampleRangeTo44100(
                     decodedBuffer,
                     startTime,
                     endTime,
                 );
 
-                console.log("WM Tapper: running Essentia analysis...");
+                const resampleElapsed = performance.now() - resampleStartedAt;
 
-				const result = await analyzeSignal(essentia, signal);
-				
-				const normalizedResult = normalizeResult(
-				    {
-				        ...result,
-				
-				        bpm: selectBpmResult([result], genre),
-				    },
-				    "selection",
-				);
+                console.log("WM Tapper: TIME Resample.", {
+                    milliseconds: Number(resampleElapsed.toFixed(2)),
+                    seconds: Number((resampleElapsed / 1000).toFixed(3)),
+                });
 
-                console.log("WM Tapper: analysis complete.", normalizedResult);
+                const result = await analyzeSignal(essentia, signal);
+
+                const keyConsensus = measureTime("KeyConsensus", () =>
+                    selectKeyConsensus([result.keyProfiles], genre),
+                );
+
+                const normalizedResult = normalizeResult(
+                    {
+                        ...result,
+
+                        bpm: selectBpmResult([result], genre),
+
+                        key: keyConsensus?.key ?? null,
+
+                        scale: keyConsensus?.scale ?? null,
+
+                        strength: keyConsensus?.strength ?? null,
+                    },
+                    "selection",
+                );
+
+                console.log("WM Tapper: RESULT.", {
+                    bpm: normalizedResult.bpm,
+                    key: normalizedResult.keyLabel,
+                    strength: normalizedResult.strength,
+                });
+
+                console.log("WM Tapper: TIMING.");
+
+                console.table(activeTimingLog);
 
                 return normalizedResult;
             }
@@ -1064,7 +1492,19 @@ export class TrackAnalyzer {
                 );
             }
 
-            console.log("WM Tapper: analyzing FAST mode.", segments);
+            console.log(
+                "WM Tapper: FAST SEGMENTS.",
+                segments.map((segment, index) => {
+                    return {
+                        segment: index + 1,
+                        start: Number(segment.startTime.toFixed(2)),
+                        end: Number(segment.endTime.toFixed(2)),
+                        duration: Number(
+                            (segment.endTime - segment.startTime).toFixed(2),
+                        ),
+                    };
+                }),
+            );
 
             const segmentResults = [];
 
@@ -1076,11 +1516,20 @@ export class TrackAnalyzer {
              */
             console.log("WM Tapper: resampling track for FAST mode...");
 
+            const resampleStartedAt = performance.now();
+
             const fastSignal = await resampleRangeTo44100(
                 decodedBuffer,
                 0,
                 duration,
             );
+
+            const resampleElapsed = performance.now() - resampleStartedAt;
+
+            console.log("WM Tapper: TIME Resample.", {
+                milliseconds: Number(resampleElapsed.toFixed(2)),
+                seconds: Number((resampleElapsed / 1000).toFixed(3)),
+            });
 
             console.log("WM Tapper: FAST track resampled.", {
                 samples: fastSignal.length,
@@ -1090,16 +1539,6 @@ export class TrackAnalyzer {
 
             for (let index = 0; index < segments.length; index += 1) {
                 const segment = segments[index];
-
-                console.log("WM Tapper: FAST segment.", {
-                    index: index + 1,
-
-                    total: segments.length,
-
-                    startTime: segment.startTime,
-
-                    endTime: segment.endTime,
-                });
 
                 const signal = sliceSignalByTime(
                     fastSignal,
@@ -1114,7 +1553,14 @@ export class TrackAnalyzer {
 
             const bpm = selectBpmResult(segmentResults, genre);
 
-            const bestKey = selectBestKeyResult(segmentResults);
+            const keyConsensus = measureTime("KeyConsensus", () =>
+                selectKeyConsensus(
+                    segmentResults.map((result) => {
+                        return result.keyProfiles;
+                    }),
+                    genre,
+                ),
+            );
 
             const confidenceValues = segmentResults
                 .map((result) => {
@@ -1128,22 +1574,26 @@ export class TrackAnalyzer {
                 {
                     bpm,
 
-                    key: bestKey?.key ?? null,
+                    key: keyConsensus?.key ?? null,
 
-                    scale: bestKey?.scale ?? null,
+                    scale: keyConsensus?.scale ?? null,
 
-                    strength: bestKey?.strength ?? null,
+                    strength: keyConsensus?.strength ?? null,
 
                     rhythmConfidence: calculateMedian(confidenceValues),
                 },
                 "fast",
             );
 
-            console.log("WM Tapper: analysis complete.", {
-                ...normalizedResult,
-
-                segments: segmentResults,
+            console.log("WM Tapper: RESULT.", {
+                bpm: normalizedResult.bpm,
+                key: normalizedResult.keyLabel,
+                strength: normalizedResult.strength,
             });
+
+            console.log("WM Tapper: TIMING.");
+
+            console.table(activeTimingLog);
 
             return normalizedResult;
         } catch (error) {
@@ -1151,6 +1601,7 @@ export class TrackAnalyzer {
 
             throw error;
         } finally {
+            activeTimingLog = null;
             this.isAnalyzing = false;
         }
     }
