@@ -35,92 +35,6 @@ const RHYTHM_METHOD = "multifeature";
  * must still remain valid.
  */
 
-const GENRE_KEY_PROFILE_WEIGHTS = {
-    auto: {
-        bgate: 1.0,
-        edma: 0.8,
-        edmm: 0.7,
-    },
-
-    house: {
-        bgate: 0.85,
-        edma: 1.0,
-        edmm: 0.9,
-    },
-
-    techno: {
-        bgate: 0.85,
-        edma: 1.0,
-        edmm: 0.9,
-    },
-
-    trance: {
-        bgate: 0.85,
-        edma: 1.0,
-        edmm: 0.9,
-    },
-
-    "drum-and-bass": {
-        bgate: 0.8,
-        edma: 1.0,
-        edmm: 0.9,
-    },
-
-    dubstep: {
-        bgate: 0.85,
-        edma: 1.0,
-        edmm: 0.9,
-    },
-
-    hardstyle: {
-        bgate: 0.8,
-        edma: 1.0,
-        edmm: 0.9,
-    },
-
-    hardcore: {
-        bgate: 0.8,
-        edma: 1.0,
-        edmm: 0.9,
-    },
-
-    frenchcore: {
-        bgate: 0.8,
-        edma: 1.0,
-        edmm: 0.9,
-    },
-
-    "hip-hop-trap": {
-        bgate: 1.0,
-        edma: 0.65,
-        edmm: 0.45,
-    },
-
-    pop: {
-        bgate: 1.0,
-        edma: 0.65,
-        edmm: 0.45,
-    },
-
-    rock: {
-        bgate: 1.0,
-        edma: 0.6,
-        edmm: 0.4,
-    },
-
-    "other-electronic": {
-        bgate: 0.85,
-        edma: 1.0,
-        edmm: 0.9,
-    },
-
-    other: {
-        bgate: 1.0,
-        edma: 0.8,
-        edmm: 0.7,
-    },
-};
-
 const GENRE_BPM_RANGES = {
     house: {
         min: 115,
@@ -388,6 +302,8 @@ async function resampleRangeTo44100(
  * @param {Function} callback
  * @returns {*}
  */
+let activeTimingLog = null;
+
 function measureTime(label, callback) {
     const start = performance.now();
 
@@ -395,10 +311,12 @@ function measureTime(label, callback) {
 
     const elapsed = performance.now() - start;
 
-    console.log(`WM Tapper: TIME ${label}.`, {
-        milliseconds: Number(elapsed.toFixed(2)),
-        seconds: Number((elapsed / 1000).toFixed(3)),
-    });
+    if (activeTimingLog) {
+        activeTimingLog.push({
+            label,
+            milliseconds: Number(elapsed.toFixed(2)),
+        });
+    }
 
     return result;
 }
@@ -431,13 +349,9 @@ async function analyzeSignal(essentia, signal) {
             ),
         );
 
-        console.log("WM Tapper: PERCIVAL BPM.", {
-            bpm: percivalResult?.bpm,
-        });
-
         /* -------------------------------------------------
-       BPM
-       ------------------------------------------------- */
+   BPM
+   ------------------------------------------------- */
 
         const rhythmResult = measureTime("RhythmDescriptors", () =>
             essentia.RhythmDescriptors(signalVector),
@@ -452,68 +366,31 @@ async function analyzeSignal(essentia, signal) {
             ),
         );
 
-        console.log("WM Tapper: RHYTHM EXTRACTOR TEST.", {
-            bpm: rhythmTestResult?.bpm,
-            confidence: rhythmTestResult?.confidence,
-        });
+        console.table([
+            {
+                source: "PercivalBpmEstimator",
+                bpm: Number.isFinite(percivalResult?.bpm)
+                    ? Number(percivalResult.bpm.toFixed(3))
+                    : null,
+                usedInFinal: false,
+            },
 
-        console.log("WM Tapper: RHYTHM HISTOGRAM.", {
-            firstPeakBpm: rhythmResult?.first_peak_bpm,
-            firstPeakWeight: rhythmResult?.first_peak_weight,
-            secondPeakBpm: rhythmResult?.second_peak_bpm,
-            secondPeakWeight: rhythmResult?.second_peak_weight,
+            {
+                source: "RhythmDescriptors",
+                bpm: Number.isFinite(rhythmResult?.bpm)
+                    ? Number(rhythmResult.bpm.toFixed(3))
+                    : null,
+                usedInFinal: true,
+            },
 
-            histogramAt92: rhythmResult?.histogram?.get
-                ? rhythmResult.histogram.get(92)
-                : null,
-
-            histogramAt185: rhythmResult?.histogram?.get
-                ? rhythmResult.histogram.get(185)
-                : null,
-
-            histogramObject: rhythmResult?.histogram,
-        });
-
-        console.log("WM Tapper: RHYTHM DESCRIPTORS RAW.", rhythmResult);
-
-        console.log(
-            "WM Tapper: RHYTHM DESCRIPTORS KEYS.",
-            Object.keys(rhythmResult || {}),
-        );
-
-        console.log("WM Tapper: rhythm descriptors.", {
-            bpm: rhythmResult?.bpm,
-            confidence: rhythmResult?.confidence,
-
-            bpmEstimates: rhythmResult?.bpm_estimates
-                ? Array.from(rhythmResult.bpm_estimates)
-                : [],
-
-            bpmIntervals: rhythmResult?.bpm_intervals
-                ? Array.from(rhythmResult.bpm_intervals)
-                : [],
-
-            firstPeakBpm: rhythmResult?.first_peak_bpm,
-            firstPeakWeight: rhythmResult?.first_peak_weight,
-            firstPeakSpread: rhythmResult?.first_peak_spread,
-
-            secondPeakBpm: rhythmResult?.second_peak_bpm,
-            secondPeakWeight: rhythmResult?.second_peak_weight,
-            secondPeakSpread: rhythmResult?.second_peak_spread,
-        });
-
-        console.log("WM Tapper: rhythm raw result.", {
-            bpm: rhythmResult?.bpm,
-            confidence: rhythmResult?.confidence,
-
-            estimates: rhythmResult?.estimates
-                ? Array.from(rhythmResult.estimates)
-                : [],
-
-            bpmIntervals: rhythmResult?.bpmIntervals
-                ? Array.from(rhythmResult.bpmIntervals)
-                : [],
-        });
+            {
+                source: "RhythmExtractor2013",
+                bpm: Number.isFinite(rhythmTestResult?.bpm)
+                    ? Number(rhythmTestResult.bpm.toFixed(3))
+                    : null,
+                usedInFinal: false,
+            },
+        ]);
 
         /* -------------------------------------------------
            KEY
@@ -595,34 +472,41 @@ async function analyzeSignal(essentia, signal) {
                 return result.key && result.scale;
             });
 
-        console.log(
-            "WM Tapper: KEY PROFILE RESULTS.",
-            normalizedKeyProfiles.map((profileResult) => {
-                return {
-                    profile: profileResult.profile,
-                    key: profileResult.key,
-                    scale: profileResult.scale,
-                    strength: Number(profileResult.strength.toFixed(4)),
-                };
-            }),
-        );
+        const PROFILE_FAMILIES = {
+            bgate: "beatport",
+            braw: "beatport",
 
-        const keyProfileWeights = getGenreKeyProfileWeights("auto");
+            edma: "edm",
+            edmm: "edm",
+
+            krumhansl: "popular",
+            shaath: "popular",
+            gomez: "popular",
+
+            temperley: "temperley",
+            temperley2005: "temperley",
+
+            noland: "noland",
+            thpcp: "thpcp",
+            diatonic: "diatonic",
+            tonictriad: "tonictriad",
+            weichai: "weichai",
+        };
 
         console.table(
             normalizedKeyProfiles.map((profileResult) => {
-                const weight =
-                    Number(keyProfileWeights[profileResult.profile]) || 0;
-
                 return {
                     profile: profileResult.profile,
+
+                    family:
+                        PROFILE_FAMILIES[profileResult.profile] ||
+                        profileResult.profile,
+
                     key: profileResult.key,
+
                     scale: profileResult.scale,
+
                     strength: Number(profileResult.strength.toFixed(4)),
-                    weight,
-                    weightedScore: Number(
-                        (profileResult.strength * weight).toFixed(4),
-                    ),
                 };
             }),
         );
@@ -765,16 +649,6 @@ function sliceSignalByTime(signal, startTime, endTime) {
 }
 
 /**
- * Get key profile weights for the selected genre.
- *
- * @param {string} genre
- * @returns {Object}
- */
-function getGenreKeyProfileWeights(genre) {
-    return GENRE_KEY_PROFILE_WEIGHTS[genre] || GENRE_KEY_PROFILE_WEIGHTS.auto;
-}
-
-/**
  * Select final key using profile and segment consensus.
  *
  * @param {Object[][]} profileSets
@@ -824,12 +698,12 @@ function selectKeyConsensus(profileSets, genre = "auto") {
         C: "Eb",
         "C#": "E",
         D: "F",
-        "Eb": "F#",
+        Eb: "F#",
         E: "G",
         F: "Ab",
         "F#": "A",
         G: "Bb",
-        "Ab": "B",
+        Ab: "B",
         A: "C",
         Bb: "C#",
         B: "D",
@@ -937,10 +811,7 @@ function selectKeyConsensus(profileSets, genre = "auto") {
 
         group.strengthSum += candidate.strength;
 
-        group.bestStrength = Math.max(
-            group.bestStrength,
-            candidate.strength,
-        );
+        group.bestStrength = Math.max(group.bestStrength, candidate.strength);
     });
 
     /*
@@ -986,8 +857,7 @@ function selectKeyConsensus(profileSets, genre = "auto") {
          * FAST mode gets an additional segment agreement signal.
          * FULL / SELECTION have only one segment.
          */
-        const segmentAgreement =
-            segmentCount > 1 ? Math.sqrt(segmentCount) : 1;
+        const segmentAgreement = segmentCount > 1 ? Math.sqrt(segmentCount) : 1;
 
         /*
          * Base evidence.
@@ -1059,25 +929,14 @@ function selectKeyConsensus(profileSets, genre = "auto") {
 
         selected: {
             key: best.key,
-
             scale: best.scale,
-
             score: Number(best.score.toFixed(3)),
-
-            bestStrength: Number(best.bestStrength.toFixed(3)),
-
-            averageStrength: Number(best.averageStrength.toFixed(3)),
-
-            profileAgreement: best.profiles.length,
-
-            familyAgreement: best.families.size,
-
-            segmentAgreement: best.segments.size,
-
-            relativeSupport: best.relativeSupport,
+            strength: Number(best.bestStrength.toFixed(3)),
         },
+    });
 
-        candidates: rankedGroups.map((group) => {
+    console.table(
+        rankedGroups.map((group) => {
             return {
                 key: group.key,
 
@@ -1085,58 +944,36 @@ function selectKeyConsensus(profileSets, genre = "auto") {
 
                 score: Number(group.score.toFixed(3)),
 
-                bestStrength: Number(
-                    group.bestStrength.toFixed(3),
-                ),
+                averageStrength: Number(group.averageStrength.toFixed(3)),
 
-                averageStrength: Number(
-                    group.averageStrength.toFixed(3),
-                ),
+                bestStrength: Number(group.bestStrength.toFixed(3)),
 
-                profileAgreement: group.profiles.length,
+                profiles: group.profiles.length,
 
-                familyAgreement: group.families.size,
+                families: group.families.size,
 
-                segmentAgreement: group.segments.size,
+                segments: group.segments.size,
 
                 relativeSupport: group.relativeSupport,
 
-                families: Array.from(group.families),
-
-                profiles: group.profiles.map((profile) => {
-                    return {
-                        profile: profile.profile,
-
-                        family: profile.family,
-
-                        strength: Number(
-                            profile.strength.toFixed(3),
-                        ),
-
-                        segmentIndex: profile.segmentIndex + 1,
-                    };
-                }),
+                profileList: group.profiles
+                    .map((profile) => {
+                        return `${profile.profile} (${profile.strength.toFixed(3)})`;
+                    })
+                    .join(", "),
             };
         }),
-    });
+    );
 
     return {
         key: best.key,
 
         scale: best.scale,
 
-        strength: Number.isFinite(best.bestStrength)
-            ? best.bestStrength
-            : null,
+        strength: Number.isFinite(best.bestStrength) ? best.bestStrength : null,
     };
 }
 
-/**
- * Choose the strongest BPM result.
- *
- * @param {Object[]} results
- * @returns {number|null}
- */
 /**
  * Get BPM range for the selected genre.
  *
@@ -1450,6 +1287,8 @@ export class TrackAnalyzer {
 
         this.isAnalyzing = true;
 
+        activeTimingLog = [];
+
         try {
             const mode = ["full", "selection", "fast"].includes(options?.mode)
                 ? options.mode
@@ -1489,11 +1328,9 @@ export class TrackAnalyzer {
                 });
             }
 
-            console.log("WM Tapper: decoded audio.", {
-                duration: decodedBuffer.duration,
-
+            console.log("WM Tapper: AUDIO.", {
+                duration: Number(decodedBuffer.duration.toFixed(2)),
                 sampleRate: decodedBuffer.sampleRate,
-
                 channels: decodedBuffer.numberOfChannels,
             });
 
@@ -1527,8 +1364,6 @@ export class TrackAnalyzer {
                     seconds: Number((resampleElapsed / 1000).toFixed(3)),
                 });
 
-                console.log("WM Tapper: running Essentia analysis...");
-
                 const result = await analyzeSignal(essentia, signal);
 
                 const keyConsensus = measureTime("KeyConsensus", () =>
@@ -1550,7 +1385,15 @@ export class TrackAnalyzer {
                     "full",
                 );
 
-                console.log("WM Tapper: analysis complete.", normalizedResult);
+                console.log("WM Tapper: RESULT.", {
+                    bpm: normalizedResult.bpm,
+                    key: normalizedResult.keyLabel,
+                    strength: normalizedResult.strength,
+                });
+
+                console.log("WM Tapper: TIMING.");
+
+                console.table(activeTimingLog);
 
                 return normalizedResult;
             }
@@ -1603,8 +1446,6 @@ export class TrackAnalyzer {
                     seconds: Number((resampleElapsed / 1000).toFixed(3)),
                 });
 
-                console.log("WM Tapper: running Essentia analysis...");
-
                 const result = await analyzeSignal(essentia, signal);
 
                 const keyConsensus = measureTime("KeyConsensus", () =>
@@ -1626,7 +1467,15 @@ export class TrackAnalyzer {
                     "selection",
                 );
 
-                console.log("WM Tapper: analysis complete.", normalizedResult);
+                console.log("WM Tapper: RESULT.", {
+                    bpm: normalizedResult.bpm,
+                    key: normalizedResult.keyLabel,
+                    strength: normalizedResult.strength,
+                });
+
+                console.log("WM Tapper: TIMING.");
+
+                console.table(activeTimingLog);
 
                 return normalizedResult;
             }
@@ -1643,7 +1492,19 @@ export class TrackAnalyzer {
                 );
             }
 
-            console.log("WM Tapper: analyzing FAST mode.", segments);
+            console.log(
+                "WM Tapper: FAST SEGMENTS.",
+                segments.map((segment, index) => {
+                    return {
+                        segment: index + 1,
+                        start: Number(segment.startTime.toFixed(2)),
+                        end: Number(segment.endTime.toFixed(2)),
+                        duration: Number(
+                            (segment.endTime - segment.startTime).toFixed(2),
+                        ),
+                    };
+                }),
+            );
 
             const segmentResults = [];
 
@@ -1678,16 +1539,6 @@ export class TrackAnalyzer {
 
             for (let index = 0; index < segments.length; index += 1) {
                 const segment = segments[index];
-
-                console.log("WM Tapper: FAST segment.", {
-                    index: index + 1,
-
-                    total: segments.length,
-
-                    startTime: segment.startTime,
-
-                    endTime: segment.endTime,
-                });
 
                 const signal = sliceSignalByTime(
                     fastSignal,
@@ -1734,11 +1585,15 @@ export class TrackAnalyzer {
                 "fast",
             );
 
-            console.log("WM Tapper: analysis complete.", {
-                ...normalizedResult,
-
-                segments: segmentResults,
+            console.log("WM Tapper: RESULT.", {
+                bpm: normalizedResult.bpm,
+                key: normalizedResult.keyLabel,
+                strength: normalizedResult.strength,
             });
+
+            console.log("WM Tapper: TIMING.");
+
+            console.table(activeTimingLog);
 
             return normalizedResult;
         } catch (error) {
@@ -1746,6 +1601,7 @@ export class TrackAnalyzer {
 
             throw error;
         } finally {
+            activeTimingLog = null;
             this.isAnalyzing = false;
         }
     }
