@@ -423,7 +423,7 @@ async function analyzeSignal(essentia, signal) {
                         true,
                         4096,
                         4096,
-                        36,
+                        12, // was 36
                         3500,
                         60,
                         25,
