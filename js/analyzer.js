@@ -425,6 +425,9 @@ const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
 
         keyProfileTypes.forEach((profile) => {
             try {
+                const edmProfiles = ["edma", "edmm", "bgate", "braw"];
+                const useMajMin = edmProfiles.includes(profile);
+
                 const result = measureTime(`KeyExtractor:${profile}`, () =>
                     essentia.KeyExtractor(
                         signalVector,
@@ -442,6 +445,7 @@ const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
                         440,
                         "cosine",
                         "hann",
+                        useMajMin,
                     ),
                 );
 
@@ -459,10 +463,37 @@ const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
 
         const normalizedKeyProfiles = keyProfiles
             .map(({ profile, result }) => {
-                const key = typeof result?.key === "string" ? result.key : null;
+                let key = typeof result?.key === "string" ? result.key : null;
 
                 const scale =
                     typeof result?.scale === "string" ? result.scale : null;
+
+                const VALID_KEYS = [
+                    "A",
+                    "A#",
+                    "Bb",
+                    "B",
+                    "C",
+                    "C#",
+                    "Db",
+                    "D",
+                    "D#",
+                    "Eb",
+                    "E",
+                    "F",
+                    "F#",
+                    "Gb",
+                    "G",
+                    "G#",
+                    "Ab",
+                ];
+                if (key && !VALID_KEYS.includes(key)) {
+                    console.warn(
+                        `WM Tapper: Invalid key detected from ${profile}:`,
+                        key,
+                    );
+                    key = null;
+                }
 
                 const strength = Number(result?.strength);
 
