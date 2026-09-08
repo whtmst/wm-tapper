@@ -782,9 +782,86 @@ function getGenreKeyProfileWeights(genre) {
  * @returns {Object|null}
  */
 function selectKeyConsensus(profileSets, genre = "auto") {
-    const weights = getGenreKeyProfileWeights(genre);
-
     const candidates = [];
+
+    /*
+     * Profiles are grouped into families so closely related
+     * profiles do not count as fully independent votes.
+     */
+    const PROFILE_FAMILIES = {
+        bgate: "beatport",
+        braw: "beatport",
+
+        edma: "edm",
+        edmm: "edm",
+
+        krumhansl: "popular",
+        shaath: "popular",
+        gomez: "popular",
+
+        temperley: "temperley",
+        temperley2005: "temperley",
+
+        noland: "noland",
+
+        thpcp: "thpcp",
+
+        diatonic: "diatonic",
+
+        tonictriad: "tonictriad",
+
+        weichai: "weichai",
+    };
+
+    /*
+     * Relative major/minor belong to the same tonal pair.
+     *
+     * Example:
+     * C minor <-> Eb major
+     * F minor <-> Ab major
+     */
+    const RELATIVE_MAJOR = {
+        C: "Eb",
+        "C#": "E",
+        D: "F",
+        "Eb": "F#",
+        E: "G",
+        F: "Ab",
+        "F#": "A",
+        G: "Bb",
+        "Ab": "B",
+        A: "C",
+        Bb: "C#",
+        B: "D",
+    };
+
+    const getRelativeKey = (key, scale) => {
+        if (!key || !scale) {
+            return null;
+        }
+
+        if (scale === "minor") {
+            return {
+                key: RELATIVE_MAJOR[key] || null,
+                scale: "major",
+            };
+        }
+
+        const relativeMinor = Object.entries(RELATIVE_MAJOR).find(
+            ([minorKey, majorKey]) => {
+                return majorKey === key;
+            },
+        );
+
+        if (!relativeMinor) {
+            return null;
+        }
+
+        return {
+            key: relativeMinor[0],
+            scale: "minor",
+        };
+    };
 
     profileSets.forEach((profiles, segmentIndex) => {
         if (!Array.isArray(profiles)) {
@@ -800,22 +877,20 @@ function selectKeyConsensus(profileSets, genre = "auto") {
                 return;
             }
 
-            const profileWeight = Number(weights[profileResult.profile]) || 0;
-
-            const score = Math.max(0, profileResult.strength) * profileWeight;
+            const strength = Math.max(0, profileResult.strength);
 
             candidates.push({
                 key: profileResult.key,
 
                 scale: profileResult.scale,
 
-                strength: profileResult.strength,
+                strength,
 
                 profile: profileResult.profile,
 
-                profileWeight,
-
-                score,
+                family:
+                    PROFILE_FAMILIES[profileResult.profile] ||
+                    profileResult.profile,
 
                 segmentIndex,
             });
@@ -828,6 +903,9 @@ function selectKeyConsensus(profileSets, genre = "auto") {
 
     const groups = new Map();
 
+    /*
+     * First group by exact key + scale.
+     */
     candidates.forEach((candidate) => {
         const id = `${candidate.key} ${candidate.scale}`;
 
@@ -837,11 +915,13 @@ function selectKeyConsensus(profileSets, genre = "auto") {
 
                 scale: candidate.scale,
 
-                score: 0,
+                profiles: [],
+
+                families: new Set(),
 
                 segments: new Set(),
 
-                profiles: [],
+                strengthSum: 0,
 
                 bestStrength: -Infinity,
             });
@@ -849,16 +929,126 @@ function selectKeyConsensus(profileSets, genre = "auto") {
 
         const group = groups.get(id);
 
-        group.score += candidate.score;
+        group.profiles.push(candidate);
+
+        group.families.add(candidate.family);
 
         group.segments.add(candidate.segmentIndex);
 
-        group.profiles.push(candidate);
+        group.strengthSum += candidate.strength;
 
-        group.bestStrength = Math.max(group.bestStrength, candidate.strength);
+        group.bestStrength = Math.max(
+            group.bestStrength,
+            candidate.strength,
+        );
     });
 
-    const rankedGroups = Array.from(groups.values()).sort((left, right) => {
+    /*
+     * Calculate score for each exact key candidate.
+     *
+     * Important:
+     * - strength matters
+     * - profile agreement matters
+     * - independent profile families matter
+     *
+     * This is deliberately NOT based on the old profile weights.
+     */
+    const rankedGroups = Array.from(groups.values()).map((group) => {
+        const profileCount = group.profiles.length;
+
+        const familyCount = group.families.size;
+
+        const segmentCount = group.segments.size;
+
+        /*
+         * Average strength prevents a large number of weak
+         * profiles from winning purely by quantity.
+         */
+        const averageStrength =
+            profileCount > 0 ? group.strengthSum / profileCount : 0;
+
+        /*
+         * Agreement bonus grows slower than linearly.
+         *
+         * 1 profile  -> 1.00
+         * 4 profiles -> 2.00
+         * 9 profiles -> 3.00
+         */
+        const profileAgreement = Math.sqrt(profileCount);
+
+        /*
+         * Independent families are more valuable than
+         * multiple profiles from the same family.
+         */
+        const familyAgreement = Math.sqrt(familyCount);
+
+        /*
+         * FAST mode gets an additional segment agreement signal.
+         * FULL / SELECTION have only one segment.
+         */
+        const segmentAgreement =
+            segmentCount > 1 ? Math.sqrt(segmentCount) : 1;
+
+        /*
+         * Base evidence.
+         */
+        let score =
+            averageStrength *
+            profileAgreement *
+            familyAgreement *
+            segmentAgreement;
+
+        /*
+         * Small bonus for the strongest individual profile.
+         *
+         * This prevents a very strong result from being
+         * completely buried by several mediocre results.
+         */
+        score += group.bestStrength * 0.35;
+
+        /*
+         * Relative-major/minor support.
+         *
+         * A relative key is not treated as direct support,
+         * but it is treated as related evidence.
+         */
+        const relativeKey = getRelativeKey(group.key, group.scale);
+
+        let relativeSupport = 0;
+
+        if (relativeKey) {
+            const relativeId = `${relativeKey.key} ${relativeKey.scale}`;
+
+            const relativeGroup = groups.get(relativeId);
+
+            if (relativeGroup) {
+                relativeSupport = relativeGroup.profiles.length;
+
+                score +=
+                    Math.sqrt(relativeSupport) *
+                    0.15 *
+                    relativeGroup.bestStrength;
+            }
+        }
+
+        return {
+            ...group,
+
+            score,
+
+            averageStrength,
+
+            profileAgreement,
+
+            familyAgreement,
+
+            segmentAgreement,
+
+            relativeSupport,
+        };
+    });
+
+    rankedGroups.sort((left, right) => {
         return right.score - left.score;
     });
 
@@ -869,11 +1059,22 @@ function selectKeyConsensus(profileSets, genre = "auto") {
 
         selected: {
             key: best.key,
+
             scale: best.scale,
+
             score: Number(best.score.toFixed(3)),
-            strength: Number(best.bestStrength.toFixed(3)),
-            segmentAgreement: best.segments.size,
+
+            bestStrength: Number(best.bestStrength.toFixed(3)),
+
+            averageStrength: Number(best.averageStrength.toFixed(3)),
+
             profileAgreement: best.profiles.length,
+
+            familyAgreement: best.families.size,
+
+            segmentAgreement: best.segments.size,
+
+            relativeSupport: best.relativeSupport,
         },
 
         candidates: rankedGroups.map((group) => {
@@ -884,21 +1085,33 @@ function selectKeyConsensus(profileSets, genre = "auto") {
 
                 score: Number(group.score.toFixed(3)),
 
-                strength: Number(group.bestStrength.toFixed(3)),
+                bestStrength: Number(
+                    group.bestStrength.toFixed(3),
+                ),
+
+                averageStrength: Number(
+                    group.averageStrength.toFixed(3),
+                ),
+
+                profileAgreement: group.profiles.length,
+
+                familyAgreement: group.families.size,
 
                 segmentAgreement: group.segments.size,
 
-                profileAgreement: group.profiles.length,
+                relativeSupport: group.relativeSupport,
+
+                families: Array.from(group.families),
 
                 profiles: group.profiles.map((profile) => {
                     return {
                         profile: profile.profile,
 
-                        strength: Number(profile.strength.toFixed(3)),
+                        family: profile.family,
 
-                        weight: profile.profileWeight,
-
-                        score: Number(profile.score.toFixed(3)),
+                        strength: Number(
+                            profile.strength.toFixed(3),
+                        ),
 
                         segmentIndex: profile.segmentIndex + 1,
                     };
@@ -912,7 +1125,9 @@ function selectKeyConsensus(profileSets, genre = "auto") {
 
         scale: best.scale,
 
-        strength: Number.isFinite(best.bestStrength) ? best.bestStrength : null,
+        strength: Number.isFinite(best.bestStrength)
+            ? best.bestStrength
+            : null,
     };
 }
 
