@@ -595,9 +595,37 @@ async function analyzeSignal(essentia, signal) {
                 return result.key && result.scale;
             });
 
-        console.log("WM Tapper: KEY PROFILE RESULTS.", {
-            profiles: normalizedKeyProfiles,
-        });
+        console.log(
+            "WM Tapper: KEY PROFILE RESULTS.",
+            normalizedKeyProfiles.map((profileResult) => {
+                return {
+                    profile: profileResult.profile,
+                    key: profileResult.key,
+                    scale: profileResult.scale,
+                    strength: Number(profileResult.strength.toFixed(4)),
+                };
+            }),
+        );
+
+        const keyProfileWeights = getGenreKeyProfileWeights("auto");
+
+        console.table(
+            normalizedKeyProfiles.map((profileResult) => {
+                const weight =
+                    Number(keyProfileWeights[profileResult.profile]) || 0;
+
+                return {
+                    profile: profileResult.profile,
+                    key: profileResult.key,
+                    scale: profileResult.scale,
+                    strength: Number(profileResult.strength.toFixed(4)),
+                    weight,
+                    weightedScore: Number(
+                        (profileResult.strength * weight).toFixed(4),
+                    ),
+                };
+            }),
+        );
 
         const bpm = Number(rhythmResult?.bpm);
 
