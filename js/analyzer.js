@@ -468,32 +468,30 @@ const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
                 const scale =
                     typeof result?.scale === "string" ? result.scale : null;
 
-                const VALID_KEYS = [
-                    "A",
-                    "A#",
-                    "Bb",
-                    "B",
-                    "C",
-                    "C#",
-                    "Db",
-                    "D",
-                    "D#",
-                    "Eb",
-                    "E",
-                    "F",
-                    "F#",
-                    "Gb",
-                    "G",
-                    "G#",
-                    "Ab",
-                ];
-                if (key && !VALID_KEYS.includes(key)) {
-                    console.warn(
-                        `WM Tapper: Invalid key detected from ${profile}:`,
-                        key,
-                    );
-                    key = null;
+const VALID_KEYS = ["A", "A#", "Bb", "B", "C", "C#", "Db", "D", "D#", "Eb", "E", "F", "F#", "Gb", "G", "G#", "Ab"];
+
+        const normalizedKeyProfiles = keyProfiles
+            .map(({ profile, result }) => {
+                const key = typeof result?.key === "string" ? result.key : null;
+                const scale = typeof result?.scale === "string" ? result.scale : null;
+                const strength = Number(result?.strength);
+
+                const isValidKey = key && VALID_KEYS.includes(key);
+
+                if (key && !isValidKey) {
+                    console.warn(`WM Tapper: Invalid key detected from ${profile}:`, key);
                 }
+
+                return {
+                    profile,
+                    key: isValidKey ? key : null,
+                    scale,
+                    strength: Number.isFinite(strength) ? strength : null,
+                };
+            })
+            .filter((result) => {
+                return result.key && result.scale;
+            });
 
                 const strength = Number(result?.strength);
 
