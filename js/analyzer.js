@@ -463,76 +463,26 @@ const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
 
         const normalizedKeyProfiles = keyProfiles
             .map(({ profile, result }) => {
-                let key = typeof result?.key === "string" ? result.key : null;
-
+                const rawKey =
+                    typeof result?.key === "string" ? result.key.trim() : "";
                 const scale =
                     typeof result?.scale === "string" ? result.scale : null;
-
-                const VALID_KEYS = [
-                    "A",
-                    "A#",
-                    "Bb",
-                    "B",
-                    "C",
-                    "C#",
-                    "Db",
-                    "D",
-                    "D#",
-                    "Eb",
-                    "E",
-                    "F",
-                    "F#",
-                    "Gb",
-                    "G",
-                    "G#",
-                    "Ab",
-                ];
-
-                const normalizedKeyProfiles = keyProfiles
-                    .map(({ profile, result }) => {
-                        const rawKey =
-                            typeof result?.key === "string"
-                                ? result.key.trim()
-                                : "";
-                        const scale =
-                            typeof result?.scale === "string"
-                                ? result.scale
-                                : null;
-                        const strength = Number(result?.strength);
-
-                        // Жесткая проверка: только чистые ноты A-G с возможным # или b
-                        const CLEAN_KEY_REGEX =
-                            /^(A[#b]?|B[b]?|C[#]?|D[#b]?|E[b]?|F[#]?|G[#b]?)$/;
-                        const isValidKey = CLEAN_KEY_REGEX.test(rawKey);
-
-                        if (rawKey && !isValidKey) {
-                            console.warn(
-                                `WM Tapper: Invalid WASM key blocked from ${profile}`,
-                            );
-                        }
-
-                        return {
-                            profile,
-                            key: isValidKey ? rawKey : null,
-                            scale,
-                            strength: Number.isFinite(strength)
-                                ? strength
-                                : null,
-                        };
-                    })
-                    .filter((result) => {
-                        return result.key && result.scale;
-                    });
-
                 const strength = Number(result?.strength);
+
+                const CLEAN_KEY_REGEX =
+                    /^(A[#b]?|B[b]?|C[#]?|D[#b]?|E[b]?|F[#]?|G[#b]?)$/;
+                const isValidKey = CLEAN_KEY_REGEX.test(rawKey);
+
+                if (rawKey && !isValidKey) {
+                    console.warn(
+                        `WM Tapper: Invalid WASM key blocked from ${profile}`,
+                    );
+                }
 
                 return {
                     profile,
-
-                    key,
-
+                    key: isValidKey ? rawKey : null,
                     scale,
-
                     strength: Number.isFinite(strength) ? strength : null,
                 };
             })
