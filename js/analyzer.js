@@ -491,73 +491,56 @@ async function analyzeSignal(essentia, signal) {
            KEY
            ------------------------------------------------- */
 
-        const keyProfiles = [
-            {
-                profile: "bgate",
-
-                result: essentia.KeyExtractor(
-                    signalVector,
-                    true,
-                    4096,
-                    4096,
-                    12,
-                    3500,
-                    60,
-                    25,
-                    0.2,
-                    "bgate",
-                    TARGET_SAMPLE_RATE,
-                    0.0001,
-                    440,
-                    "cosine",
-                    "hann",
-                ),
-            },
-
-            {
-                profile: "edma",
-
-                result: essentia.KeyExtractor(
-                    signalVector,
-                    true,
-                    4096,
-                    4096,
-                    12,
-                    3500,
-                    60,
-                    25,
-                    0.2,
-                    "edma",
-                    TARGET_SAMPLE_RATE,
-                    0.0001,
-                    440,
-                    "cosine",
-                    "hann",
-                ),
-            },
-
-            {
-                profile: "edmm",
-
-                result: essentia.KeyExtractor(
-                    signalVector,
-                    true,
-                    4096,
-                    4096,
-                    12,
-                    3500,
-                    60,
-                    25,
-                    0.2,
-                    "edmm",
-                    TARGET_SAMPLE_RATE,
-                    0.0001,
-                    440,
-                    "cosine",
-                    "hann",
-                ),
-            },
+        const keyProfileTypes = [
+            "bgate",
+            "edma",
+            "edmm",
+            "braw",
+            "shaath",
+            "krumhansl",
+            "temperley",
+            "temperley2005",
+            "thpcp",
+            "gomez",
+            "noland",
+            "diatonic",
+            "tonictriad",
+            "weichai",
         ];
+
+        const keyProfiles = [];
+
+        keyProfileTypes.forEach((profile) => {
+            try {
+                const result = essentia.KeyExtractor(
+                    signalVector,
+                    true,
+                    4096,
+                    4096,
+                    12,
+                    3500,
+                    60,
+                    25,
+                    0.2,
+                    profile,
+                    TARGET_SAMPLE_RATE,
+                    0.0001,
+                    440,
+                    "cosine",
+                    "hann",
+                );
+
+                keyProfiles.push({
+                    profile,
+                    result,
+                });
+            } catch (error) {
+                console.warn(
+                    `WM Tapper: KEY PROFILE FAILED (${profile}).`,
+                    error,
+                );
+            }
+        });
 
         const normalizedKeyProfiles = keyProfiles
             .map(({ profile, result }) => {
