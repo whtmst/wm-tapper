@@ -468,30 +468,61 @@ const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
                 const scale =
                     typeof result?.scale === "string" ? result.scale : null;
 
-const VALID_KEYS = ["A", "A#", "Bb", "B", "C", "C#", "Db", "D", "D#", "Eb", "E", "F", "F#", "Gb", "G", "G#", "Ab"];
+                const VALID_KEYS = [
+                    "A",
+                    "A#",
+                    "Bb",
+                    "B",
+                    "C",
+                    "C#",
+                    "Db",
+                    "D",
+                    "D#",
+                    "Eb",
+                    "E",
+                    "F",
+                    "F#",
+                    "Gb",
+                    "G",
+                    "G#",
+                    "Ab",
+                ];
 
-        const normalizedKeyProfiles = keyProfiles
-            .map(({ profile, result }) => {
-                const key = typeof result?.key === "string" ? result.key : null;
-                const scale = typeof result?.scale === "string" ? result.scale : null;
-                const strength = Number(result?.strength);
+                const normalizedKeyProfiles = keyProfiles
+                    .map(({ profile, result }) => {
+                        const rawKey =
+                            typeof result?.key === "string"
+                                ? result.key.trim()
+                                : "";
+                        const scale =
+                            typeof result?.scale === "string"
+                                ? result.scale
+                                : null;
+                        const strength = Number(result?.strength);
 
-                const isValidKey = key && VALID_KEYS.includes(key);
+                        // Жесткая проверка: только чистые ноты A-G с возможным # или b
+                        const CLEAN_KEY_REGEX =
+                            /^(A[#b]?|B[b]?|C[#]?|D[#b]?|E[b]?|F[#]?|G[#b]?)$/;
+                        const isValidKey = CLEAN_KEY_REGEX.test(rawKey);
 
-                if (key && !isValidKey) {
-                    console.warn(`WM Tapper: Invalid key detected from ${profile}:`, key);
-                }
+                        if (rawKey && !isValidKey) {
+                            console.warn(
+                                `WM Tapper: Invalid WASM key blocked from ${profile}`,
+                            );
+                        }
 
-                return {
-                    profile,
-                    key: isValidKey ? key : null,
-                    scale,
-                    strength: Number.isFinite(strength) ? strength : null,
-                };
-            })
-            .filter((result) => {
-                return result.key && result.scale;
-            });
+                        return {
+                            profile,
+                            key: isValidKey ? rawKey : null,
+                            scale,
+                            strength: Number.isFinite(strength)
+                                ? strength
+                                : null,
+                        };
+                    })
+                    .filter((result) => {
+                        return result.key && result.scale;
+                    });
 
                 const strength = Number(result?.strength);
 
@@ -911,7 +942,7 @@ function selectKeyConsensus(profileSets, genre = "auto") {
          * This prevents a very strong result from being
          * completely buried by several mediocre results.
          */
-        score += group.bestStrength * 0.35;
+        score += group.bestStrength * 0.15;
 
         /*
          * Relative-major/minor support.
