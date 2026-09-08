@@ -382,6 +382,28 @@ async function resampleRangeTo44100(
    ========================================================= */
 
 /**
+ * Measure execution time.
+ *
+ * @param {string} label
+ * @param {Function} callback
+ * @returns {*}
+ */
+function measureTime(label, callback) {
+    const start = performance.now();
+
+    const result = callback();
+
+    const elapsed = performance.now() - start;
+
+    console.log(`WM Tapper: TIME ${label}.`, {
+        milliseconds: Number(elapsed.toFixed(2)),
+        seconds: Number((elapsed / 1000).toFixed(3)),
+    });
+
+    return result;
+}
+
+/**
  * Analyze one mono Float32Array.
  *
  * @param {Object} essentia
@@ -396,15 +418,17 @@ async function analyzeSignal(essentia, signal) {
     const signalVector = essentia.arrayToVector(signal);
 
     try {
-        const percivalResult = essentia.PercivalBpmEstimator(
-            signalVector,
-            1024,
-            2048,
-            128,
-            128,
-            RHYTHM_MAX_TEMPO,
-            RHYTHM_MIN_TEMPO,
-            TARGET_SAMPLE_RATE,
+        const percivalResult = measureTime("PercivalBpmEstimator", () =>
+            essentia.PercivalBpmEstimator(
+                signalVector,
+                1024,
+                2048,
+                128,
+                128,
+                RHYTHM_MAX_TEMPO,
+                RHYTHM_MIN_TEMPO,
+                TARGET_SAMPLE_RATE,
+            ),
         );
 
         console.log("WM Tapper: PERCIVAL BPM.", {
@@ -415,13 +439,17 @@ async function analyzeSignal(essentia, signal) {
        BPM
        ------------------------------------------------- */
 
-        const rhythmResult = essentia.RhythmDescriptors(signalVector);
+        const rhythmResult = measureTime("RhythmDescriptors", () =>
+            essentia.RhythmDescriptors(signalVector),
+        );
 
-        const rhythmTestResult = essentia.RhythmExtractor2013(
-            signalVector,
-            RHYTHM_MAX_TEMPO,
-            RHYTHM_METHOD,
-            RHYTHM_MIN_TEMPO,
+        const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
+            essentia.RhythmExtractor2013(
+                signalVector,
+                RHYTHM_MAX_TEMPO,
+                RHYTHM_METHOD,
+                RHYTHM_MIN_TEMPO,
+            ),
         );
 
         console.log("WM Tapper: RHYTHM EXTRACTOR TEST.", {
@@ -512,22 +540,24 @@ async function analyzeSignal(essentia, signal) {
 
         keyProfileTypes.forEach((profile) => {
             try {
-                const result = essentia.KeyExtractor(
-                    signalVector,
-                    true,
-                    4096,
-                    4096,
-                    36,
-                    3500,
-                    60,
-                    25,
-                    0.2,
-                    profile,
-                    TARGET_SAMPLE_RATE,
-                    0.0001,
-                    440,
-                    "cosine",
-                    "hann",
+                const result = measureTime(`KeyExtractor:${profile}`, () =>
+                    essentia.KeyExtractor(
+                        signalVector,
+                        true,
+                        4096,
+                        4096,
+                        36,
+                        3500,
+                        60,
+                        25,
+                        0.2,
+                        profile,
+                        TARGET_SAMPLE_RATE,
+                        0.0001,
+                        440,
+                        "cosine",
+                        "hann",
+                    ),
                 );
 
                 keyProfiles.push({
@@ -1204,7 +1234,16 @@ export class TrackAnalyzer {
             if (!decodedBuffer) {
                 console.log("WM Tapper: decoding audio...", file.name);
 
+                const decodeStartedAt = performance.now();
+
                 decodedBuffer = await decodeAudioFile(file);
+
+                const decodeElapsed = performance.now() - decodeStartedAt;
+
+                console.log("WM Tapper: TIME Decode.", {
+                    milliseconds: Number(decodeElapsed.toFixed(2)),
+                    seconds: Number((decodeElapsed / 1000).toFixed(3)),
+                });
             }
 
             console.log("WM Tapper: decoded audio.", {
@@ -1230,19 +1269,27 @@ export class TrackAnalyzer {
             if (mode === "full") {
                 console.log("WM Tapper: analyzing FULL track.");
 
+                const resampleStartedAt = performance.now();
+
                 const signal = await resampleRangeTo44100(
                     decodedBuffer,
                     0,
                     duration,
                 );
 
+                const resampleElapsed = performance.now() - resampleStartedAt;
+
+                console.log("WM Tapper: TIME Resample.", {
+                    milliseconds: Number(resampleElapsed.toFixed(2)),
+                    seconds: Number((resampleElapsed / 1000).toFixed(3)),
+                });
+
                 console.log("WM Tapper: running Essentia analysis...");
 
                 const result = await analyzeSignal(essentia, signal);
 
-                const keyConsensus = selectKeyConsensus(
-                    [result.keyProfiles],
-                    genre,
+                const keyConsensus = measureTime("KeyConsensus", () =>
+                    selectKeyConsensus([result.keyProfiles], genre),
                 );
 
                 const normalizedResult = normalizeResult(
@@ -1298,19 +1345,27 @@ export class TrackAnalyzer {
                     duration: endTime - startTime,
                 });
 
+                const resampleStartedAt = performance.now();
+
                 const signal = await resampleRangeTo44100(
                     decodedBuffer,
                     startTime,
                     endTime,
                 );
 
+                const resampleElapsed = performance.now() - resampleStartedAt;
+
+                console.log("WM Tapper: TIME Resample.", {
+                    milliseconds: Number(resampleElapsed.toFixed(2)),
+                    seconds: Number((resampleElapsed / 1000).toFixed(3)),
+                });
+
                 console.log("WM Tapper: running Essentia analysis...");
 
                 const result = await analyzeSignal(essentia, signal);
 
-                const keyConsensus = selectKeyConsensus(
-                    [result.keyProfiles],
-                    genre,
+                const keyConsensus = measureTime("KeyConsensus", () =>
+                    selectKeyConsensus([result.keyProfiles], genre),
                 );
 
                 const normalizedResult = normalizeResult(
@@ -1357,11 +1412,20 @@ export class TrackAnalyzer {
              */
             console.log("WM Tapper: resampling track for FAST mode...");
 
+            const resampleStartedAt = performance.now();
+
             const fastSignal = await resampleRangeTo44100(
                 decodedBuffer,
                 0,
                 duration,
             );
+
+            const resampleElapsed = performance.now() - resampleStartedAt;
+
+            console.log("WM Tapper: TIME Resample.", {
+                milliseconds: Number(resampleElapsed.toFixed(2)),
+                seconds: Number((resampleElapsed / 1000).toFixed(3)),
+            });
 
             console.log("WM Tapper: FAST track resampled.", {
                 samples: fastSignal.length,
@@ -1395,11 +1459,13 @@ export class TrackAnalyzer {
 
             const bpm = selectBpmResult(segmentResults, genre);
 
-            const keyConsensus = selectKeyConsensus(
-                segmentResults.map((result) => {
-                    return result.keyProfiles;
-                }),
-                genre,
+            const keyConsensus = measureTime("KeyConsensus", () =>
+                selectKeyConsensus(
+                    segmentResults.map((result) => {
+                        return result.keyProfiles;
+                    }),
+                    genre,
+                ),
             );
 
             const confidenceValues = segmentResults
