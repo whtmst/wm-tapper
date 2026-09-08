@@ -35,6 +35,92 @@ const RHYTHM_METHOD = "multifeature";
  * must still remain valid.
  */
 
+const GENRE_KEY_PROFILE_WEIGHTS = {
+    auto: {
+        bgate: 1.0,
+        edma: 0.8,
+        edmm: 0.7,
+    },
+
+    house: {
+        bgate: 0.85,
+        edma: 1.0,
+        edmm: 0.9,
+    },
+
+    techno: {
+        bgate: 0.85,
+        edma: 1.0,
+        edmm: 0.9,
+    },
+
+    trance: {
+        bgate: 0.85,
+        edma: 1.0,
+        edmm: 0.9,
+    },
+
+    "drum-and-bass": {
+        bgate: 0.8,
+        edma: 1.0,
+        edmm: 0.9,
+    },
+
+    dubstep: {
+        bgate: 0.85,
+        edma: 1.0,
+        edmm: 0.9,
+    },
+
+    hardstyle: {
+        bgate: 0.8,
+        edma: 1.0,
+        edmm: 0.9,
+    },
+
+    hardcore: {
+        bgate: 0.8,
+        edma: 1.0,
+        edmm: 0.9,
+    },
+
+    frenchcore: {
+        bgate: 0.8,
+        edma: 1.0,
+        edmm: 0.9,
+    },
+
+    "hip-hop-trap": {
+        bgate: 1.0,
+        edma: 0.65,
+        edmm: 0.45,
+    },
+
+    pop: {
+        bgate: 1.0,
+        edma: 0.65,
+        edmm: 0.45,
+    },
+
+    rock: {
+        bgate: 1.0,
+        edma: 0.6,
+        edmm: 0.4,
+    },
+
+    "other-electronic": {
+        bgate: 0.85,
+        edma: 1.0,
+        edmm: 0.9,
+    },
+
+    other: {
+        bgate: 1.0,
+        edma: 0.8,
+        edmm: 0.7,
+    },
+};
+
 const GENRE_BPM_RANGES = {
     house: {
         min: 115,
@@ -405,27 +491,109 @@ async function analyzeSignal(essentia, signal) {
            KEY
            ------------------------------------------------- */
 
-        const keyResult = essentia.KeyExtractor(signalVector);
+        const keyProfiles = [
+            {
+                profile: "bgate",
+
+                result: essentia.KeyExtractor(
+                    signalVector,
+                    true,
+                    4096,
+                    4096,
+                    12,
+                    3500,
+                    60,
+                    25,
+                    0.2,
+                    "bgate",
+                    TARGET_SAMPLE_RATE,
+                    0.0001,
+                    440,
+                    "cosine",
+                    "hann",
+                ),
+            },
+
+            {
+                profile: "edma",
+
+                result: essentia.KeyExtractor(
+                    signalVector,
+                    true,
+                    4096,
+                    4096,
+                    12,
+                    3500,
+                    60,
+                    25,
+                    0.2,
+                    "edma",
+                    TARGET_SAMPLE_RATE,
+                    0.0001,
+                    440,
+                    "cosine",
+                    "hann",
+                ),
+            },
+
+            {
+                profile: "edmm",
+
+                result: essentia.KeyExtractor(
+                    signalVector,
+                    true,
+                    4096,
+                    4096,
+                    12,
+                    3500,
+                    60,
+                    25,
+                    0.2,
+                    "edmm",
+                    TARGET_SAMPLE_RATE,
+                    0.0001,
+                    440,
+                    "cosine",
+                    "hann",
+                ),
+            },
+        ];
+
+        const normalizedKeyProfiles = keyProfiles
+            .map(({ profile, result }) => {
+                const key = typeof result?.key === "string" ? result.key : null;
+
+                const scale =
+                    typeof result?.scale === "string" ? result.scale : null;
+
+                const strength = Number(result?.strength);
+
+                return {
+                    profile,
+
+                    key,
+
+                    scale,
+
+                    strength: Number.isFinite(strength) ? strength : null,
+                };
+            })
+            .filter((result) => {
+                return result.key && result.scale;
+            });
+
+        console.log("WM Tapper: KEY PROFILE RESULTS.", {
+            profiles: normalizedKeyProfiles,
+        });
 
         const bpm = Number(rhythmResult?.bpm);
-
-        const key = typeof keyResult?.key === "string" ? keyResult.key : null;
-
-        const scale =
-            typeof keyResult?.scale === "string" ? keyResult.scale : null;
-
-        const strength = Number(keyResult?.strength);
 
         const rhythmConfidence = Number(rhythmResult?.confidence);
 
         return {
             bpm: Number.isFinite(bpm) ? bpm : null,
 
-            key,
-
-            scale,
-
-            strength: Number.isFinite(strength) ? strength : null,
+            keyProfiles: normalizedKeyProfiles,
 
             rhythmConfidence: Number.isFinite(rhythmConfidence)
                 ? rhythmConfidence
@@ -556,33 +724,155 @@ function sliceSignalByTime(signal, startTime, endTime) {
 }
 
 /**
- * Choose the strongest key result.
+ * Get key profile weights for the selected genre.
  *
- * @param {Object[]} results
+ * @param {string} genre
+ * @returns {Object}
+ */
+function getGenreKeyProfileWeights(genre) {
+    return GENRE_KEY_PROFILE_WEIGHTS[genre] || GENRE_KEY_PROFILE_WEIGHTS.auto;
+}
+
+/**
+ * Select final key using profile and segment consensus.
+ *
+ * @param {Object[][]} profileSets
+ * @param {string} genre
  * @returns {Object|null}
  */
-function selectBestKeyResult(results) {
-    const validResults = results.filter((result) => {
-        return result && result.key && result.scale;
+function selectKeyConsensus(profileSets, genre = "auto") {
+    const weights = getGenreKeyProfileWeights(genre);
+
+    const candidates = [];
+
+    profileSets.forEach((profiles, segmentIndex) => {
+        if (!Array.isArray(profiles)) {
+            return;
+        }
+
+        profiles.forEach((profileResult) => {
+            if (
+                !profileResult?.key ||
+                !profileResult?.scale ||
+                !Number.isFinite(profileResult.strength)
+            ) {
+                return;
+            }
+
+            const profileWeight = Number(weights[profileResult.profile]) || 0;
+
+            const score = Math.max(0, profileResult.strength) * profileWeight;
+
+            candidates.push({
+                key: profileResult.key,
+
+                scale: profileResult.scale,
+
+                strength: profileResult.strength,
+
+                profile: profileResult.profile,
+
+                profileWeight,
+
+                score,
+
+                segmentIndex,
+            });
+        });
     });
 
-    if (validResults.length === 0) {
+    if (candidates.length === 0) {
         return null;
     }
 
-    validResults.sort((left, right) => {
-        const leftStrength = Number.isFinite(left.strength)
-            ? left.strength
-            : -Infinity;
+    const groups = new Map();
 
-        const rightStrength = Number.isFinite(right.strength)
-            ? right.strength
-            : -Infinity;
+    candidates.forEach((candidate) => {
+        const id = `${candidate.key} ${candidate.scale}`;
 
-        return rightStrength - leftStrength;
+        if (!groups.has(id)) {
+            groups.set(id, {
+                key: candidate.key,
+
+                scale: candidate.scale,
+
+                score: 0,
+
+                segments: new Set(),
+
+                profiles: [],
+
+                bestStrength: -Infinity,
+            });
+        }
+
+        const group = groups.get(id);
+
+        group.score += candidate.score;
+
+        group.segments.add(candidate.segmentIndex);
+
+        group.profiles.push(candidate);
+
+        group.bestStrength = Math.max(group.bestStrength, candidate.strength);
     });
 
-    return validResults[0];
+    const rankedGroups = Array.from(groups.values()).sort((left, right) => {
+        return right.score - left.score;
+    });
+
+    const best = rankedGroups[0];
+
+    console.log("WM Tapper: KEY CONSENSUS.", {
+        genre,
+
+        selected: {
+            key: best.key,
+            scale: best.scale,
+            score: Number(best.score.toFixed(3)),
+            strength: Number(best.bestStrength.toFixed(3)),
+            segmentAgreement: best.segments.size,
+            profileAgreement: best.profiles.length,
+        },
+
+        candidates: rankedGroups.map((group) => {
+            return {
+                key: group.key,
+
+                scale: group.scale,
+
+                score: Number(group.score.toFixed(3)),
+
+                strength: Number(group.bestStrength.toFixed(3)),
+
+                segmentAgreement: group.segments.size,
+
+                profileAgreement: group.profiles.length,
+
+                profiles: group.profiles.map((profile) => {
+                    return {
+                        profile: profile.profile,
+
+                        strength: Number(profile.strength.toFixed(3)),
+
+                        weight: profile.profileWeight,
+
+                        score: Number(profile.score.toFixed(3)),
+
+                        segmentIndex: profile.segmentIndex + 1,
+                    };
+                }),
+            };
+        }),
+    });
+
+    return {
+        key: best.key,
+
+        scale: best.scale,
+
+        strength: Number.isFinite(best.bestStrength) ? best.bestStrength : null,
+    };
 }
 
 /**
@@ -631,10 +921,7 @@ function getGenreBpmBonus(bpm, genre) {
         return 2;
     }
 
-    const distance =
-        bpm < range.min
-            ? range.min - bpm
-            : bpm - range.max;
+    const distance = bpm < range.min ? range.min - bpm : bpm - range.max;
 
     return Math.max(0, 1 - distance / 30);
 }
@@ -753,12 +1040,9 @@ function selectBpmResult(results, genre = "auto") {
 
         targetCluster.candidates.push(candidate);
 
-        const totalWeight = targetCluster.candidates.reduce(
-            (sum, item) => {
-                return sum + item.weight;
-            },
-            0,
-        );
+        const totalWeight = targetCluster.candidates.reduce((sum, item) => {
+            return sum + item.weight;
+        }, 0);
 
         targetCluster.center =
             targetCluster.candidates.reduce((sum, item) => {
@@ -783,17 +1067,13 @@ function selectBpmResult(results, genre = "auto") {
         const segmentScores = new Map();
 
         cluster.candidates.forEach((candidate) => {
-            const candidateScore =
-                candidate.confidence * candidate.weight;
+            const candidateScore = candidate.confidence * candidate.weight;
 
             const previousScore =
                 segmentScores.get(candidate.segmentIndex) || 0;
 
             if (candidateScore > previousScore) {
-                segmentScores.set(
-                    candidate.segmentIndex,
-                    candidateScore,
-                );
+                segmentScores.set(candidate.segmentIndex, candidateScore);
             }
         });
 
@@ -838,9 +1118,7 @@ function selectBpmResult(results, genre = "auto") {
                 candidates: cluster.candidates.map((candidate) => {
                     return {
                         bpm: Number(candidate.bpm.toFixed(3)),
-                        confidence: Number(
-                            candidate.confidence.toFixed(3),
-                        ),
+                        confidence: Number(candidate.confidence.toFixed(3)),
                         weight: candidate.weight,
                         segmentIndex: candidate.segmentIndex + 1,
                         interpretation: candidate.interpretation,
@@ -920,12 +1198,10 @@ export class TrackAnalyzer {
             const mode = ["full", "selection", "fast"].includes(options?.mode)
                 ? options.mode
                 : "full";
-            
+
             const genre =
-                typeof options?.genre === "string"
-                    ? options.genre
-                    : "auto";
-            
+                typeof options?.genre === "string" ? options.genre : "auto";
+
             const providedAudioBuffer = options?.audioBuffer;
 
             /* -------------------------------------------------
@@ -977,18 +1253,29 @@ export class TrackAnalyzer {
                     duration,
                 );
 
-				console.log("WM Tapper: running Essentia analysis...");
-				
-				const result = await analyzeSignal(essentia, signal);
-				
-				const normalizedResult = normalizeResult(
-				   {
-					   ...result,
-				
-					   bpm: selectBpmResult([result], genre),
-				   },
-				   "full",
-				);
+                console.log("WM Tapper: running Essentia analysis...");
+
+                const result = await analyzeSignal(essentia, signal);
+
+                const keyConsensus = selectKeyConsensus(
+                    [result.keyProfiles],
+                    genre,
+                );
+
+                const normalizedResult = normalizeResult(
+                    {
+                        ...result,
+
+                        bpm: selectBpmResult([result], genre),
+
+                        key: keyConsensus?.key ?? null,
+
+                        scale: keyConsensus?.scale ?? null,
+
+                        strength: keyConsensus?.strength ?? null,
+                    },
+                    "full",
+                );
 
                 console.log("WM Tapper: analysis complete.", normalizedResult);
 
@@ -1036,16 +1323,27 @@ export class TrackAnalyzer {
 
                 console.log("WM Tapper: running Essentia analysis...");
 
-				const result = await analyzeSignal(essentia, signal);
-				
-				const normalizedResult = normalizeResult(
-				    {
-				        ...result,
-				
-				        bpm: selectBpmResult([result], genre),
-				    },
-				    "selection",
-				);
+                const result = await analyzeSignal(essentia, signal);
+
+                const keyConsensus = selectKeyConsensus(
+                    [result.keyProfiles],
+                    genre,
+                );
+
+                const normalizedResult = normalizeResult(
+                    {
+                        ...result,
+
+                        bpm: selectBpmResult([result], genre),
+
+                        key: keyConsensus?.key ?? null,
+
+                        scale: keyConsensus?.scale ?? null,
+
+                        strength: keyConsensus?.strength ?? null,
+                    },
+                    "selection",
+                );
 
                 console.log("WM Tapper: analysis complete.", normalizedResult);
 
@@ -1114,7 +1412,12 @@ export class TrackAnalyzer {
 
             const bpm = selectBpmResult(segmentResults, genre);
 
-            const bestKey = selectBestKeyResult(segmentResults);
+            const keyConsensus = selectKeyConsensus(
+                segmentResults.map((result) => {
+                    return result.keyProfiles;
+                }),
+                genre,
+            );
 
             const confidenceValues = segmentResults
                 .map((result) => {
@@ -1128,11 +1431,11 @@ export class TrackAnalyzer {
                 {
                     bpm,
 
-                    key: bestKey?.key ?? null,
+                    key: keyConsensus?.key ?? null,
 
-                    scale: bestKey?.scale ?? null,
+                    scale: keyConsensus?.scale ?? null,
 
-                    strength: bestKey?.strength ?? null,
+                    strength: keyConsensus?.strength ?? null,
 
                     rhythmConfidence: calculateMedian(confidenceValues),
                 },
