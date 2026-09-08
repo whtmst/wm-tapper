@@ -983,12 +983,27 @@ function selectKeyConsensus(profileSets, genre = "auto") {
         }),
     );
 
+    const second = rankedGroups[1];
+    let hasRelativeConflict = false;
+
+    if (second) {
+        const relativeOfBest = getRelativeKey(best.key, best.scale);
+        const isRelative =
+            relativeOfBest &&
+            relativeOfBest.key === second.key &&
+            relativeOfBest.scale === second.scale;
+        const scoreDiff = Math.abs(best.score - second.score);
+
+        if (isRelative && scoreDiff < 1.0) {
+            hasRelativeConflict = true;
+        }
+    }
+
     return {
         key: best.key,
-
         scale: best.scale,
-
         strength: Number.isFinite(best.bestStrength) ? best.bestStrength : null,
+        hasRelativeConflict,
     };
 }
 
@@ -1384,9 +1399,39 @@ export class TrackAnalyzer {
 
                 const result = await analyzeSignal(essentia, signal);
 
-                const keyConsensus = measureTime("KeyConsensus", () =>
+                let keyConsensus = measureTime("KeyConsensus", () =>
                     selectKeyConsensus([result.keyProfiles], genre),
                 );
+
+                if (keyConsensus?.hasRelativeConflict) {
+                    console.warn(
+                        "WM Tapper: Relative key conflict detected in FULL mode. Running temporal FAST fallback...",
+                    );
+
+                    const segments = createFastSegments(duration);
+                    const segmentResults = [];
+
+                    for (let index = 0; index < segments.length; index += 1) {
+                        const segment = segments[index];
+                        const segmentSignal = sliceSignalByTime(
+                            signal,
+                            segment.startTime,
+                            segment.endTime,
+                        );
+                        const segResult = await analyzeSignal(
+                            essentia,
+                            segmentSignal,
+                        );
+                        segmentResults.push(segResult);
+                    }
+
+                    keyConsensus = measureTime("KeyConsensusFallback", () =>
+                        selectKeyConsensus(
+                            segmentResults.map((r) => r.keyProfiles),
+                            genre,
+                        ),
+                    );
+                }
 
                 const normalizedResult = normalizeResult(
                     {
