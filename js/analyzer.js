@@ -336,18 +336,20 @@ async function analyzeSignal(essentia, signal) {
     const signalVector = essentia.arrayToVector(signal);
 
     try {
-        const percivalResult = measureTime("PercivalBpmEstimator", () =>
-            essentia.PercivalBpmEstimator(
-                signalVector,
-                1024,
-                2048,
-                128,
-                128,
-                RHYTHM_MAX_TEMPO,
-                RHYTHM_MIN_TEMPO,
-                TARGET_SAMPLE_RATE,
-            ),
-        );
+        /*
+const percivalResult = measureTime("PercivalBpmEstimator", () =>
+    essentia.PercivalBpmEstimator(
+        signalVector,
+        1024,
+        2048,
+        128,
+        128,
+        RHYTHM_MAX_TEMPO,
+        RHYTHM_MIN_TEMPO,
+        TARGET_SAMPLE_RATE,
+    ),
+);
+*/
 
         /* -------------------------------------------------
    BPM
@@ -357,23 +359,27 @@ async function analyzeSignal(essentia, signal) {
             essentia.RhythmDescriptors(signalVector),
         );
 
-        const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
-            essentia.RhythmExtractor2013(
-                signalVector,
-                RHYTHM_MAX_TEMPO,
-                RHYTHM_METHOD,
-                RHYTHM_MIN_TEMPO,
-            ),
-        );
+        /*
+const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
+    essentia.RhythmExtractor2013(
+        signalVector,
+        RHYTHM_MAX_TEMPO,
+        RHYTHM_METHOD,
+        RHYTHM_MIN_TEMPO,
+    ),
+);
+*/
 
         console.table([
-            {
-                source: "PercivalBpmEstimator",
-                bpm: Number.isFinite(percivalResult?.bpm)
-                    ? Number(percivalResult.bpm.toFixed(3))
-                    : null,
-                usedInFinal: false,
-            },
+            /*
+    {
+        source: "PercivalBpmEstimator",
+        bpm: Number.isFinite(percivalResult?.bpm)
+            ? Number(percivalResult.bpm.toFixed(3))
+            : null,
+        usedInFinal: false,
+    },
+    */
 
             {
                 source: "RhythmDescriptors",
@@ -383,13 +389,15 @@ async function analyzeSignal(essentia, signal) {
                 usedInFinal: true,
             },
 
-            {
-                source: "RhythmExtractor2013",
-                bpm: Number.isFinite(rhythmTestResult?.bpm)
-                    ? Number(rhythmTestResult.bpm.toFixed(3))
-                    : null,
-                usedInFinal: false,
-            },
+            /*
+    {
+        source: "RhythmExtractor2013",
+        bpm: Number.isFinite(rhythmTestResult?.bpm)
+            ? Number(rhythmTestResult.bpm.toFixed(3))
+            : null,
+        usedInFinal: false,
+    },
+    */
         ]);
 
         /* -------------------------------------------------
