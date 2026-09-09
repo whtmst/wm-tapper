@@ -577,22 +577,15 @@ a:focus-visible {
 
 .tap-button__alts {
     position: absolute;
-
-    bottom: 10px;
+    bottom: 5px;
     left: 50%;
-
     z-index: 2;
-
     width: calc(100% - 16px);
-
     display: none;
     flex-direction: column;
     align-items: center;
-
-    gap: 2px;
-
+    gap: 1px;
     transform: translateX(-50%);
-
     pointer-events: none;
 }
 
@@ -602,14 +595,10 @@ a:focus-visible {
 
 .tap-button__alts-title {
     color: rgba(36, 41, 26, 0.38);
-
-    font-size: 9px;
-    font-weight: 520;
-
+    font-size: 11px;
+    font-weight: 500;
     line-height: 1.15;
-
     letter-spacing: 0.04em;
-
     text-transform: uppercase;
 }
 
@@ -617,9 +606,7 @@ a:focus-visible {
     display: flex;
     flex-direction: column;
     align-items: center;
-
     gap: 1px;
-
     width: 100%;
 }
 
@@ -627,20 +614,13 @@ a:focus-visible {
     display: flex;
     align-items: baseline;
     justify-content: center;
-
     gap: 5px;
-
     width: 100%;
-
     color: rgba(36, 41, 26, 0.48);
-
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
-
     line-height: 1.2;
-
-    letter-spacing: 0.02em;
-
+    letter-spacing: 0.01em;
     text-align: center;
 }
 
