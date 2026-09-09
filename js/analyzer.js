@@ -1287,6 +1287,8 @@ function normalizeResult(result, mode) {
             ? result.rhythmConfidence
             : null,
 
+        hasTonalityConflict: Boolean(result?.hasTonalityConflict),
+
         mode,
     };
 }
@@ -1444,6 +1446,9 @@ export class TrackAnalyzer {
                         scale: keyConsensus?.scale ?? null,
 
                         strength: keyConsensus?.strength ?? null,
+
+                        hasTonalityConflict:
+                            keyConsensus?.hasRelativeConflict ?? false,
                     },
                     "full",
                 );
@@ -1526,6 +1531,9 @@ export class TrackAnalyzer {
                         scale: keyConsensus?.scale ?? null,
 
                         strength: keyConsensus?.strength ?? null,
+
+                        hasTonalityConflict:
+                            keyConsensus?.hasRelativeConflict ?? false,
                     },
                     "selection",
                 );
@@ -1644,6 +1652,9 @@ export class TrackAnalyzer {
                     strength: keyConsensus?.strength ?? null,
 
                     rhythmConfidence: calculateMedian(confidenceValues),
+
+                    hasTonalityConflict:
+                        keyConsensus?.hasRelativeConflict ?? false,
                 },
                 "fast",
             );
