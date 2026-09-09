@@ -133,11 +133,9 @@ const tapConfidence = document.getElementById("tapConfidence");
 
 const tapKey = document.getElementById("tapKey");
 
-const tonalityConflictTip = document.getElementById("tonalityConflictTip");
-
-const tonalityTooltip = document.getElementById("tonalityTooltip");
-const tonalityTooltipTitle = document.getElementById("tonalityTooltipTitle");
-const tonalityTooltipList = document.getElementById("tonalityTooltipList");
+const tapKeyAlts = document.getElementById("tapKeyAlts");
+const tapKeyAltsTitle = document.getElementById("tapKeyAltsTitle");
+const tapKeyAltsList = document.getElementById("tapKeyAltsList");
 
 const analysisWaveformCanvas = document.getElementById(
     "analysisWaveformCanvas",
@@ -714,10 +712,10 @@ const languageUI = createLanguageUI(
         historyMenu,
         tapConfidence,
         tapKey,
-        tonalityConflictTip,
-        tonalityTooltip,
-        tonalityTooltipTitle,
-        tonalityTooltipList,
+        tapKeyAlts,
+        tapKeyAltsTitle,
+        tapKeyAltsList,
+        tapButton,
     },
     {
         settings,
