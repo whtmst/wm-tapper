@@ -999,11 +999,23 @@ function selectKeyConsensus(profileSets, genre = "auto") {
         }
     }
 
+    const alternatives = rankedGroups.slice(1, 4).map((group) => {
+        return {
+            key: group.key,
+            scale: group.scale,
+            strength: Number.isFinite(group.bestStrength)
+                ? group.bestStrength
+                : null,
+            score: Number.isFinite(group.score) ? group.score : null,
+        };
+    });
+
     return {
         key: best.key,
         scale: best.scale,
         strength: Number.isFinite(best.bestStrength) ? best.bestStrength : null,
         hasRelativeConflict,
+        alternatives,
     };
 }
 
@@ -1289,6 +1301,10 @@ function normalizeResult(result, mode) {
 
         hasTonalityConflict: Boolean(result?.hasTonalityConflict),
 
+        alternatives: Array.isArray(result?.alternatives)
+            ? result.alternatives
+            : [],
+
         mode,
     };
 }
@@ -1449,6 +1465,8 @@ export class TrackAnalyzer {
 
                         hasTonalityConflict:
                             keyConsensus?.hasRelativeConflict ?? false,
+
+                        alternatives: keyConsensus?.alternatives ?? [],
                     },
                     "full",
                 );
@@ -1534,6 +1552,8 @@ export class TrackAnalyzer {
 
                         hasTonalityConflict:
                             keyConsensus?.hasRelativeConflict ?? false,
+
+                        alternatives: keyConsensus?.alternatives ?? [],
                     },
                     "selection",
                 );
@@ -1655,6 +1675,8 @@ export class TrackAnalyzer {
 
                     hasTonalityConflict:
                         keyConsensus?.hasRelativeConflict ?? false,
+
+                    alternatives: keyConsensus?.alternatives ?? [],
                 },
                 "fast",
             );
