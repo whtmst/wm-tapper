@@ -261,6 +261,8 @@ export function createLanguageUI(
         } else if (tapKey) {
             tapKey.textContent = "";
         }
+
+        updateTonalityTipVisibility();
     }
 
     /* =====================================================
@@ -573,7 +575,7 @@ export function createLanguageUI(
        ===================================================== */
 
     if (tonalityConflictTip) {
-        tonalityConflictTip.addEventListener("click", (event) => {
+        const toggleTonalityTooltip = (event) => {
             event.preventDefault();
             event.stopPropagation();
 
@@ -581,6 +583,14 @@ export function createLanguageUI(
                 hideTonalityTooltip();
             } else {
                 showTonalityTooltip();
+            }
+        };
+
+        tonalityConflictTip.addEventListener("click", toggleTonalityTooltip);
+
+        tonalityConflictTip.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                toggleTonalityTooltip(event);
             }
         });
 
