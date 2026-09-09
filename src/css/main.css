@@ -542,10 +542,10 @@ a:focus-visible {
 }
 
 /* =========================================================
-   TONALITY KEY + HINT ICON
+   TAP KEY (main tonality)
    ========================================================= */
 
-.tap-button__key-wrap {
+.tap-button__key {
     position: absolute;
 
     bottom: 34px;
@@ -553,67 +553,122 @@ a:focus-visible {
 
     z-index: 2;
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width: calc(100% - 20px);
 
-    gap: 4px;
+    color: rgba(36, 41, 26, 0.56);
 
-    max-width: calc(100% - 20px);
+    font-size: 13px;
+    font-weight: 500;
+
+    line-height: 1;
+
+    letter-spacing: 0.045em;
+
+    text-align: center;
+
+    white-space: nowrap;
 
     transform: translateX(-50%);
 }
 
-.tonality-hint-icon {
-    flex-shrink: 0;
+/* =========================================================
+   ALTERNATIVE KEYS (conflict)
+   ========================================================= */
 
-    width: 13px;
-    height: 13px;
+.tap-button__alts {
+    position: absolute;
 
-    padding: 0;
+    bottom: 10px;
+    left: 50%;
+
+    z-index: 2;
+
+    width: calc(100% - 16px);
 
     display: none;
+    flex-direction: column;
     align-items: center;
+
+    gap: 2px;
+
+    transform: translateX(-50%);
+
+    pointer-events: none;
+}
+
+.tap-button__alts:not([hidden]) {
+    display: flex;
+}
+
+.tap-button__alts-title {
+    color: rgba(36, 41, 26, 0.38);
+
+    font-size: 9px;
+    font-weight: 520;
+
+    line-height: 1.15;
+
+    letter-spacing: 0.04em;
+
+    text-transform: uppercase;
+}
+
+.tap-button__alts-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 1px;
+
+    width: 100%;
+}
+
+.tap-button__alt {
+    display: flex;
+    align-items: baseline;
     justify-content: center;
 
-    border: 0;
-    border-radius: 50%;
+    gap: 5px;
 
-    background: transparent;
-
-    opacity: 0.55;
-    cursor: pointer;
-
-    transition:
-        opacity var(--transition-fast),
-        transform var(--transition-fast);
-}
-
-.tonality-hint-icon img {
     width: 100%;
-    height: 100%;
 
-    display: block;
+    color: rgba(36, 41, 26, 0.48);
 
-    object-fit: contain;
+    font-size: 11px;
+    font-weight: 500;
 
-    /* под цвет шрифта ключа */
-    filter: brightness(0) saturate(100%) opacity(0.56);
+    line-height: 1.2;
+
+    letter-spacing: 0.02em;
+
+    text-align: center;
 }
 
-.tonality-hint-icon:hover,
-.tonality-hint-icon.is-open {
-    opacity: 1;
-    transform: scale(1.08);
+.tap-button__alt-strength {
+    flex-shrink: 0;
+
+    color: rgba(36, 41, 26, 0.4);
+
+    font-size: 10px;
+    font-weight: 540;
+
+    font-variant-numeric: tabular-nums;
 }
 
-.tonality-hint-icon:hover img,
-.tonality-hint-icon.is-open img {
-    filter: brightness(0) saturate(100%) opacity(0.85);
+/* ---------------------------------------------------------
+   When alternatives are visible — shift main content up
+   --------------------------------------------------------- */
+
+.tap-button.tap-button--has-alts .tap-button__confidence {
+    top: 18px;
 }
 
-.tonality-hint-icon:not([hidden]) {
-    display: inline-flex;
+.tap-button.tap-button--has-alts .tap-button__value {
+    transform: translateY(-14px);
+}
+
+.tap-button.tap-button--has-alts .tap-button__key {
+    bottom: 52px;
 }
 
 /* =========================================================
@@ -2216,118 +2271,4 @@ a:focus-visible {
     text-align: center;
 
     transform: translateX(-50%);
-}
-
-.tap-button__key {
-    position: static;
-
-    width: auto;
-
-    color: rgba(36, 41, 26, 0.56);
-
-    font-size: 13px;
-    font-weight: 500;
-
-    line-height: 1;
-
-    letter-spacing: 0.045em;
-
-    text-align: center;
-
-    white-space: nowrap;
-}
-
-/* =========================================================
-   TONALITY TOOLTIP
-   ========================================================= */
-
-.tonality-tooltip {
-    position: absolute;
-
-    z-index: 120;
-
-    min-width: 132px;
-    max-width: 200px;
-
-    padding: 7px 8px 6px;
-
-    border: 1px solid rgba(255, 255, 255, 0.075);
-    border-radius: 6px;
-
-    background: linear-gradient(180deg, #25292b 0%, #1b1e20 100%);
-
-    box-shadow:
-        0 10px 25px rgba(0, 0, 0, 0.42),
-        0 2px 7px rgba(0, 0, 0, 0.28);
-
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-
-    transform: translateY(4px) scale(0.98);
-
-    transition:
-        opacity 120ms ease,
-        visibility 120ms ease,
-        transform 120ms ease;
-}
-
-.tonality-tooltip.is-visible {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-
-    transform: translateY(0) scale(1);
-}
-
-.tonality-tooltip__title {
-    margin-bottom: 5px;
-
-    color: rgba(240, 242, 236, 0.42);
-
-    font-size: 9px;
-    font-weight: 520;
-
-    line-height: 1.2;
-
-    letter-spacing: 0.04em;
-
-    text-transform: uppercase;
-}
-
-.tonality-tooltip__list {
-    list-style: none;
-
-    display: flex;
-    flex-direction: column;
-
-    gap: 3px;
-}
-
-.tonality-tooltip__item {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-
-    gap: 8px;
-
-    color: rgba(240, 242, 236, 0.78);
-
-    font-size: 10.5px;
-    font-weight: 500;
-
-    line-height: 1.25;
-
-    letter-spacing: 0.02em;
-}
-
-.tonality-tooltip__strength {
-    flex-shrink: 0;
-
-    color: rgba(200, 233, 87, 0.62);
-
-    font-size: 9.5px;
-    font-weight: 560;
-
-    font-variant-numeric: tabular-nums;
 }
