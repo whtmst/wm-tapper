@@ -999,7 +999,7 @@ function selectKeyConsensus(profileSets, genre = "auto") {
         }
     }
 
-    const alternatives = rankedGroups.slice(1, 4).map((group) => {
+    const alternatives = rankedGroups.slice(1, 3).map((group) => {
         return {
             key: group.key,
             scale: group.scale,
