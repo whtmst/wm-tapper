@@ -100,19 +100,48 @@
                                     TAP
                                 </span>
 
-                                <img
-                                    class="tonality-hint-icon"
-                                    id="tonalityConflictTip"
-                                    src="assets/icons/tip.svg"
-                                    alt="Tip"
-                                    style="display: none"
-                                />
-
                                 <span
-                                    class="tap-button__key"
-                                    id="tapKey"
-                                ></span>
+                                    class="tap-button__key-wrap"
+                                    id="tapKeyWrap"
+                                >
+                                    <button
+                                        class="tonality-hint-icon"
+                                        id="tonalityConflictTip"
+                                        type="button"
+                                        aria-label="Tonality tip"
+                                        aria-expanded="false"
+                                        hidden
+                                    >
+                                        <img
+                                            src="assets/icons/tip.svg"
+                                            alt=""
+                                        />
+                                    </button>
+
+                                    <span
+                                        class="tap-button__key"
+                                        id="tapKey"
+                                    ></span>
+                                </span>
                             </button>
+
+                            <!-- Tonality alternatives tooltip -->
+                            <div
+                                class="tonality-tooltip"
+                                id="tonalityTooltip"
+                                role="tooltip"
+                                aria-hidden="true"
+                                hidden
+                            >
+                                <div
+                                    class="tonality-tooltip__title"
+                                    id="tonalityTooltipTitle"
+                                ></div>
+                                <ul
+                                    class="tonality-tooltip__list"
+                                    id="tonalityTooltipList"
+                                ></ul>
+                            </div>
 
                             <!-- =================================
                              TAP HISTORY
