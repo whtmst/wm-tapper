@@ -541,22 +541,47 @@ a:focus-visible {
         transform 120ms ease;
 }
 
-
 /* =========================================================
-   TONALITY HINT ICON
+   TONALITY KEY + HINT ICON
    ========================================================= */
 
-.tonality-hint-icon {
+.tap-button__key-wrap {
     position: absolute;
-    top: 16px;
-    right: 16px;
-    
-    z-index: 5;
 
-    width: 20px;
-    height: 20px;
+    bottom: 34px;
+    left: 50%;
 
-    opacity: 0.6;
+    z-index: 2;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 4px;
+
+    max-width: calc(100% - 20px);
+
+    transform: translateX(-50%);
+}
+
+.tonality-hint-icon {
+    flex-shrink: 0;
+
+    width: 13px;
+    height: 13px;
+
+    padding: 0;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+    border-radius: 50%;
+
+    background: transparent;
+
+    opacity: 0.55;
     cursor: pointer;
 
     transition:
@@ -564,11 +589,32 @@ a:focus-visible {
         transform var(--transition-fast);
 }
 
-.tonality-hint-icon:hover {
-    opacity: 1;
-    transform: scale(1.1);
+.tonality-hint-icon img {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: contain;
+
+    /* под цвет шрифта ключа */
+    filter: brightness(0) saturate(100%) opacity(0.56);
 }
 
+.tonality-hint-icon:hover,
+.tonality-hint-icon.is-open {
+    opacity: 1;
+    transform: scale(1.08);
+}
+
+.tonality-hint-icon:hover img,
+.tonality-hint-icon.is-open img {
+    filter: brightness(0) saturate(100%) opacity(0.85);
+}
+
+.tonality-hint-icon:not([hidden]) {
+    display: inline-flex;
+}
 
 /* =========================================================
    TAP HISTORY
@@ -1509,7 +1555,6 @@ a:focus-visible {
         box-shadow var(--transition-fast);
 }
 
-
 /* ---------------------------------------------------------
    Hover / active
    --------------------------------------------------------- */
@@ -1550,7 +1595,6 @@ a:focus-visible {
 
     pointer-events: none;
 }
-
 
 /* =========================================================
    TIME RANGE
@@ -1750,7 +1794,6 @@ a:focus-visible {
     background: rgba(200, 233, 87, 0.075);
 }
 
-
 /* =========================================================
    GENRE DROPDOWN
    ========================================================= */
@@ -1935,7 +1978,6 @@ a:focus-visible {
 
     background: rgba(200, 233, 87, 0.075);
 }
-
 
 /* =========================================================
    ANALYSIS RUN BUTTON
@@ -2177,14 +2219,9 @@ a:focus-visible {
 }
 
 .tap-button__key {
-    position: absolute;
+    position: static;
 
-    bottom: 34px;
-    left: 50%;
-
-    z-index: 2;
-
-    width: calc(100% - 20px);
+    width: auto;
 
     color: rgba(36, 41, 26, 0.56);
 
@@ -2197,5 +2234,100 @@ a:focus-visible {
 
     text-align: center;
 
-    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+/* =========================================================
+   TONALITY TOOLTIP
+   ========================================================= */
+
+.tonality-tooltip {
+    position: absolute;
+
+    z-index: 120;
+
+    min-width: 132px;
+    max-width: 200px;
+
+    padding: 7px 8px 6px;
+
+    border: 1px solid rgba(255, 255, 255, 0.075);
+    border-radius: 6px;
+
+    background: linear-gradient(180deg, #25292b 0%, #1b1e20 100%);
+
+    box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.42),
+        0 2px 7px rgba(0, 0, 0, 0.28);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transform: translateY(4px) scale(0.98);
+
+    transition:
+        opacity 120ms ease,
+        visibility 120ms ease,
+        transform 120ms ease;
+}
+
+.tonality-tooltip.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transform: translateY(0) scale(1);
+}
+
+.tonality-tooltip__title {
+    margin-bottom: 5px;
+
+    color: rgba(240, 242, 236, 0.42);
+
+    font-size: 9px;
+    font-weight: 520;
+
+    line-height: 1.2;
+
+    letter-spacing: 0.04em;
+
+    text-transform: uppercase;
+}
+
+.tonality-tooltip__list {
+    list-style: none;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.tonality-tooltip__item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+
+    gap: 8px;
+
+    color: rgba(240, 242, 236, 0.78);
+
+    font-size: 10.5px;
+    font-weight: 500;
+
+    line-height: 1.25;
+
+    letter-spacing: 0.02em;
+}
+
+.tonality-tooltip__strength {
+    flex-shrink: 0;
+
+    color: rgba(200, 233, 87, 0.62);
+
+    font-size: 9.5px;
+    font-weight: 560;
+
+    font-variant-numeric: tabular-nums;
 }
