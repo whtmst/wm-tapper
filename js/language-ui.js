@@ -65,10 +65,10 @@ export function createLanguageUI(
         historyMenu,
         tapConfidence,
         tapKey,
-        tonalityConflictTip,
-        tonalityTooltip,
-        tonalityTooltipTitle,
-        tonalityTooltipList,
+        tapKeyAlts,
+        tapKeyAltsTitle,
+        tapKeyAltsList,
+        tapButton,
     },
     {
         settings,
@@ -102,116 +102,6 @@ export function createLanguageUI(
 
     let analysisResult = null;
 
-    function hideTonalityTooltip() {
-        if (!tonalityTooltip || !tonalityConflictTip) {
-            return;
-        }
-
-        tonalityTooltip.classList.remove("is-visible");
-        tonalityTooltip.setAttribute("aria-hidden", "true");
-        tonalityTooltip.hidden = true;
-
-        tonalityConflictTip.classList.remove("is-open");
-        tonalityConflictTip.setAttribute("aria-expanded", "false");
-    }
-
-    function showTonalityTooltip() {
-        if (
-            !tonalityTooltip ||
-            !tonalityConflictTip ||
-            !analysisResult?.hasTonalityConflict
-        ) {
-            return;
-        }
-
-        const language = getCurrentLanguage();
-        const text = getTranslations(language);
-
-        if (tonalityTooltipTitle) {
-            tonalityTooltipTitle.textContent =
-                text.alsoPossible || "Also possible";
-        }
-
-        if (tonalityTooltipList) {
-            tonalityTooltipList.innerHTML = "";
-
-            const alternatives = Array.isArray(analysisResult.alternatives)
-                ? analysisResult.alternatives
-                : [];
-
-            alternatives.forEach((item) => {
-                if (!item?.key || !item?.scale) {
-                    return;
-                }
-
-                const li = document.createElement("li");
-                li.className = "tonality-tooltip__item";
-
-                const keySpan = document.createElement("span");
-                keySpan.textContent = formatAnalysisKey(
-                    item.key,
-                    item.scale,
-                    language,
-                );
-
-                const strengthSpan = document.createElement("span");
-                strengthSpan.className = "tonality-tooltip__strength";
-
-                if (Number.isFinite(item.strength)) {
-                    strengthSpan.textContent = `${Math.round(item.strength * 100)}%`;
-                } else {
-                    strengthSpan.textContent = "";
-                }
-
-                li.appendChild(keySpan);
-                li.appendChild(strengthSpan);
-                tonalityTooltipList.appendChild(li);
-            });
-        }
-
-        /* Position relative to the icon */
-        const iconRect = tonalityConflictTip.getBoundingClientRect();
-        const appWindow = document.querySelector(".app-window");
-        const windowRect = appWindow
-            ? appWindow.getBoundingClientRect()
-            : { left: 0, top: 0 };
-
-        const top = iconRect.bottom - windowRect.top + 6;
-        const left = iconRect.left + iconRect.width / 2 - windowRect.left;
-
-        tonalityTooltip.style.top = `${top}px`;
-        tonalityTooltip.style.left = `${left}px`;
-        tonalityTooltip.style.transform = "translateX(-50%)";
-
-        tonalityTooltip.hidden = false;
-        tonalityTooltip.setAttribute("aria-hidden", "false");
-        tonalityTooltip.classList.add("is-visible");
-
-        tonalityConflictTip.classList.add("is-open");
-        tonalityConflictTip.setAttribute("aria-expanded", "true");
-    }
-
-    function updateTonalityTipVisibility() {
-        if (!tonalityConflictTip) {
-            return;
-        }
-
-        const shouldShow =
-            analysisResult &&
-            analysisResult.hasTonalityConflict &&
-            Array.isArray(analysisResult.alternatives) &&
-            analysisResult.alternatives.length > 0;
-
-        if (shouldShow) {
-            tonalityConflictTip.hidden = false;
-            tonalityConflictTip.removeAttribute("hidden");
-        } else {
-            hideTonalityTooltip();
-            tonalityConflictTip.hidden = true;
-            tonalityConflictTip.setAttribute("hidden", "");
-        }
-    }
-
     function updateAnalysisResult(result) {
         analysisResult = result || null;
 
@@ -220,6 +110,7 @@ export function createLanguageUI(
 
     function renderAnalysisResult() {
         const language = getCurrentLanguage();
+        const text = getTranslations(language);
 
         if (!analysisResult) {
             if (tapConfidence) {
@@ -230,7 +121,18 @@ export function createLanguageUI(
                 tapKey.textContent = "";
             }
 
-            updateTonalityTipVisibility();
+            if (tapKeyAlts) {
+                tapKeyAlts.hidden = true;
+                tapKeyAlts.setAttribute("hidden", "");
+            }
+
+            if (tapKeyAltsList) {
+                tapKeyAltsList.innerHTML = "";
+            }
+
+            if (tapButton) {
+                tapButton.classList.remove("tap-button--has-alts");
+            }
 
             return;
         }
@@ -262,7 +164,72 @@ export function createLanguageUI(
             tapKey.textContent = "";
         }
 
-        updateTonalityTipVisibility();
+        /* -----------------------------------------
+           Alternatives (relative conflict only)
+           ----------------------------------------- */
+
+        const alternatives = Array.isArray(analysisResult.alternatives)
+            ? analysisResult.alternatives.slice(0, 2)
+            : [];
+
+        const shouldShowAlts =
+            analysisResult.hasTonalityConflict && alternatives.length > 0;
+
+        if (shouldShowAlts && tapKeyAlts && tapKeyAltsList) {
+            if (tapKeyAltsTitle) {
+                tapKeyAltsTitle.textContent =
+                    text.alsoPossible || "Also possible";
+            }
+
+            tapKeyAltsList.innerHTML = "";
+
+            alternatives.forEach((item) => {
+                if (!item?.key || !item?.scale) {
+                    return;
+                }
+
+                const row = document.createElement("span");
+                row.className = "tap-button__alt";
+
+                const keySpan = document.createElement("span");
+                keySpan.textContent = formatAnalysisKey(
+                    item.key,
+                    item.scale,
+                    language,
+                );
+
+                row.appendChild(keySpan);
+
+                if (Number.isFinite(item.strength)) {
+                    const strengthSpan = document.createElement("span");
+                    strengthSpan.className = "tap-button__alt-strength";
+                    strengthSpan.textContent = `${Math.round(item.strength * 100)}%`;
+                    row.appendChild(strengthSpan);
+                }
+
+                tapKeyAltsList.appendChild(row);
+            });
+
+            tapKeyAlts.hidden = false;
+            tapKeyAlts.removeAttribute("hidden");
+
+            if (tapButton) {
+                tapButton.classList.add("tap-button--has-alts");
+            }
+        } else {
+            if (tapKeyAlts) {
+                tapKeyAlts.hidden = true;
+                tapKeyAlts.setAttribute("hidden", "");
+            }
+
+            if (tapKeyAltsList) {
+                tapKeyAltsList.innerHTML = "";
+            }
+
+            if (tapButton) {
+                tapButton.classList.remove("tap-button--has-alts");
+            }
+        }
     }
 
     /* =====================================================
@@ -554,8 +521,6 @@ export function createLanguageUI(
            ----------------------------------------- */
 
         renderAnalysisResult();
-
-        updateTonalityTipVisibility();
     }
 
     /* =====================================================
@@ -568,71 +533,6 @@ export function createLanguageUI(
 
             setLanguage(button.dataset.language);
         });
-    });
-
-    /* =====================================================
-       TONALITY TIP EVENTS
-       ===================================================== */
-
-    if (tonalityConflictTip) {
-        const toggleTonalityTooltip = (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            if (tonalityTooltip?.classList.contains("is-visible")) {
-                hideTonalityTooltip();
-            } else {
-                showTonalityTooltip();
-            }
-        };
-
-        tonalityConflictTip.addEventListener("click", toggleTonalityTooltip);
-
-        tonalityConflictTip.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" || event.key === " ") {
-                toggleTonalityTooltip(event);
-            }
-        });
-
-        tonalityConflictTip.addEventListener("mouseenter", () => {
-            showTonalityTooltip();
-        });
-
-        tonalityConflictTip.addEventListener("mouseleave", () => {
-            /*
-             * A short delay to allow the user
-             * to hover over the tooltip itself.
-             */
-
-            setTimeout(() => {
-                if (
-                    tonalityTooltip &&
-                    !tonalityTooltip.matches(":hover") &&
-                    !tonalityConflictTip.matches(":hover")
-                ) {
-                    hideTonalityTooltip();
-                }
-            }, 120);
-        });
-    }
-
-    if (tonalityTooltip) {
-        tonalityTooltip.addEventListener("mouseleave", () => {
-            hideTonalityTooltip();
-        });
-    }
-
-    document.addEventListener("click", (event) => {
-        if (
-            !tonalityConflictTip ||
-            !tonalityTooltip ||
-            tonalityConflictTip.contains(event.target) ||
-            tonalityTooltip.contains(event.target)
-        ) {
-            return;
-        }
-
-        hideTonalityTooltip();
     });
 
     /* =====================================================
@@ -657,7 +557,5 @@ export function createLanguageUI(
         setLanguage,
 
         applyLanguage,
-
-        hideTonalityTooltip,
     };
 }
