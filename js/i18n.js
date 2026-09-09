@@ -86,6 +86,8 @@ export const translations = {
         minor: "Minor",
 
         madeBy: "Made by Wht Mst",
+
+        alsoPossible: "Also possible",
     },
 
     /* =====================================================
@@ -160,6 +162,8 @@ export const translations = {
         minor: "Минор",
 
         madeBy: "Сделано Wht Mst",
+
+        alsoPossible: "Также возможны",
     },
 
     /* =====================================================
@@ -234,6 +238,8 @@ export const translations = {
         minor: "Minor",
 
         madeBy: "Wht Mst tərəfindən",
+
+        alsoPossible: "Həmçinin mümkün",
     },
 };
 
