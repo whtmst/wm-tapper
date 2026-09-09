@@ -133,6 +133,8 @@ const tapConfidence = document.getElementById("tapConfidence");
 
 const tapKey = document.getElementById("tapKey");
 
+const tonalityConflictTip = document.getElementById("tonalityConflictTip");
+
 const analysisWaveformCanvas = document.getElementById(
     "analysisWaveformCanvas",
 );
@@ -919,11 +921,17 @@ analysisRunButton.addEventListener("click", async () => {
 
         languageUI.updateAnalysisResult(result);
 
+        // Show icon if analyzer finds a conflict
+        if (result && result.hasTonalityConflict) {
+            tonalityConflictTip.style.display = "block";
+        } else {
+            tonalityConflictTip.style.display = "none";
+        }
+
         /*
          * Keep the result available for the
          * next UI stage.
          */
-
         window.WMTapperLastAnalysis = result;
 
         closeAnalysisPanel();
@@ -978,6 +986,7 @@ const session = createSessionController({
 
 function handleTap() {
     languageUI.updateAnalysisResult(null);
+    tonalityConflictTip.style.display = "none";
 
     if (isAnalysisRunning) {
         return;
@@ -1050,6 +1059,8 @@ resetButton.addEventListener("click", () => {
     }
 
     languageUI.updateAnalysisResult(null);
+
+    tonalityConflictTip.style.display = "none";
 
     session.reset();
 
