@@ -119,6 +119,8 @@ const analysisModeControl = document.getElementById("analysisModeControl");
 
 const analysisModeMenu = document.getElementById("analysisModeMenu");
 
+const analysisModeValue = document.getElementById("analysisModeValue");
+
 const analysisGenre = document.getElementById("analysisGenre");
 
 const analysisGenreControl = document.getElementById("analysisGenreControl");
