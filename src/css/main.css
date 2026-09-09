@@ -541,6 +541,35 @@ a:focus-visible {
         transform 120ms ease;
 }
 
+
+/* =========================================================
+   TONALITY HINT ICON
+   ========================================================= */
+
+.tonality-hint-icon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    
+    z-index: 5;
+
+    width: 20px;
+    height: 20px;
+
+    opacity: 0.6;
+    cursor: pointer;
+
+    transition:
+        opacity var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.tonality-hint-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+
 /* =========================================================
    TAP HISTORY
    ========================================================= */
