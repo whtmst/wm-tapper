@@ -135,6 +135,10 @@ const tapKey = document.getElementById("tapKey");
 
 const tonalityConflictTip = document.getElementById("tonalityConflictTip");
 
+const tonalityTooltip = document.getElementById("tonalityTooltip");
+const tonalityTooltipTitle = document.getElementById("tonalityTooltipTitle");
+const tonalityTooltipList = document.getElementById("tonalityTooltipList");
+
 const analysisWaveformCanvas = document.getElementById(
     "analysisWaveformCanvas",
 );
@@ -710,6 +714,10 @@ const languageUI = createLanguageUI(
         historyMenu,
         tapConfidence,
         tapKey,
+        tonalityConflictTip,
+        tonalityTooltip,
+        tonalityTooltipTitle,
+        tonalityTooltipList,
     },
     {
         settings,
@@ -921,13 +929,6 @@ analysisRunButton.addEventListener("click", async () => {
 
         languageUI.updateAnalysisResult(result);
 
-        // Show icon if analyzer finds a conflict
-        if (result && result.hasTonalityConflict) {
-            tonalityConflictTip.style.display = "block";
-        } else {
-            tonalityConflictTip.style.display = "none";
-        }
-
         /*
          * Keep the result available for the
          * next UI stage.
@@ -986,7 +987,6 @@ const session = createSessionController({
 
 function handleTap() {
     languageUI.updateAnalysisResult(null);
-    tonalityConflictTip.style.display = "none";
 
     if (isAnalysisRunning) {
         return;
@@ -1059,8 +1059,6 @@ resetButton.addEventListener("click", () => {
     }
 
     languageUI.updateAnalysisResult(null);
-
-    tonalityConflictTip.style.display = "none";
 
     session.reset();
 
