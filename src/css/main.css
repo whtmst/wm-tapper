@@ -359,26 +359,19 @@ html.is-standalone body {
 
 html.is-standalone body {
     display: flex;
-    align-items: stretch;
-    justify-content: stretch;
+    align-items: flex-start;
+    justify-content: center;
 }
 
 html.is-standalone .app-window {
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    border-radius: 0;
-    border: 0;
-    box-shadow: none;
+    width: var(--window-width);
+    height: var(--window-height);
+    flex-shrink: 0;
+    margin-top: 0;
 }
 
-/* analysis panel in standalone mode - fits inside the window without causing page scroll */
 html.is-standalone .app-window.analysis-panel-open {
-    overflow: hidden;
-}
-
-html.is-standalone .app-window.analysis-panel-open .analysis-panel {
-    /* leave position as is; window height is changed via JS */
+    overflow: visible;
 }
 
 /* =========================================================
