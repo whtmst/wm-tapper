@@ -1106,6 +1106,11 @@ document.addEventListener("keydown", (event) => {
    ========================================================= */
 
 function initialize() {
+
+	if (window.matchMedia("(display-mode: standalone)").matches) {
+	    window.resizeTo(280, 360);
+	}
+   
     settings.load();
 
     tapEngine.configure({
