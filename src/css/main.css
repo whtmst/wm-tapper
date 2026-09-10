@@ -342,12 +342,17 @@ a:focus-visible {
 }
 
 /* =========================================================
-   STANDALONE (PWA)
+   STANDALONE (PWA) / TAURI
    ========================================================= */
 
-html.is-standalone .window-control--minimize,
-html.is-standalone .window-control--close {
+html.is-standalone:not(.is-tauri) .window-control--minimize,
+html.is-standalone:not(.is-tauri) .window-control--close {
     display: none !important;
+}
+
+html.is-tauri .window-control--minimize,
+html.is-tauri .window-control--close {
+    display: inline-flex !important;
 }
 
 html.is-standalone,
