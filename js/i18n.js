@@ -250,6 +250,7 @@ export const translations = {
 
         genreOther: "OTHER",
     },
+};
 
 /* =========================================================
    NOTE NAMES
