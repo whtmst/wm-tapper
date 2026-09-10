@@ -36,44 +36,14 @@ const RHYTHM_METHOD = "multifeature";
  */
 
 const GENRE_BPM_RANGES = {
-    house: {
-        min: 115,
-        max: 135,
+    auto: {
+        min: 40,
+        max: 250,
     },
 
-    techno: {
-        min: 120,
-        max: 155,
-    },
-
-    trance: {
-        min: 125,
-        max: 150,
-    },
-
-    "drum-and-bass": {
-        min: 160,
-        max: 190,
-    },
-
-    dubstep: {
-        min: 135,
-        max: 150,
-    },
-
-    hardstyle: {
-        min: 145,
-        max: 165,
-    },
-
-    hardcore: {
-        min: 160,
-        max: 220,
-    },
-
-    frenchcore: {
-        min: 180,
-        max: 240,
+    "downtempo-ambient": {
+        min: 60,
+        max: 100,
     },
 
     "hip-hop-trap": {
@@ -89,6 +59,46 @@ const GENRE_BPM_RANGES = {
     rock: {
         min: 70,
         max: 160,
+    },
+
+    house: {
+        min: 115,
+        max: 135,
+    },
+
+    techno: {
+        min: 120,
+        max: 155,
+    },
+
+    trance: {
+        min: 125,
+        max: 150,
+    },
+
+    dubstep: {
+        min: 135,
+        max: 150,
+    },
+
+    hardstyle: {
+        min: 145,
+        max: 165,
+    },
+
+    "drum-and-bass": {
+        min: 160,
+        max: 190,
+    },
+
+    hardcore: {
+        min: 160,
+        max: 220,
+    },
+
+    frenchcore: {
+        min: 180,
+        max: 240,
     },
 
     "other-electronic": {
