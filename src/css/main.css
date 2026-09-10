@@ -342,14 +342,43 @@ a:focus-visible {
 }
 
 /* =========================================================
-   STANDALONE (PWA) — hide fake window controls
+   STANDALONE (PWA)
    ========================================================= */
 
-@media (display-mode: standalone) {
-    .window-control--minimize,
-    .window-control--close {
-        display: none;
-    }
+html.is-standalone .window-control--minimize,
+html.is-standalone .window-control--close {
+    display: none !important;
+}
+
+html.is-standalone,
+html.is-standalone body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+html.is-standalone body {
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+}
+
+html.is-standalone .app-window {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    border-radius: 0;
+    border: 0;
+    box-shadow: none;
+}
+
+/* analysis panel in standalone mode - fits inside the window without causing page scroll */
+html.is-standalone .app-window.analysis-panel-open {
+    overflow: hidden;
+}
+
+html.is-standalone .app-window.analysis-panel-open .analysis-panel {
+    /* leave position as is; window height is changed via JS */
 }
 
 /* =========================================================
