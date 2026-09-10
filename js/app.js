@@ -164,10 +164,10 @@ const waveform = createWaveformRenderer(analysisWaveformCanvas);
    STANDALONE MODE
    ========================================================= */
 const STANDALONE_WINDOW = {
-    normalWidth: 300,
-    normalHeight: 380,
-    analysisWidth: 300,
-    analysisHeight: 580,
+    normalWidth: 266,
+    normalHeight: 360,
+    analysisWidth: 266,
+    analysisHeight: 560,
 };
 
 function isStandaloneMode() {
