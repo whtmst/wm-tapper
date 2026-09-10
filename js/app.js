@@ -163,12 +163,16 @@ const waveform = createWaveformRenderer(analysisWaveformCanvas);
 /* =========================================================
    STANDALONE MODE
    ========================================================= */
-const STANDALONE_WINDOW = {
-    normalWidth: 266,
-    normalHeight: 360,
-    analysisWidth: 266,
-    analysisHeight: 560,
+const APP_WINDOW_SIZE = {
+    normalWidth: 250,
+    normalHeight: 300,
+    analysisWidth: 250,
+    analysisHeight: 480,
 };
+
+function isTauriApp() {
+    return Boolean(window.__TAURI__);
+}
 
 function isStandaloneMode() {
     return (
@@ -179,13 +183,57 @@ function isStandaloneMode() {
     );
 }
 
-function resizeStandaloneWindow(width, height) {
+function getTauriWindow() {
+    if (!window.__TAURI__) {
+        return null;
+    }
+
+    if (window.__TAURI__.webviewWindow?.getCurrentWebviewWindow) {
+        return window.__TAURI__.webviewWindow.getCurrentWebviewWindow();
+    }
+
+    if (window.__TAURI__.window?.getCurrentWindow) {
+        return window.__TAURI__.window.getCurrentWindow();
+    }
+
+    return null;
+}
+
+async function resizeAppWindow(width, height) {
+    if (isTauriApp()) {
+        const appWindow = getTauriWindow();
+
+        if (!appWindow) {
+            return;
+        }
+
+        try {
+            const LogicalSize =
+                window.__TAURI__.dpi?.LogicalSize ||
+                window.__TAURI__.window?.LogicalSize;
+
+            if (LogicalSize) {
+                await appWindow.setSize(new LogicalSize(width, height));
+            } else {
+                await appWindow.setSize({
+                    type: "Logical",
+                    width,
+                    height,
+                });
+            }
+        } catch (error) {
+            console.warn("WM Tapper: Tauri setSize failed.", error);
+        }
+
+        return;
+    }
+
     if (!isStandaloneMode()) {
         return;
     }
 
     try {
-        window.resizeTo(width, height);
+        window.resizeTo(width + 16, height + 40);
     } catch (error) {
         /* browser may ignore */
     }
@@ -440,9 +488,9 @@ function openAnalysisPanel() {
 
     document.querySelector(".app-window").classList.add("analysis-panel-open");
 
-    resizeStandaloneWindow(
-        STANDALONE_WINDOW.analysisWidth,
-        STANDALONE_WINDOW.analysisHeight,
+    void resizeAppWindow(
+        APP_WINDOW_SIZE.analysisWidth,
+        APP_WINDOW_SIZE.analysisHeight,
     );
 }
 
@@ -458,9 +506,9 @@ function closeAnalysisPanel() {
 
     activeAnalysisHandle = null;
 
-    resizeStandaloneWindow(
-        STANDALONE_WINDOW.normalWidth,
-        STANDALONE_WINDOW.normalHeight,
+    void resizeAppWindow(
+        APP_WINDOW_SIZE.normalWidth,
+        APP_WINDOW_SIZE.normalHeight,
     );
 }
 
@@ -1092,6 +1140,36 @@ settingsButton.addEventListener("click", () => {
 });
 
 /* =========================================================
+   TAURI MIN. CLOSE BUTTONS
+   ========================================================= */
+const minimizeButton = document.querySelector(".window-control--minimize");
+const closeButton = document.querySelector(".window-control--close");
+
+if (minimizeButton) {
+    minimizeButton.addEventListener("click", async (event) => {
+        event.stopPropagation();
+
+        const appWindow = getTauriWindow();
+
+        if (appWindow) {
+            await appWindow.minimize();
+        }
+    });
+}
+
+if (closeButton) {
+    closeButton.addEventListener("click", async (event) => {
+        event.stopPropagation();
+
+        const appWindow = getTauriWindow();
+
+        if (appWindow) {
+            await appWindow.close();
+        }
+    });
+}
+
+/* =========================================================
    RESET
    ========================================================= */
 
@@ -1148,6 +1226,21 @@ document.addEventListener("keydown", (event) => {
    ========================================================= */
 
 function initialize() {
+
+   if (isTauriApp()) {
+        document.documentElement.classList.add("is-tauri");
+    }
+
+    if (isStandaloneMode()) {
+        document.documentElement.classList.add("is-standalone");
+    }
+
+    void resizeAppWindow(
+        APP_WINDOW_SIZE.normalWidth,
+        APP_WINDOW_SIZE.normalHeight,
+    );
+
+    settings.load();
 
     if (isStandaloneMode()) {
         document.documentElement.classList.add("is-standalone");
