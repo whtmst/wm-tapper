@@ -342,6 +342,17 @@ a:focus-visible {
 }
 
 /* =========================================================
+   STANDALONE (PWA) — hide fake window controls
+   ========================================================= */
+
+@media (display-mode: standalone) {
+    .window-control--minimize,
+    .window-control--close {
+        display: none;
+    }
+}
+
+/* =========================================================
    FLIP CONTAINER
    ========================================================= */
 
