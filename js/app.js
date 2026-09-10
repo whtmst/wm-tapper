@@ -159,6 +159,38 @@ const tapKeyController = new TapKeyController({
 
 const waveform = createWaveformRenderer(analysisWaveformCanvas);
 
+
+/* =========================================================
+   STANDALONE MODE
+   ========================================================= */
+const STANDALONE_WINDOW = {
+    normalWidth: 300,
+    normalHeight: 380,
+    analysisWidth: 300,
+    analysisHeight: 580,
+};
+
+function isStandaloneMode() {
+    return (
+        document.documentElement.classList.contains("is-standalone") ||
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.matchMedia("(display-mode: minimal-ui)").matches ||
+        window.navigator.standalone === true
+    );
+}
+
+function resizeStandaloneWindow(width, height) {
+    if (!isStandaloneMode()) {
+        return;
+    }
+
+    try {
+        window.resizeTo(width, height);
+    } catch (error) {
+        /* browser may ignore */
+    }
+}
+
 /* =========================================================
    LOCAL HELPERS
    ========================================================= */
@@ -407,6 +439,11 @@ function openAnalysisPanel() {
     analysisPanel.setAttribute("aria-hidden", "false");
 
     document.querySelector(".app-window").classList.add("analysis-panel-open");
+
+    resizeStandaloneWindow(
+        STANDALONE_WINDOW.analysisWidth,
+        STANDALONE_WINDOW.analysisHeight,
+    );
 }
 
 /**
@@ -420,6 +457,11 @@ function closeAnalysisPanel() {
         .classList.remove("analysis-panel-open");
 
     activeAnalysisHandle = null;
+
+    resizeStandaloneWindow(
+        STANDALONE_WINDOW.normalWidth,
+        STANDALONE_WINDOW.normalHeight,
+    );
 }
 
 /**
@@ -1107,9 +1149,13 @@ document.addEventListener("keydown", (event) => {
 
 function initialize() {
 
-	if (window.matchMedia("(display-mode: standalone)").matches) {
-	    window.resizeTo(280, 360);
-	}
+    if (isStandaloneMode()) {
+        document.documentElement.classList.add("is-standalone");
+        resizeStandaloneWindow(
+            STANDALONE_WINDOW.normalWidth,
+            STANDALONE_WINDOW.normalHeight,
+        );
+    }
    
     settings.load();
 
