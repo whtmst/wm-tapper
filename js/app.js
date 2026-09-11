@@ -43,6 +43,8 @@ import {
 
 const donateButton = document.getElementById("donateButton");
 
+const pinButton = document.getElementById("pinButton");
+
 const settingsButton = document.getElementById("settingsButton");
 
 const flipCard = document.getElementById("flipCard");
@@ -236,6 +238,23 @@ async function resizeAppWindow(width, height) {
         window.resizeTo(width + 16, height + 40);
     } catch (error) {
         /* browser may ignore */
+    }
+}
+
+async function applyAlwaysOnTop(enabled) {
+    const appWindow = getTauriWindow();
+
+    if (appWindow) {
+        try {
+            await appWindow.setAlwaysOnTop(Boolean(enabled));
+        } catch (error) {
+            console.warn("WM Tapper: setAlwaysOnTop failed.", error);
+        }
+    }
+
+    if (pinButton) {
+        pinButton.classList.toggle("is-active", Boolean(enabled));
+        pinButton.setAttribute("aria-pressed", Boolean(enabled) ? "true" : "false");
     }
 }
 
@@ -1145,6 +1164,20 @@ settingsButton.addEventListener("click", () => {
 const minimizeButton = document.querySelector(".window-control--minimize");
 const closeButton = document.querySelector(".window-control--close");
 
+if (pinButton) {
+    pinButton.addEventListener("click", async (event) => {
+        event.stopPropagation();
+
+        if (!isTauriApp()) {
+            return;
+        }
+
+        const nextValue = !settings.get("alwaysOnTop");
+        settings.set("alwaysOnTop", nextValue);
+        await applyAlwaysOnTop(nextValue);
+    });
+}
+
 if (minimizeButton) {
     minimizeButton.addEventListener("click", async (event) => {
         event.stopPropagation();
@@ -1240,6 +1273,10 @@ function initialize() {
     );
 
     settings.load();
+
+    if (isTauriApp()) {
+        void applyAlwaysOnTop(Boolean(settings.get("alwaysOnTop")));
+    }
 
     tapEngine.configure({
         sessionTimeout: settings.get("sessionTimeout"),
