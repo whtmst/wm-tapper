@@ -1302,4 +1302,13 @@ function initialize() {
    START APPLICATION
    ========================================================= */
 
+/* =========================================================
+   DISABLE CONTEXT MENU (desktop app)
+   ========================================================= */
+
+document.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+});
+
+
 initialize();
