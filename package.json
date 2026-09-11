@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "tauri": "tauri",
-    "tauri:build": "tauri build"
+    "prepare:frontend": "node ./scripts/prepare-frontend.mjs",
+    "tauri:build": "npm run prepare:frontend && tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2"
