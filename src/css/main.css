@@ -2329,3 +2329,28 @@ textarea {
 
     transform: translateX(-50%);
 }
+
+/* =========================================================
+   PIN (Always on top) — Tauri only
+   ========================================================= */
+
+.window-control--pin {
+    display: none;
+}
+
+html.is-tauri .window-control--pin {
+    display: inline-flex;
+}
+
+html.is-tauri .window-control--pin.is-active {
+    opacity: 1;
+}
+
+html.is-tauri .window-control--pin.is-active .settings-icon {
+    filter: brightness(0) invert(1);
+    opacity: 1;
+}
+
+html.is-tauri .window-control--pin:not(.is-active) .settings-icon {
+    opacity: 0.75;
+}
