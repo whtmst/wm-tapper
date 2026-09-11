@@ -1226,8 +1226,7 @@ document.addEventListener("keydown", (event) => {
    ========================================================= */
 
 function initialize() {
-
-   if (isTauriApp()) {
+    if (isTauriApp()) {
         document.documentElement.classList.add("is-tauri");
     }
 
@@ -1242,19 +1241,8 @@ function initialize() {
 
     settings.load();
 
-    if (isStandaloneMode()) {
-        document.documentElement.classList.add("is-standalone");
-        resizeStandaloneWindow(
-            STANDALONE_WINDOW.normalWidth,
-            STANDALONE_WINDOW.normalHeight,
-        );
-    }
-   
-    settings.load();
-
     tapEngine.configure({
         sessionTimeout: settings.get("sessionTimeout"),
-
         historyLength: settings.get("historyLength"),
     });
 
