@@ -2187,23 +2187,16 @@ textarea {
 
 .analysis-busy-overlay {
     position: absolute;
-
     top: 0;
     left: 0;
-
     width: 100%;
     height: 100%;
-
     z-index: 200;
-
     border-radius: 12px;
-
     background: rgba(8, 10, 11, 0.34);
-
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-
     transition:
         opacity 140ms ease,
         visibility 140ms ease;
@@ -2217,9 +2210,9 @@ textarea {
 }
 
 .app-window.analysis-panel-open .analysis-busy-overlay.is-visible {
-    height: calc(100% + 171px);
-
-    border-radius: 12px 12px 0 0;
+    top: 38px;
+    height: calc(100% - 38px);
+    border-radius: 0;
 }
 
 /* =========================================================
@@ -2316,6 +2309,14 @@ textarea {
     }
 }
 
+.analysis-run-button.is-analyzing {
+    letter-spacing: 0.08em;
+}
+
+.analysis-run-button.is-analyzing::after {
+    content: "";
+}
+
 /* =========================================================
    ANALYSIS RESULT
    ========================================================= */
@@ -2358,7 +2359,7 @@ html.is-tauri .window-control--pin {
 
 html.is-tauri .window-control--pin .settings-icon {
     opacity: 0.75;
-    transform: rotate(-35deg);
+    transform: rotate(35deg);
     transition:
         opacity var(--transition-fast),
         transform 180ms ease,
