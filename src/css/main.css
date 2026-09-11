@@ -380,6 +380,45 @@ html.is-standalone .app-window.analysis-panel-open {
 }
 
 /* =========================================================
+   TAURI WINDOW
+   ========================================================= */
+
+html.is-tauri,
+html.is-tauri body {
+    background: transparent !important;
+    overflow: hidden !important;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+html.is-tauri body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+html.is-tauri .app-window {
+    overflow: visible;
+}
+
+html.is-tauri .app-window.analysis-panel-open {
+    overflow: visible;
+}
+
+html.is-tauri {
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
+html.is-tauri input,
+html.is-tauri textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* =========================================================
    FLIP CONTAINER
    ========================================================= */
 
