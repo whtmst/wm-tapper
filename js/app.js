@@ -1136,8 +1136,28 @@ tapButton.addEventListener("click", () => {
    DONATE BUTTON
    ========================================================= */
 
-donateButton.addEventListener("click", () => {
-    window.open("https://dalink.to/whtmst", "_blank", "noopener,noreferrer");
+donateButton.addEventListener("click", async () => {
+    const url = "https://dalink.to/whtmst";
+
+    if (isTauriApp()) {
+        try {
+            if (window.__TAURI__?.opener?.openUrl) {
+                await window.__TAURI__.opener.openUrl(url);
+                return;
+            }
+
+            if (window.__TAURI__?.core?.invoke) {
+                await window.__TAURI__.core.invoke("plugin:opener|open_url", {
+                    url,
+                });
+                return;
+            }
+        } catch (error) {
+            console.warn("WM Tapper: opener failed.", error);
+        }
+    }
+
+    window.open(url, "_blank", "noopener,noreferrer");
 });
 
 /* =========================================================
