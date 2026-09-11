@@ -390,6 +390,9 @@ html.is-tauri body {
     width: 100%;
     height: 100%;
     margin: 0;
+    border: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 html.is-tauri body {
@@ -400,6 +403,7 @@ html.is-tauri body {
 
 html.is-tauri .app-window {
     overflow: visible;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
 }
 
 html.is-tauri .app-window.analysis-panel-open {
