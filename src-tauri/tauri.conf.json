@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "identifier": "com.whtmst.wm-tapper",
   "build": {
-    "frontendDist": "../"
+    "beforeBuildCommand": "npm run prepare:frontend",
+    "frontendDist": "../dist"
   },
   "app": {
     "withGlobalTauri": true,
