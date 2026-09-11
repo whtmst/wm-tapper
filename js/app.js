@@ -598,9 +598,24 @@ function setAnalysisRunning(state) {
     if (state) {
         analysisRunButton.dataset.previousText = analysisRunButton.textContent;
 
-        analysisRunButton.textContent = "ANALYZING...";
+        let dots = 0;
+        analysisRunButton.textContent = "ANALYZING";
+
+        if (window.__wmAnalyzeDotsTimer) {
+            clearInterval(window.__wmAnalyzeDotsTimer);
+        }
+
+        window.__wmAnalyzeDotsTimer = setInterval(() => {
+            dots = (dots + 1) % 4;
+            analysisRunButton.textContent = "ANALYZING" + ".".repeat(dots);
+        }, 400);
 
         return;
+    }
+
+    if (window.__wmAnalyzeDotsTimer) {
+        clearInterval(window.__wmAnalyzeDotsTimer);
+        window.__wmAnalyzeDotsTimer = null;
     }
 
     const previousText = analysisRunButton.dataset.previousText;
