@@ -406,14 +406,14 @@ html.is-tauri .app-window.analysis-panel-open {
     overflow: visible;
 }
 
-html.is-tauri {
+html {
     -webkit-user-select: none;
     user-select: none;
     cursor: default;
 }
 
-html.is-tauri input,
-html.is-tauri textarea {
+input,
+textarea {
     -webkit-user-select: text;
     user-select: text;
 }
