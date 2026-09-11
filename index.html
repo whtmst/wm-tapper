@@ -815,13 +815,19 @@
         <script type="module" src="js/app.js"></script>
 
         <script>
-            if ("serviceWorker" in navigator) {
+            if ("serviceWorker" in navigator && !window.__TAURI__) {
                 window.addEventListener("load", () => {
                     navigator.serviceWorker
                         .register("./sw.js")
                         .catch((error) => {
                             console.warn("WM Tapper: SW registration failed.", error);
                         });
+                });
+            }
+
+            if (window.__TAURI__ && "serviceWorker" in navigator) {
+                navigator.serviceWorker.getRegistrations?.().then((regs) => {
+                    regs.forEach((reg) => reg.unregister());
                 });
             }
         </script>
