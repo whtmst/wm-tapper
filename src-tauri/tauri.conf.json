@@ -17,6 +17,9 @@
         "height": 300,
         "resizable": false,
         "decorations": false,
+        "transparent": true,
+        "shadow": true,
+        "backgroundColor": "#00000000",
         "center": true,
         "visible": true
       }
