@@ -403,11 +403,19 @@ html.is-tauri body {
 
 html.is-tauri .app-window {
     overflow: visible;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.28),
+        0 4px 12px rgba(0, 0, 0, 0.22);
 }
 
 html.is-tauri .app-window.analysis-panel-open {
     overflow: visible;
+}
+
+html.is-tauri .analysis-panel {
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.018);
 }
 
 html {
