@@ -218,6 +218,8 @@ a:focus-visible {
     line-height: 1;
 
     letter-spacing: 0.02em;
+
+    pointer-events: none;
 }
 
 /* =========================================================
@@ -2354,15 +2356,21 @@ html.is-tauri .window-control--pin {
     display: inline-flex;
 }
 
+html.is-tauri .window-control--pin .settings-icon {
+    opacity: 0.75;
+    transform: rotate(-35deg);
+    transition:
+        opacity var(--transition-fast),
+        transform 180ms ease,
+        filter var(--transition-fast);
+}
+
 html.is-tauri .window-control--pin.is-active {
     opacity: 1;
 }
 
 html.is-tauri .window-control--pin.is-active .settings-icon {
-    filter: brightness(0) invert(1);
     opacity: 1;
-}
-
-html.is-tauri .window-control--pin:not(.is-active) .settings-icon {
-    opacity: 0.75;
+    transform: rotate(0deg);
+    filter: brightness(0) invert(1);
 }
