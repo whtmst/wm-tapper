@@ -218,6 +218,8 @@ a:focus-visible {
     line-height: 1;
 
     letter-spacing: 0.02em;
+
+    pointer-events: none;
 }
 
 /* =========================================================
@@ -339,6 +341,95 @@ a:focus-visible {
 .window-control--close:hover span,
 .window-control--close:hover span::after {
     background: rgba(240, 242, 236, 0.9);
+}
+
+/* =========================================================
+   STANDALONE (PWA) / TAURI
+   ========================================================= */
+
+html.is-standalone:not(.is-tauri) .window-control--minimize,
+html.is-standalone:not(.is-tauri) .window-control--close {
+    display: none !important;
+}
+
+html.is-tauri .window-control--minimize,
+html.is-tauri .window-control--close {
+    display: inline-flex !important;
+}
+
+html.is-standalone,
+html.is-standalone body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+html.is-standalone body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+html.is-standalone .app-window {
+    width: var(--window-width);
+    height: var(--window-height);
+    flex-shrink: 0;
+    margin-top: 0;
+}
+
+html.is-standalone .app-window.analysis-panel-open {
+    overflow: visible;
+}
+
+/* =========================================================
+   TAURI WINDOW
+   ========================================================= */
+
+html.is-tauri,
+html.is-tauri body {
+    background: transparent !important;
+    overflow: hidden !important;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+html.is-tauri body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+html.is-tauri .app-window {
+    overflow: visible;
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.28),
+        0 4px 12px rgba(0, 0, 0, 0.22);
+}
+
+html.is-tauri .app-window.analysis-panel-open {
+    overflow: visible;
+}
+
+html.is-tauri .analysis-panel {
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.018);
+}
+
+html {
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
+input,
+textarea {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 /* =========================================================
@@ -539,6 +630,116 @@ a:focus-visible {
     transition:
         opacity 120ms ease,
         transform 120ms ease;
+}
+
+/* =========================================================
+   TAP KEY (main tonality)
+   ========================================================= */
+
+.tap-button__key {
+    position: absolute;
+
+    bottom: 34px;
+    left: 50%;
+
+    z-index: 2;
+
+    width: calc(100% - 20px);
+
+    color: rgba(36, 41, 26, 0.56);
+
+    font-size: 13px;
+    font-weight: 500;
+
+    line-height: 1;
+
+    letter-spacing: 0.045em;
+
+    text-align: center;
+
+    white-space: nowrap;
+
+    transform: translateX(-50%);
+}
+
+/* =========================================================
+   ALTERNATIVE KEYS (conflict)
+   ========================================================= */
+
+.tap-button__alts {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    z-index: 2;
+    width: calc(100% - 16px);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.tap-button__alts:not([hidden]) {
+    display: flex;
+}
+
+.tap-button__alts-title {
+    color: rgba(36, 41, 26, 0.38);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.tap-button__alts-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    width: 100%;
+}
+
+.tap-button__alt {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    color: rgba(36, 41, 26, 0.48);
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    text-align: center;
+}
+
+.tap-button__alt-strength {
+    flex-shrink: 0;
+
+    color: rgba(36, 41, 26, 0.4);
+
+    font-size: 10px;
+    font-weight: 540;
+
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------
+   When alternatives are visible — shift main content up
+   --------------------------------------------------------- */
+
+.tap-button.tap-button--has-alts .tap-button__confidence {
+    top: 18px;
+}
+
+.tap-button.tap-button--has-alts .tap-button__value {
+    transform: translateY(-14px);
+}
+
+.tap-button.tap-button--has-alts .tap-button__key {
+    bottom: 52px;
 }
 
 /* =========================================================
@@ -1480,7 +1681,6 @@ a:focus-visible {
         box-shadow var(--transition-fast);
 }
 
-
 /* ---------------------------------------------------------
    Hover / active
    --------------------------------------------------------- */
@@ -1521,7 +1721,6 @@ a:focus-visible {
 
     pointer-events: none;
 }
-
 
 /* =========================================================
    TIME RANGE
@@ -1721,7 +1920,6 @@ a:focus-visible {
     background: rgba(200, 233, 87, 0.075);
 }
 
-
 /* =========================================================
    GENRE DROPDOWN
    ========================================================= */
@@ -1907,7 +2105,6 @@ a:focus-visible {
     background: rgba(200, 233, 87, 0.075);
 }
 
-
 /* =========================================================
    ANALYSIS RUN BUTTON
    ========================================================= */
@@ -1990,23 +2187,16 @@ a:focus-visible {
 
 .analysis-busy-overlay {
     position: absolute;
-
     top: 0;
     left: 0;
-
     width: 100%;
     height: 100%;
-
     z-index: 200;
-
     border-radius: 12px;
-
     background: rgba(8, 10, 11, 0.34);
-
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-
     transition:
         opacity 140ms ease,
         visibility 140ms ease;
@@ -2020,9 +2210,9 @@ a:focus-visible {
 }
 
 .app-window.analysis-panel-open .analysis-busy-overlay.is-visible {
-    height: calc(100% + 171px);
-
-    border-radius: 12px 12px 0 0;
+    top: 38px;
+    height: calc(100% - 38px);
+    border-radius: 0;
 }
 
 /* =========================================================
@@ -2119,6 +2309,14 @@ a:focus-visible {
     }
 }
 
+.analysis-run-button.is-analyzing {
+    letter-spacing: 0.08em;
+}
+
+.analysis-run-button.is-analyzing::after {
+    content: "";
+}
+
 /* =========================================================
    ANALYSIS RESULT
    ========================================================= */
@@ -2147,26 +2345,33 @@ a:focus-visible {
     transform: translateX(-50%);
 }
 
-.tap-button__key {
-    position: absolute;
+/* =========================================================
+   PIN (Always on top) — Tauri only
+   ========================================================= */
 
-    bottom: 34px;
-    left: 50%;
+.window-control--pin {
+    display: none;
+}
 
-    z-index: 2;
+html.is-tauri .window-control--pin {
+    display: inline-flex;
+}
 
-    width: calc(100% - 20px);
+html.is-tauri .window-control--pin .settings-icon {
+    opacity: 0.75;
+    transform: rotate(35deg);
+    transition:
+        opacity var(--transition-fast),
+        transform 180ms ease,
+        filter var(--transition-fast);
+}
 
-    color: rgba(36, 41, 26, 0.56);
+html.is-tauri .window-control--pin.is-active {
+    opacity: 1;
+}
 
-    font-size: 13px;
-    font-weight: 500;
-
-    line-height: 1;
-
-    letter-spacing: 0.045em;
-
-    text-align: center;
-
-    transform: translateX(-50%);
+html.is-tauri .window-control--pin.is-active .settings-icon {
+    opacity: 1;
+    transform: rotate(0deg);
+    filter: brightness(0) invert(1);
 }

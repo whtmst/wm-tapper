@@ -23,14 +23,11 @@ const SETTINGS_STORAGE_KEY = `${APP_NAME}:settings`;
 
 export const DEFAULT_SETTINGS = {
     version: 1,
-
     language: "en",
-
     sessionTimeout: 3,
-
     historyLength: 12,
-
     tapKey: "Space",
+    alwaysOnTop: false,
 };
 
 /* =========================================================
@@ -212,6 +209,14 @@ export const settings = {
 
         if (typeof this.data.version !== "number") {
             this.data.version = DEFAULT_SETTINGS.version;
+        }
+
+        /* ---------------------------------------------
+           Always on top
+           --------------------------------------------- */
+
+        if (typeof this.data.alwaysOnTop !== "boolean") {
+            this.data.alwaysOnTop = DEFAULT_SETTINGS.alwaysOnTop;
         }
     },
 

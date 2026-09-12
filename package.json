@@ -1,0 +1,17 @@
+{
+  "name": "wm-tapper",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "prepare:frontend": "node ./scripts/prepare-frontend.mjs",
+    "tauri:build": "npm run prepare:frontend && tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

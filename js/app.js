@@ -43,6 +43,8 @@ import {
 
 const donateButton = document.getElementById("donateButton");
 
+const pinButton = document.getElementById("pinButton");
+
 const settingsButton = document.getElementById("settingsButton");
 
 const flipCard = document.getElementById("flipCard");
@@ -119,6 +121,8 @@ const analysisModeControl = document.getElementById("analysisModeControl");
 
 const analysisModeMenu = document.getElementById("analysisModeMenu");
 
+const analysisModeValue = document.getElementById("analysisModeValue");
+
 const analysisGenre = document.getElementById("analysisGenre");
 
 const analysisGenreControl = document.getElementById("analysisGenreControl");
@@ -132,6 +136,10 @@ const analysisBusyOverlay = document.getElementById("analysisBusyOverlay");
 const tapConfidence = document.getElementById("tapConfidence");
 
 const tapKey = document.getElementById("tapKey");
+
+const tapKeyAlts = document.getElementById("tapKeyAlts");
+const tapKeyAltsTitle = document.getElementById("tapKeyAltsTitle");
+const tapKeyAltsList = document.getElementById("tapKeyAltsList");
 
 const analysisWaveformCanvas = document.getElementById(
     "analysisWaveformCanvas",
@@ -152,6 +160,103 @@ const tapKeyController = new TapKeyController({
 });
 
 const waveform = createWaveformRenderer(analysisWaveformCanvas);
+
+
+/* =========================================================
+   STANDALONE MODE
+   ========================================================= */
+const APP_WINDOW_SIZE = {
+    normalWidth: 250,
+    normalHeight: 300,
+    analysisWidth: 250,
+    analysisHeight: 480,
+};
+
+function isTauriApp() {
+    return Boolean(window.__TAURI__);
+}
+
+function isStandaloneMode() {
+    return (
+        document.documentElement.classList.contains("is-standalone") ||
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.matchMedia("(display-mode: minimal-ui)").matches ||
+        window.navigator.standalone === true
+    );
+}
+
+function getTauriWindow() {
+    if (!window.__TAURI__) {
+        return null;
+    }
+
+    if (window.__TAURI__.webviewWindow?.getCurrentWebviewWindow) {
+        return window.__TAURI__.webviewWindow.getCurrentWebviewWindow();
+    }
+
+    if (window.__TAURI__.window?.getCurrentWindow) {
+        return window.__TAURI__.window.getCurrentWindow();
+    }
+
+    return null;
+}
+
+async function resizeAppWindow(width, height) {
+    if (isTauriApp()) {
+        const appWindow = getTauriWindow();
+
+        if (!appWindow) {
+            return;
+        }
+
+        try {
+            const LogicalSize =
+                window.__TAURI__.dpi?.LogicalSize ||
+                window.__TAURI__.window?.LogicalSize;
+
+            if (LogicalSize) {
+                await appWindow.setSize(new LogicalSize(width, height));
+            } else {
+                await appWindow.setSize({
+                    type: "Logical",
+                    width,
+                    height,
+                });
+            }
+        } catch (error) {
+            console.warn("WM Tapper: Tauri setSize failed.", error);
+        }
+
+        return;
+    }
+
+    if (!isStandaloneMode()) {
+        return;
+    }
+
+    try {
+        window.resizeTo(width + 16, height + 40);
+    } catch (error) {
+        /* browser may ignore */
+    }
+}
+
+async function applyAlwaysOnTop(enabled) {
+    const appWindow = getTauriWindow();
+
+    if (appWindow) {
+        try {
+            await appWindow.setAlwaysOnTop(Boolean(enabled));
+        } catch (error) {
+            console.warn("WM Tapper: setAlwaysOnTop failed.", error);
+        }
+    }
+
+    if (pinButton) {
+        pinButton.classList.toggle("is-active", Boolean(enabled));
+        pinButton.setAttribute("aria-pressed", Boolean(enabled) ? "true" : "false");
+    }
+}
 
 /* =========================================================
    LOCAL HELPERS
@@ -401,6 +506,11 @@ function openAnalysisPanel() {
     analysisPanel.setAttribute("aria-hidden", "false");
 
     document.querySelector(".app-window").classList.add("analysis-panel-open");
+
+    void resizeAppWindow(
+        APP_WINDOW_SIZE.analysisWidth,
+        APP_WINDOW_SIZE.analysisHeight,
+    );
 }
 
 /**
@@ -414,6 +524,11 @@ function closeAnalysisPanel() {
         .classList.remove("analysis-panel-open");
 
     activeAnalysisHandle = null;
+
+    void resizeAppWindow(
+        APP_WINDOW_SIZE.normalWidth,
+        APP_WINDOW_SIZE.normalHeight,
+    );
 }
 
 /**
@@ -483,9 +598,24 @@ function setAnalysisRunning(state) {
     if (state) {
         analysisRunButton.dataset.previousText = analysisRunButton.textContent;
 
-        analysisRunButton.textContent = "ANALYZING...";
+        let dots = 0;
+        analysisRunButton.textContent = "ANALYZING";
+
+        if (window.__wmAnalyzeDotsTimer) {
+            clearInterval(window.__wmAnalyzeDotsTimer);
+        }
+
+        window.__wmAnalyzeDotsTimer = setInterval(() => {
+            dots = (dots + 1) % 4;
+            analysisRunButton.textContent = "ANALYZING" + ".".repeat(dots);
+        }, 400);
 
         return;
+    }
+
+    if (window.__wmAnalyzeDotsTimer) {
+        clearInterval(window.__wmAnalyzeDotsTimer);
+        window.__wmAnalyzeDotsTimer = null;
     }
 
     const previousText = analysisRunButton.dataset.previousText;
@@ -708,6 +838,10 @@ const languageUI = createLanguageUI(
         historyMenu,
         tapConfidence,
         tapKey,
+        tapKeyAlts,
+        tapKeyAltsTitle,
+        tapKeyAltsList,
+        tapButton,
     },
     {
         settings,
@@ -923,7 +1057,6 @@ analysisRunButton.addEventListener("click", async () => {
          * Keep the result available for the
          * next UI stage.
          */
-
         window.WMTapperLastAnalysis = result;
 
         closeAnalysisPanel();
@@ -1018,8 +1151,28 @@ tapButton.addEventListener("click", () => {
    DONATE BUTTON
    ========================================================= */
 
-donateButton.addEventListener("click", () => {
-    window.open("https://dalink.to/whtmst", "_blank", "noopener,noreferrer");
+donateButton.addEventListener("click", async () => {
+    const url = "https://dalink.to/whtmst";
+
+    if (isTauriApp()) {
+        try {
+            if (window.__TAURI__?.opener?.openUrl) {
+                await window.__TAURI__.opener.openUrl(url);
+                return;
+            }
+
+            if (window.__TAURI__?.core?.invoke) {
+                await window.__TAURI__.core.invoke("plugin:opener|open_url", {
+                    url,
+                });
+                return;
+            }
+        } catch (error) {
+            console.warn("WM Tapper: opener failed.", error);
+        }
+    }
+
+    window.open(url, "_blank", "noopener,noreferrer");
 });
 
 /* =========================================================
@@ -1039,6 +1192,50 @@ settingsButton.addEventListener("click", () => {
 
     languageUI.updateLanguageButtons(languageUI.getCurrentLanguage());
 });
+
+/* =========================================================
+   TAURI MIN. CLOSE BUTTONS
+   ========================================================= */
+const minimizeButton = document.querySelector(".window-control--minimize");
+const closeButton = document.querySelector(".window-control--close");
+
+if (pinButton) {
+    pinButton.addEventListener("click", async (event) => {
+        event.stopPropagation();
+
+        if (!isTauriApp()) {
+            return;
+        }
+
+        const nextValue = !settings.get("alwaysOnTop");
+        settings.set("alwaysOnTop", nextValue);
+        await applyAlwaysOnTop(nextValue);
+    });
+}
+
+if (minimizeButton) {
+    minimizeButton.addEventListener("click", async (event) => {
+        event.stopPropagation();
+
+        const appWindow = getTauriWindow();
+
+        if (appWindow) {
+            await appWindow.minimize();
+        }
+    });
+}
+
+if (closeButton) {
+    closeButton.addEventListener("click", async (event) => {
+        event.stopPropagation();
+
+        const appWindow = getTauriWindow();
+
+        if (appWindow) {
+            await appWindow.close();
+        }
+    });
+}
 
 /* =========================================================
    RESET
@@ -1097,11 +1294,27 @@ document.addEventListener("keydown", (event) => {
    ========================================================= */
 
 function initialize() {
+    if (isTauriApp()) {
+        document.documentElement.classList.add("is-tauri");
+    }
+
+    if (isStandaloneMode()) {
+        document.documentElement.classList.add("is-standalone");
+    }
+
+    void resizeAppWindow(
+        APP_WINDOW_SIZE.normalWidth,
+        APP_WINDOW_SIZE.normalHeight,
+    );
+
     settings.load();
+
+    if (isTauriApp()) {
+        void applyAlwaysOnTop(Boolean(settings.get("alwaysOnTop")));
+    }
 
     tapEngine.configure({
         sessionTimeout: settings.get("sessionTimeout"),
-
         historyLength: settings.get("historyLength"),
     });
 
@@ -1123,5 +1336,14 @@ function initialize() {
 /* =========================================================
    START APPLICATION
    ========================================================= */
+
+/* =========================================================
+   DISABLE CONTEXT MENU (desktop app)
+   ========================================================= */
+
+document.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+});
+
 
 initialize();

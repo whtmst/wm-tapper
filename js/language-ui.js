@@ -65,6 +65,10 @@ export function createLanguageUI(
         historyMenu,
         tapConfidence,
         tapKey,
+        tapKeyAlts,
+        tapKeyAltsTitle,
+        tapKeyAltsList,
+        tapButton,
     },
     {
         settings,
@@ -106,6 +110,7 @@ export function createLanguageUI(
 
     function renderAnalysisResult() {
         const language = getCurrentLanguage();
+        const text = getTranslations(language);
 
         if (!analysisResult) {
             if (tapConfidence) {
@@ -114,6 +119,19 @@ export function createLanguageUI(
 
             if (tapKey) {
                 tapKey.textContent = "";
+            }
+
+            if (tapKeyAlts) {
+                tapKeyAlts.hidden = true;
+                tapKeyAlts.setAttribute("hidden", "");
+            }
+
+            if (tapKeyAltsList) {
+                tapKeyAltsList.innerHTML = "";
+            }
+
+            if (tapButton) {
+                tapButton.classList.remove("tap-button--has-alts");
             }
 
             return;
@@ -144,6 +162,73 @@ export function createLanguageUI(
             );
         } else if (tapKey) {
             tapKey.textContent = "";
+        }
+
+        /* -----------------------------------------
+           Alternatives (relative conflict only)
+           ----------------------------------------- */
+
+        const alternatives = Array.isArray(analysisResult.alternatives)
+            ? analysisResult.alternatives.slice(0, 2)
+            : [];
+
+        const shouldShowAlts =
+            analysisResult.hasTonalityConflict && alternatives.length > 0;
+
+        if (shouldShowAlts && tapKeyAlts && tapKeyAltsList) {
+            if (tapKeyAltsTitle) {
+                tapKeyAltsTitle.textContent =
+                    text.alsoPossible || "Also possible";
+            }
+
+            tapKeyAltsList.innerHTML = "";
+
+            alternatives.forEach((item) => {
+                if (!item?.key || !item?.scale) {
+                    return;
+                }
+
+                const row = document.createElement("span");
+                row.className = "tap-button__alt";
+
+                const keySpan = document.createElement("span");
+                keySpan.textContent = formatAnalysisKey(
+                    item.key,
+                    item.scale,
+                    language,
+                );
+
+                row.appendChild(keySpan);
+
+                if (Number.isFinite(item.strength)) {
+                    const strengthSpan = document.createElement("span");
+                    strengthSpan.className = "tap-button__alt-strength";
+                    strengthSpan.textContent = `${Math.round(item.strength * 100)}%`;
+                    row.appendChild(strengthSpan);
+                }
+
+                tapKeyAltsList.appendChild(row);
+            });
+
+            tapKeyAlts.hidden = false;
+            tapKeyAlts.removeAttribute("hidden");
+
+            if (tapButton) {
+                tapButton.classList.add("tap-button--has-alts");
+            }
+        } else {
+            if (tapKeyAlts) {
+                tapKeyAlts.hidden = true;
+                tapKeyAlts.setAttribute("hidden", "");
+            }
+
+            if (tapKeyAltsList) {
+                tapKeyAltsList.innerHTML = "";
+            }
+
+            if (tapButton) {
+                tapButton.classList.remove("tap-button--has-alts");
+            }
         }
     }
 
@@ -232,114 +317,114 @@ export function createLanguageUI(
        DROPDOWN TRANSLATIONS
        ===================================================== */
 
-      function updateDropdownTranslations(language) {
-          const text = getTranslations(language);
-      
-          /* -----------------------------------------
+    function updateDropdownTranslations(language) {
+        const text = getTranslations(language);
+
+        /* -----------------------------------------
              Session
              ----------------------------------------- */
-      
-          sessionMenu.querySelectorAll(".dropdown-option").forEach((option) => {
-              const value = Number(option.dataset.value);
-      
-              if (Number.isNaN(value)) {
-                  return;
-              }
-      
-              option.textContent = `${formatDecimal(
-                  value,
-                  language,
-              )} ${text.seconds}`;
-          });
-      
-          /* -----------------------------------------
+
+        sessionMenu.querySelectorAll(".dropdown-option").forEach((option) => {
+            const value = Number(option.dataset.value);
+
+            if (Number.isNaN(value)) {
+                return;
+            }
+
+            option.textContent = `${formatDecimal(
+                value,
+                language,
+            )} ${text.seconds}`;
+        });
+
+        /* -----------------------------------------
              History
              ----------------------------------------- */
-      
-          historyMenu.querySelectorAll(".dropdown-option").forEach((option) => {
-              const value = Number(option.dataset.value);
-      
-              if (Number.isNaN(value)) {
-                  return;
-              }
-      
-              option.textContent = `${value} ${text.taps}`;
-          });
-      
-          /* -----------------------------------------
+
+        historyMenu.querySelectorAll(".dropdown-option").forEach((option) => {
+            const value = Number(option.dataset.value);
+
+            if (Number.isNaN(value)) {
+                return;
+            }
+
+            option.textContent = `${value} ${text.taps}`;
+        });
+
+        /* -----------------------------------------
              Analysis Mode
              ----------------------------------------- */
-      
-          analysisModeMenu
-              .querySelectorAll(".analysis-mode__option")
-              .forEach((option) => {
-                  const value = option.dataset.value;
-      
-                  if (!value || !text[value]) {
-                      return;
-                  }
-      
-                  option.textContent = text[value];
-              });
-      
-          /* -----------------------------------------
+
+        analysisModeMenu
+            .querySelectorAll(".analysis-mode__option")
+            .forEach((option) => {
+                const value = option.dataset.value;
+
+                if (!value || !text[value]) {
+                    return;
+                }
+
+                option.textContent = text[value];
+            });
+
+        /* -----------------------------------------
              Analysis Genre
              ----------------------------------------- */
-      
-          const genreTranslations = {
-              auto: text.genreAuto,
-              house: text.genreHouse,
-              techno: text.genreTechno,
-              trance: text.genreTrance,
-              "drum-and-bass": text.genreDrumAndBass,
-              dubstep: text.genreDubstep,
-              hardstyle: text.genreHardstyle,
-              hardcore: text.genreHardcore,
-              frenchcore: text.genreFrenchcore,
-              "hip-hop-trap": text.genreHipHopTrap,
-              pop: text.genrePop,
-              rock: text.genreRock,
-              "other-electronic": text.genreOtherElectronic,
-              other: text.genreOther,
-          };
-      
-          const analysisGenreMenu = document.getElementById("analysisGenreMenu");
-          const analysisGenreValue =
-              document.getElementById("analysisGenreValue");
-      
-          if (analysisGenreMenu) {
-              analysisGenreMenu
-                  .querySelectorAll(".analysis-genre__option")
-                  .forEach((option) => {
-                      const value = option.dataset.value;
-                      const translatedValue = genreTranslations[value];
-      
-                      if (!translatedValue) {
-                          return;
-                      }
-      
-                      option.textContent = translatedValue;
-                  });
-          }
-      
-          if (analysisGenreValue) {
-              const selectedGenre =
-                  analysisGenreMenu?.querySelector(
-                      ".analysis-genre__option.is-selected",
-                  );
-      
-              if (selectedGenre) {
-                  const value = selectedGenre.dataset.value;
-                  const translatedValue = genreTranslations[value];
-      
-                  if (translatedValue) {
-                      analysisGenreValue.textContent = translatedValue;
-                  }
-              }
-          }
-      
-          updateAnalysisModeDisplay();
-      }
+
+        const genreTranslations = {
+            auto: text.genreAuto,
+            "downtempo-ambient": text.genreDowntempoAmbient,
+            "hip-hop-trap": text.genreHipHopTrap,
+            pop: text.genrePop,
+            rock: text.genreRock,
+            house: text.genreHouse,
+            techno: text.genreTechno,
+            trance: text.genreTrance,
+            dubstep: text.genreDubstep,
+            hardstyle: text.genreHardstyle,
+            "drum-and-bass": text.genreDrumAndBass,
+            hardcore: text.genreHardcore,
+            frenchcore: text.genreFrenchcore,
+            "other-electronic": text.genreOtherElectronic,
+            other: text.genreOther,
+        };
+
+        const analysisGenreMenu = document.getElementById("analysisGenreMenu");
+        const analysisGenreValue =
+            document.getElementById("analysisGenreValue");
+
+        if (analysisGenreMenu) {
+            analysisGenreMenu
+                .querySelectorAll(".analysis-genre__option")
+                .forEach((option) => {
+                    const value = option.dataset.value;
+                    const translatedValue = genreTranslations[value];
+
+                    if (!translatedValue) {
+                        return;
+                    }
+
+                    option.textContent = translatedValue;
+                });
+        }
+
+        if (analysisGenreValue) {
+            const selectedGenre = analysisGenreMenu?.querySelector(
+                ".analysis-genre__option.is-selected",
+            );
+
+            if (selectedGenre) {
+                const value = selectedGenre.dataset.value;
+                const translatedValue = genreTranslations[value];
+
+                if (translatedValue) {
+                    analysisGenreValue.textContent = translatedValue;
+                }
+            }
+        }
+
+        updateAnalysisModeDisplay();
+    }
 
     /* =====================================================
        SET LANGUAGE

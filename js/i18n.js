@@ -51,34 +51,6 @@ export const translations = {
 
         fast: "FAST",
 
-        genreAuto: "AUTO",
-
-        genreHouse: "HOUSE",
-
-        genreTechno: "TECHNO",
-
-        genreTrance: "TRANCE",
-
-        genreDrumAndBass: "DRUM & BASS",
-
-        genreDubstep: "DUBSTEP",
-
-        genreHardstyle: "HARDSTYLE",
-
-        genreHardcore: "HARDCORE",
-
-        genreFrenchcore: "FRENCHCORE",
-
-        genreHipHopTrap: "HIP-HOP / TRAP",
-
-        genrePop: "POP",
-
-        genreRock: "ROCK",
-
-        genreOtherElectronic: "OTHER ELECTRONIC",
-
-        genreOther: "OTHER",
-
         confidence: "CONFIDENCE",
 
         major: "Major",
@@ -86,6 +58,39 @@ export const translations = {
         minor: "Minor",
 
         madeBy: "Made by Wht Mst",
+
+        alsoPossible: "Also possible",
+
+        // --- GENRES ---
+        genreAuto: "AUTO",
+
+        genreDowntempoAmbient: "DOWNTEMPO / AMBIENT",
+
+        genreHipHopTrap: "HIP-HOP / TRAP",
+
+        genrePop: "POP",
+
+        genreRock: "ROCK",
+
+        genreHouse: "HOUSE",
+
+        genreTechno: "TECHNO",
+
+        genreTrance: "TRANCE",
+
+        genreDubstep: "DUBSTEP",
+
+        genreHardstyle: "HARDSTYLE",
+
+        genreDrumAndBass: "DRUM & BASS",
+
+        genreHardcore: "HARDCORE",
+
+        genreFrenchcore: "FRENCHCORE",
+
+        genreOtherElectronic: "OTHER ELECTRONIC",
+
+        genreOther: "OTHER",
     },
 
     /* =====================================================
@@ -125,34 +130,6 @@ export const translations = {
 
         fast: "БЫСТРЫЙ",
 
-        genreAuto: "АВТО",
-
-        genreHouse: "ХАУС",
-
-        genreTechno: "ТЕХНО",
-
-        genreTrance: "ТРАНС",
-
-        genreDrumAndBass: "ДРАМ-Н-БЭЙС",
-
-        genreDubstep: "ДАБСТЕП",
-
-        genreHardstyle: "ХАРДСТАЙЛ",
-
-        genreHardcore: "ХАРДКОР",
-
-        genreFrenchcore: "ФРЕНЧКОР",
-
-        genreHipHopTrap: "ХИП-ХОП / ТРЭП",
-
-        genrePop: "ПОП",
-
-        genreRock: "РОК",
-
-        genreOtherElectronic: "ДРУГАЯ ЭЛЕКТРОННАЯ",
-
-        genreOther: "ДРУГОЕ",
-
         confidence: "УВЕРЕННОСТЬ",
 
         major: "Мажор",
@@ -160,6 +137,39 @@ export const translations = {
         minor: "Минор",
 
         madeBy: "Сделано Wht Mst",
+
+        alsoPossible: "Также возможны",
+
+        // --- ЖАНРЫ ---
+        genreAuto: "АВТО",
+
+        genreDowntempoAmbient: "ДАУНТЕМПО / ЭМБИЕНТ",
+
+        genreHipHopTrap: "ХИП-ХОП / ТРЭП",
+
+        genrePop: "ПОП",
+
+        genreRock: "РОК",
+
+        genreHouse: "ХАУС",
+
+        genreTechno: "ТЕХНО",
+
+        genreTrance: "ТРАНС",
+
+        genreDubstep: "ДАБСТЕП",
+
+        genreHardstyle: "ХАРДСТАЙЛ",
+
+        genreDrumAndBass: "ДРАМ-Н-БЭЙС",
+
+        genreHardcore: "ХАРДКОР",
+
+        genreFrenchcore: "ФРЕНЧКОР",
+
+        genreOtherElectronic: "ДРУГАЯ ЭЛЕКТРОННАЯ",
+
+        genreOther: "ДРУГОЕ",
     },
 
     /* =====================================================
@@ -199,34 +209,6 @@ export const translations = {
 
         fast: "SÜRƏTLİ",
 
-        genreAuto: "AUTO",
-
-        genreHouse: "HOUSE",
-
-        genreTechno: "TECHNO",
-
-        genreTrance: "TRANCE",
-
-        genreDrumAndBass: "DRUM & BASS",
-
-        genreDubstep: "DUBSTEP",
-
-        genreHardstyle: "HARDSTYLE",
-
-        genreHardcore: "HARDCORE",
-
-        genreFrenchcore: "FRENCHCORE",
-
-        genreHipHopTrap: "HIP-HOP / TRAP",
-
-        genrePop: "POP",
-
-        genreRock: "ROCK",
-
-        genreOtherElectronic: "OTHER ELECTRONIC",
-
-        genreOther: "OTHER",
-
         confidence: "ƏMİNLİK",
 
         major: "Major",
@@ -234,6 +216,39 @@ export const translations = {
         minor: "Minor",
 
         madeBy: "Wht Mst tərəfindən",
+
+        alsoPossible: "Həmçinin mümkün",
+
+        // --- JANRLAR ---
+        genreAuto: "AUTO",
+
+        genreDowntempoAmbient: "DOWNTEMPO / AMBIENT",
+
+        genreHipHopTrap: "HIP-HOP / TRAP",
+
+        genrePop: "POP",
+
+        genreRock: "ROCK",
+
+        genreHouse: "HOUSE",
+
+        genreTechno: "TECHNO",
+
+        genreTrance: "TRANCE",
+
+        genreDubstep: "DUBSTEP",
+
+        genreHardstyle: "HARDSTYLE",
+
+        genreDrumAndBass: "DRUM & BASS",
+
+        genreHardcore: "HARDCORE",
+
+        genreFrenchcore: "FRENCHCORE",
+
+        genreOtherElectronic: "OTHER ELECTRONIC",
+
+        genreOther: "OTHER",
     },
 };
 

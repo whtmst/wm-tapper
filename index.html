@@ -7,6 +7,17 @@
 
         <title>WM Tapper</title>
 
+        <meta name="theme-color" content="#151719" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="WM Tapper" />
+
+        <link rel="manifest" href="manifest.webmanifest" />
+        <link rel="apple-touch-icon" href="assets/icons/wm-tapper-icon-180-apple.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/wm-tapper-icon-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="assets/icons/wm-tapper-icon-512.png" />
+
         <link rel="stylesheet" href="src/css/main.css" />
     </head>
 
@@ -18,39 +29,54 @@
             <!-- =================================================
              TITLE BAR
              ================================================= -->
-            <header class="title-bar">
+            <header class="title-bar" data-tauri-drag-region>
                 <div class="title-bar__title">WM Tapper</div>
 
-        <div class="title-bar__controls">
-            <!-- Donate -->
-            <button
-                class="window-control window-control--donate"
-                id="donateButton"
-                type="button"
-                aria-label="Donate"
-            >
-                <img
-                    class="settings-icon"
-                    src="assets/icons/donate.svg"
-                    alt=""
-                />
-            </button>
-        
-            <!-- Settings -->
-            <button
-                class="window-control window-control--settings"
-                id="settingsButton"
-                type="button"
-                aria-label="Settings"
-            >
-                <img
-                    class="settings-icon"
-                    src="assets/icons/settings.svg"
-                    alt=""
-                />
-            </button>
-        
-            <!-- Minimize -->
+                <div class="title-bar__controls">
+                    <!-- Donate -->
+                    <button
+                        class="window-control window-control--donate"
+                        id="donateButton"
+                        type="button"
+                        aria-label="Donate"
+                    >
+                        <img
+                            class="settings-icon"
+                            src="assets/icons/donate.svg"
+                            alt=""
+                        />
+                    </button>
+
+                    <!-- Always on top -->
+                    <button
+                        class="window-control window-control--pin"
+                        id="pinButton"
+                        type="button"
+                        aria-label="Always on top"
+                        aria-pressed="false"
+                    >
+                        <img
+                            class="settings-icon"
+                            src="assets/icons/pin.svg"
+                            alt=""
+                        />
+                    </button>
+
+                    <!-- Settings -->
+                    <button
+                        class="window-control window-control--settings"
+                        id="settingsButton"
+                        type="button"
+                        aria-label="Settings"
+                    >
+                        <img
+                            class="settings-icon"
+                            src="assets/icons/settings.svg"
+                            alt=""
+                        />
+                    </button>
+
+                    <!-- Minimize -->
                     <button
                         class="window-control window-control--minimize"
                         id="minimizeButton"
@@ -104,6 +130,21 @@
                                     class="tap-button__key"
                                     id="tapKey"
                                 ></span>
+
+                                <span
+                                    class="tap-button__alts"
+                                    id="tapKeyAlts"
+                                    hidden
+                                >
+                                    <span
+                                        class="tap-button__alts-title"
+                                        id="tapKeyAltsTitle"
+                                    ></span>
+                                    <span
+                                        class="tap-button__alts-list"
+                                        id="tapKeyAltsList"
+                                    ></span>
+                                </span>
                             </button>
 
                             <!-- =================================
@@ -616,81 +657,11 @@
                         <button
                             class="analysis-genre__option"
                             type="button"
-                            data-value="house"
+                            data-value="downtempo-ambient"
                             role="option"
                             aria-selected="false"
                         >
-                            HOUSE
-                        </button>
-
-                        <button
-                            class="analysis-genre__option"
-                            type="button"
-                            data-value="techno"
-                            role="option"
-                            aria-selected="false"
-                        >
-                            TECHNO
-                        </button>
-
-                        <button
-                            class="analysis-genre__option"
-                            type="button"
-                            data-value="trance"
-                            role="option"
-                            aria-selected="false"
-                        >
-                            TRANCE
-                        </button>
-
-                        <button
-                            class="analysis-genre__option"
-                            type="button"
-                            data-value="drum-and-bass"
-                            role="option"
-                            aria-selected="false"
-                        >
-                            DRUM &amp; BASS
-                        </button>
-
-                        <button
-                            class="analysis-genre__option"
-                            type="button"
-                            data-value="dubstep"
-                            role="option"
-                            aria-selected="false"
-                        >
-                            DUBSTEP
-                        </button>
-
-                        <button
-                            class="analysis-genre__option"
-                            type="button"
-                            data-value="hardstyle"
-                            role="option"
-                            aria-selected="false"
-                        >
-                            HARDSTYLE
-                        </button>
-
-                        <button
-                            class="analysis-genre__option"
-                            type="button"
-                            data-value="hardcore"
-                            role="option"
-                            aria-selected="false"
-                        >
-                            HARDCORE
-                        </button>
-
-                        <button
-                            class="analysis-genre__option"
-                            type="button"
-                            data-value="frenchcore"
-                            role="option"
-                            aria-selected="false"
-                        >
-                            FRENCHCORE
+                            DOWNTEMPO / AMBIENT
                         </button>
 
                         <button
@@ -721,6 +692,86 @@
                             aria-selected="false"
                         >
                             ROCK
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="house"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            HOUSE
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="techno"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            TECHNO
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="trance"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            TRANCE
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="dubstep"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            DUBSTEP
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="hardstyle"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            HARDSTYLE
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="drum-and-bass"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            DRUM &amp; BASS
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="hardcore"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            HARDCORE
+                        </button>
+
+                        <button
+                            class="analysis-genre__option"
+                            type="button"
+                            data-value="frenchcore"
+                            role="option"
+                            aria-selected="false"
+                        >
+                            FRENCHCORE
                         </button>
 
                         <button
@@ -762,5 +813,23 @@
          APPLICATION SCRIPT
          ===================================================== -->
         <script type="module" src="js/app.js"></script>
+
+        <script>
+            if ("serviceWorker" in navigator && !window.__TAURI__) {
+                window.addEventListener("load", () => {
+                    navigator.serviceWorker
+                        .register("./sw.js")
+                        .catch((error) => {
+                            console.warn("WM Tapper: SW registration failed.", error);
+                        });
+                });
+            }
+
+            if (window.__TAURI__ && "serviceWorker" in navigator) {
+                navigator.serviceWorker.getRegistrations?.().then((regs) => {
+                    regs.forEach((reg) => reg.unregister());
+                });
+            }
+        </script>
     </body>
 </html>

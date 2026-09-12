@@ -36,44 +36,14 @@ const RHYTHM_METHOD = "multifeature";
  */
 
 const GENRE_BPM_RANGES = {
-    house: {
-        min: 115,
-        max: 135,
+    auto: {
+        min: 40,
+        max: 250,
     },
 
-    techno: {
-        min: 120,
-        max: 155,
-    },
-
-    trance: {
-        min: 125,
-        max: 150,
-    },
-
-    "drum-and-bass": {
-        min: 160,
-        max: 190,
-    },
-
-    dubstep: {
-        min: 135,
-        max: 150,
-    },
-
-    hardstyle: {
-        min: 145,
-        max: 165,
-    },
-
-    hardcore: {
-        min: 160,
-        max: 220,
-    },
-
-    frenchcore: {
-        min: 180,
-        max: 240,
+    "downtempo-ambient": {
+        min: 60,
+        max: 100,
     },
 
     "hip-hop-trap": {
@@ -89,6 +59,46 @@ const GENRE_BPM_RANGES = {
     rock: {
         min: 70,
         max: 160,
+    },
+
+    house: {
+        min: 115,
+        max: 135,
+    },
+
+    techno: {
+        min: 120,
+        max: 155,
+    },
+
+    trance: {
+        min: 125,
+        max: 150,
+    },
+
+    dubstep: {
+        min: 135,
+        max: 150,
+    },
+
+    hardstyle: {
+        min: 145,
+        max: 165,
+    },
+
+    "drum-and-bass": {
+        min: 160,
+        max: 190,
+    },
+
+    hardcore: {
+        min: 160,
+        max: 220,
+    },
+
+    frenchcore: {
+        min: 180,
+        max: 240,
     },
 
     "other-electronic": {
@@ -131,49 +141,94 @@ function loadEssentiaWasm() {
         return essentiaWasmPromise;
     }
 
-    essentiaWasmPromise = new Promise((resolve, reject) => {
-        /*
-         * Essentia WASM script has already been loaded.
-         */
-
+    essentiaWasmPromise = (async () => {
         if (typeof globalThis.EssentiaWASM === "function") {
-            globalThis.EssentiaWASM().then(resolve).catch(reject);
-
-            return;
+            return globalThis.EssentiaWASM();
         }
 
-        /*
-         * Create script element.
-         */
+        const isWorker =
+            typeof WorkerGlobalScope !== "undefined" &&
+            typeof self !== "undefined" &&
+            self instanceof WorkerGlobalScope;
 
-        const script = document.createElement("script");
+        if (isWorker) {
+            const wasmJsUrl = new URL(
+                "../lib/essentia/essentia-wasm.web.js",
+                import.meta.url,
+            ).href;
 
-        script.src = ESSENTIA_WASM_SCRIPT;
+            const wasmBinaryUrl = new URL(
+                "../lib/essentia/essentia-wasm.web.wasm",
+                import.meta.url,
+            ).href;
 
-        script.async = true;
+            /*
+             * Glue script resolves .wasm via Module.locateFile / document.
+             */
+            globalThis.Module = globalThis.Module || {};
 
-        script.onload = () => {
+            const previousLocate = globalThis.Module.locateFile;
+
+            globalThis.Module.locateFile = (path, prefix) => {
+                if (String(path).endsWith(".wasm")) {
+                    return wasmBinaryUrl;
+                }
+
+                if (typeof previousLocate === "function") {
+                    return previousLocate(path, prefix);
+                }
+
+                return `${prefix || ""}${path}`;
+            };
+
+            const source = await fetch(wasmJsUrl).then((response) => {
+                if (!response.ok) {
+                    throw new Error(
+                        "WM Tapper: failed to fetch Essentia WASM glue.",
+                    );
+                }
+
+                return response.text();
+            });
+
+            (0, eval)(source);
+
             if (typeof globalThis.EssentiaWASM !== "function") {
-                reject(
-                    new Error(
-                        "WM Tapper: EssentiaWASM function was not found.",
-                    ),
+                throw new Error(
+                    "WM Tapper: EssentiaWASM function was not found in worker.",
                 );
-
-                return;
             }
 
-            globalThis.EssentiaWASM().then(resolve).catch(reject);
-        };
+            return globalThis.EssentiaWASM();
+        }
 
-        script.onerror = () => {
-            reject(
-                new Error("WM Tapper: failed to load Essentia WASM backend."),
+        await new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+
+            script.src = ESSENTIA_WASM_SCRIPT;
+            script.async = true;
+
+            script.onload = () => resolve();
+
+            script.onerror = () => {
+                reject(
+                    new Error(
+                        "WM Tapper: failed to load Essentia WASM backend.",
+                    ),
+                );
+            };
+
+            document.head.appendChild(script);
+        });
+
+        if (typeof globalThis.EssentiaWASM !== "function") {
+            throw new Error(
+                "WM Tapper: EssentiaWASM function was not found.",
             );
-        };
+        }
 
-        document.head.appendChild(script);
-    });
+        return globalThis.EssentiaWASM();
+    })();
 
     return essentiaWasmPromise;
 }
@@ -220,6 +275,466 @@ async function decodeAudioFile(file) {
         return await audioContext.decodeAudioData(arrayBuffer);
     } finally {
         await audioContext.close();
+    }
+}
+
+
+/**
+ * Analyze from an already-decoded AudioBuffer (shared by main + worker).
+ *
+ * @param {AudioBuffer} decodedBuffer
+ * @param {Object} options
+ * @returns {Promise<Object>}
+ */
+async function analyzeDecodedBuffer(decodedBuffer, options = {}) {
+    const mode = ["full", "selection", "fast"].includes(options?.mode)
+        ? options.mode
+        : "full";
+
+    const genre =
+        typeof options?.genre === "string" ? options.genre : "auto";
+
+    activeTimingLog = [];
+
+    try {
+        console.log("WM Tapper: loading Essentia...");
+
+        const essentia = await getEssentia();
+
+        console.log("WM Tapper: AUDIO.", {
+            duration: Number(decodedBuffer.duration.toFixed(2)),
+            sampleRate: decodedBuffer.sampleRate,
+            channels: decodedBuffer.numberOfChannels,
+        });
+
+        const duration = Number(decodedBuffer.duration);
+
+        if (!Number.isFinite(duration) || duration <= 0) {
+            throw new Error(
+                "WM Tapper: decoded audio has invalid duration.",
+            );
+        }
+
+        /* ========== FULL ========== */
+        if (mode === "full") {
+            console.log("WM Tapper: analyzing FULL track.");
+
+            const resampleStartedAt = performance.now();
+            const signal = await resampleRangeTo44100(
+                decodedBuffer,
+                0,
+                duration,
+            );
+            const resampleElapsed = performance.now() - resampleStartedAt;
+
+            console.log("WM Tapper: TIME Resample.", {
+                milliseconds: Number(resampleElapsed.toFixed(2)),
+                seconds: Number((resampleElapsed / 1000).toFixed(3)),
+            });
+
+            const result = await analyzeSignal(essentia, signal);
+
+            let keyConsensus = measureTime("KeyConsensus", () =>
+                selectKeyConsensus([result.keyProfiles], genre),
+            );
+
+            if (keyConsensus?.hasRelativeConflict) {
+                console.warn(
+                    "WM Tapper: Relative key conflict detected in FULL mode. Running temporal FAST fallback...",
+                );
+
+                const segments = createFastSegments(duration);
+                const segmentResults = [];
+
+                for (let index = 0; index < segments.length; index += 1) {
+                    const segment = segments[index];
+                    const segmentSignal = sliceSignalByTime(
+                        signal,
+                        segment.startTime,
+                        segment.endTime,
+                    );
+                    const segResult = await analyzeSignal(
+                        essentia,
+                        segmentSignal,
+                    );
+                    segmentResults.push(segResult);
+
+                    await new Promise((resolve) => {
+                        setTimeout(resolve, 0);
+                    });
+                }
+
+                keyConsensus = measureTime("KeyConsensusFallback", () =>
+                    selectKeyConsensus(
+                        segmentResults.map((r) => r.keyProfiles),
+                        genre,
+                    ),
+                );
+            }
+
+            const normalizedResult = normalizeResult(
+                {
+                    ...result,
+                    bpm: selectBpmResult([result], genre),
+                    key: keyConsensus?.key ?? null,
+                    scale: keyConsensus?.scale ?? null,
+                    strength: keyConsensus?.strength ?? null,
+                    hasTonalityConflict:
+                        keyConsensus?.hasRelativeConflict ?? false,
+                    alternatives: keyConsensus?.alternatives ?? [],
+                },
+                "full",
+            );
+
+            console.log("WM Tapper: RESULT.", {
+                bpm: normalizedResult.bpm,
+                key: normalizedResult.keyLabel,
+                strength: normalizedResult.strength,
+            });
+            console.log("WM Tapper: TIMING.");
+            console.table(activeTimingLog);
+
+            return normalizedResult;
+        }
+
+        /* ========== SELECTION ========== */
+        if (mode === "selection") {
+            let startTime = Number(options?.startTime);
+            let endTime = Number(options?.endTime);
+
+            if (!Number.isFinite(startTime)) startTime = 0;
+            if (!Number.isFinite(endTime)) endTime = duration;
+
+            startTime = Math.max(0, Math.min(duration, startTime));
+            endTime = Math.max(startTime, Math.min(duration, endTime));
+
+            if (endTime - startTime < 30) {
+                throw new Error(
+                    "WM Tapper: selected range must be at least 30 seconds.",
+                );
+            }
+
+            console.log("WM Tapper: analyzing SELECTION.", {
+                startTime,
+                endTime,
+                duration: endTime - startTime,
+            });
+
+            const resampleStartedAt = performance.now();
+            const signal = await resampleRangeTo44100(
+                decodedBuffer,
+                startTime,
+                endTime,
+            );
+            const resampleElapsed = performance.now() - resampleStartedAt;
+
+            console.log("WM Tapper: TIME Resample.", {
+                milliseconds: Number(resampleElapsed.toFixed(2)),
+                seconds: Number((resampleElapsed / 1000).toFixed(3)),
+            });
+
+            const result = await analyzeSignal(essentia, signal);
+
+            const keyConsensus = measureTime("KeyConsensus", () =>
+                selectKeyConsensus([result.keyProfiles], genre),
+            );
+
+            const normalizedResult = normalizeResult(
+                {
+                    ...result,
+                    bpm: selectBpmResult([result], genre),
+                    key: keyConsensus?.key ?? null,
+                    scale: keyConsensus?.scale ?? null,
+                    strength: keyConsensus?.strength ?? null,
+                    hasTonalityConflict:
+                        keyConsensus?.hasRelativeConflict ?? false,
+                    alternatives: keyConsensus?.alternatives ?? [],
+                },
+                "selection",
+            );
+
+            console.log("WM Tapper: RESULT.", {
+                bpm: normalizedResult.bpm,
+                key: normalizedResult.keyLabel,
+                strength: normalizedResult.strength,
+            });
+            console.log("WM Tapper: TIMING.");
+            console.table(activeTimingLog);
+
+            return normalizedResult;
+        }
+
+        /* ========== FAST ========== */
+        const segments = createFastSegments(duration);
+
+        if (segments.length === 0) {
+            throw new Error(
+                "WM Tapper: could not create FAST analysis segments.",
+            );
+        }
+
+        console.log(
+            "WM Tapper: FAST SEGMENTS.",
+            segments.map((segment, index) => ({
+                segment: index + 1,
+                start: Number(segment.startTime.toFixed(2)),
+                end: Number(segment.endTime.toFixed(2)),
+                duration: Number(
+                    (segment.endTime - segment.startTime).toFixed(2),
+                ),
+            })),
+        );
+
+        console.log("WM Tapper: resampling track for FAST mode...");
+
+        const resampleStartedAt = performance.now();
+        const fastSignal = await resampleRangeTo44100(
+            decodedBuffer,
+            0,
+            duration,
+        );
+        const resampleElapsed = performance.now() - resampleStartedAt;
+
+        console.log("WM Tapper: TIME Resample.", {
+            milliseconds: Number(resampleElapsed.toFixed(2)),
+            seconds: Number((resampleElapsed / 1000).toFixed(3)),
+        });
+
+        const segmentResults = [];
+
+        for (let index = 0; index < segments.length; index += 1) {
+            const segment = segments[index];
+            const signal = sliceSignalByTime(
+                fastSignal,
+                segment.startTime,
+                segment.endTime,
+            );
+            const result = await analyzeSignal(essentia, signal);
+            segmentResults.push(result);
+
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
+        }
+
+        const bpm = selectBpmResult(segmentResults, genre);
+
+        const keyConsensus = measureTime("KeyConsensus", () =>
+            selectKeyConsensus(
+                segmentResults.map((result) => result.keyProfiles),
+                genre,
+            ),
+        );
+
+        const confidenceValues = segmentResults
+            .map((result) => result?.rhythmConfidence)
+            .filter((value) => Number.isFinite(value));
+
+        const normalizedResult = normalizeResult(
+            {
+                bpm,
+                key: keyConsensus?.key ?? null,
+                scale: keyConsensus?.scale ?? null,
+                strength: keyConsensus?.strength ?? null,
+                rhythmConfidence: calculateMedian(confidenceValues),
+                hasTonalityConflict:
+                    keyConsensus?.hasRelativeConflict ?? false,
+                alternatives: keyConsensus?.alternatives ?? [],
+            },
+            "fast",
+        );
+
+        console.log("WM Tapper: RESULT.", {
+            bpm: normalizedResult.bpm,
+            key: normalizedResult.keyLabel,
+            strength: normalizedResult.strength,
+        });
+        console.log("WM Tapper: TIMING.");
+        console.table(activeTimingLog);
+
+        return normalizedResult;
+    } finally {
+        activeTimingLog = null;
+    }
+}
+
+export { analyzeDecodedBuffer, analyzeMonoSignal };
+
+/**
+ * Analyze pre-resampled mono 44100 Hz signal in worker/main.
+ *
+ * @param {Float32Array} fullSignal
+ * @param {number} duration
+ * @param {Object} options
+ * @returns {Promise<Object>}
+ */
+async function analyzeMonoSignal(
+    fullSignal,
+    duration,
+    options = {},
+    essentiaInstance = null,
+) {
+    const mode = ["full", "selection", "fast"].includes(options?.mode)
+        ? options.mode
+        : "full";
+
+    const genre =
+        typeof options?.genre === "string" ? options.genre : "auto";
+
+    activeTimingLog = [];
+
+    try {
+        console.log("WM Tapper: loading Essentia...");
+
+        const essentia = essentiaInstance || (await getEssentia());
+
+        console.log("WM Tapper: AUDIO (mono signal).", {
+            duration: Number(duration.toFixed(2)),
+            sampleRate: TARGET_SAMPLE_RATE,
+            samples: fullSignal.length,
+        });
+
+        if (!Number.isFinite(duration) || duration <= 0) {
+            throw new Error("WM Tapper: invalid duration for mono analysis.");
+        }
+
+        if (mode === "full") {
+            console.log("WM Tapper: analyzing FULL track.");
+
+            const result = await analyzeSignal(essentia, fullSignal);
+
+            let keyConsensus = measureTime("KeyConsensus", () =>
+                selectKeyConsensus([result.keyProfiles], genre),
+            );
+
+            if (keyConsensus?.hasRelativeConflict) {
+                console.warn(
+                    "WM Tapper: Relative key conflict detected in FULL mode. Running temporal FAST fallback...",
+                );
+
+                const segments = createFastSegments(duration);
+                const segmentResults = [];
+
+                for (let index = 0; index < segments.length; index += 1) {
+                    const segment = segments[index];
+                    const segmentSignal = sliceSignalByTime(
+                        fullSignal,
+                        segment.startTime,
+                        segment.endTime,
+                    );
+                    segmentResults.push(
+                        await analyzeSignal(essentia, segmentSignal),
+                    );
+                }
+
+                keyConsensus = measureTime("KeyConsensusFallback", () =>
+                    selectKeyConsensus(
+                        segmentResults.map((r) => r.keyProfiles),
+                        genre,
+                    ),
+                );
+            }
+
+            return normalizeResult(
+                {
+                    ...result,
+                    bpm: selectBpmResult([result], genre),
+                    key: keyConsensus?.key ?? null,
+                    scale: keyConsensus?.scale ?? null,
+                    strength: keyConsensus?.strength ?? null,
+                    hasTonalityConflict:
+                        keyConsensus?.hasRelativeConflict ?? false,
+                    alternatives: keyConsensus?.alternatives ?? [],
+                },
+                "full",
+            );
+        }
+
+        if (mode === "selection") {
+            let startTime = Number(options?.startTime);
+            let endTime = Number(options?.endTime);
+
+            if (!Number.isFinite(startTime)) startTime = 0;
+            if (!Number.isFinite(endTime)) endTime = duration;
+
+            startTime = Math.max(0, Math.min(duration, startTime));
+            endTime = Math.max(startTime, Math.min(duration, endTime));
+
+            if (endTime - startTime < 30) {
+                throw new Error(
+                    "WM Tapper: selected range must be at least 30 seconds.",
+                );
+            }
+
+            const signal = sliceSignalByTime(fullSignal, startTime, endTime);
+            const result = await analyzeSignal(essentia, signal);
+            const keyConsensus = measureTime("KeyConsensus", () =>
+                selectKeyConsensus([result.keyProfiles], genre),
+            );
+
+            return normalizeResult(
+                {
+                    ...result,
+                    bpm: selectBpmResult([result], genre),
+                    key: keyConsensus?.key ?? null,
+                    scale: keyConsensus?.scale ?? null,
+                    strength: keyConsensus?.strength ?? null,
+                    hasTonalityConflict:
+                        keyConsensus?.hasRelativeConflict ?? false,
+                    alternatives: keyConsensus?.alternatives ?? [],
+                },
+                "selection",
+            );
+        }
+
+        /* FAST */
+        const segments = createFastSegments(duration);
+
+        if (segments.length === 0) {
+            throw new Error(
+                "WM Tapper: could not create FAST analysis segments.",
+            );
+        }
+
+        const segmentResults = [];
+
+        for (let index = 0; index < segments.length; index += 1) {
+            const segment = segments[index];
+            const signal = sliceSignalByTime(
+                fullSignal,
+                segment.startTime,
+                segment.endTime,
+            );
+            segmentResults.push(await analyzeSignal(essentia, signal));
+        }
+
+        const bpm = selectBpmResult(segmentResults, genre);
+        const keyConsensus = measureTime("KeyConsensus", () =>
+            selectKeyConsensus(
+                segmentResults.map((result) => result.keyProfiles),
+                genre,
+            ),
+        );
+
+        const confidenceValues = segmentResults
+            .map((result) => result?.rhythmConfidence)
+            .filter((value) => Number.isFinite(value));
+
+        return normalizeResult(
+            {
+                bpm,
+                key: keyConsensus?.key ?? null,
+                scale: keyConsensus?.scale ?? null,
+                strength: keyConsensus?.strength ?? null,
+                rhythmConfidence: calculateMedian(confidenceValues),
+                hasTonalityConflict:
+                    keyConsensus?.hasRelativeConflict ?? false,
+                alternatives: keyConsensus?.alternatives ?? [],
+            },
+            "fast",
+        );
+    } finally {
+        activeTimingLog = null;
     }
 }
 
@@ -359,6 +874,10 @@ const percivalResult = measureTime("PercivalBpmEstimator", () =>
             essentia.RhythmDescriptors(signalVector),
         );
 
+        await new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        });
+
         /*
 const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
     essentia.RhythmExtractor2013(
@@ -423,8 +942,11 @@ const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
 
         const keyProfiles = [];
 
-        keyProfileTypes.forEach((profile) => {
+        for (const profile of keyProfileTypes) {
             try {
+                const edmProfiles = ["edma", "edmm", "bgate", "braw"];
+                const useMajMin = edmProfiles.includes(profile);
+
                 const result = measureTime(`KeyExtractor:${profile}`, () =>
                     essentia.KeyExtractor(
                         signalVector,
@@ -442,6 +964,7 @@ const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
                         440,
                         "cosine",
                         "hann",
+                        useMajMin,
                     ),
                 );
 
@@ -455,24 +978,34 @@ const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
                     error,
                 );
             }
-        });
+
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
+        }
 
         const normalizedKeyProfiles = keyProfiles
             .map(({ profile, result }) => {
-                const key = typeof result?.key === "string" ? result.key : null;
-
+                const rawKey =
+                    typeof result?.key === "string" ? result.key.trim() : "";
                 const scale =
                     typeof result?.scale === "string" ? result.scale : null;
-
                 const strength = Number(result?.strength);
+
+                const CLEAN_KEY_REGEX =
+                    /^(A[#b]?|B[b]?|C[#]?|D[#b]?|E[b]?|F[#]?|G[#b]?)$/;
+                const isValidKey = CLEAN_KEY_REGEX.test(rawKey);
+
+                if (rawKey && !isValidKey) {
+                    console.warn(
+                        `WM Tapper: Invalid WASM key blocked from ${profile}`,
+                    );
+                }
 
                 return {
                     profile,
-
-                    key,
-
+                    key: isValidKey ? rawKey : null,
                     scale,
-
                     strength: Number.isFinite(strength) ? strength : null,
                 };
             })
@@ -882,7 +1415,7 @@ function selectKeyConsensus(profileSets, genre = "auto") {
          * This prevents a very strong result from being
          * completely buried by several mediocre results.
          */
-        score += group.bestStrength * 0.35;
+        score += group.bestStrength * 0.15;
 
         /*
          * Relative-major/minor support.
@@ -973,12 +1506,39 @@ function selectKeyConsensus(profileSets, genre = "auto") {
         }),
     );
 
+    const second = rankedGroups[1];
+    let hasRelativeConflict = false;
+
+    if (second) {
+        const relativeOfBest = getRelativeKey(best.key, best.scale);
+        const isRelative =
+            relativeOfBest &&
+            relativeOfBest.key === second.key &&
+            relativeOfBest.scale === second.scale;
+        const scoreDiff = Math.abs(best.score - second.score);
+
+        if (isRelative && scoreDiff < 1.0) {
+            hasRelativeConflict = true;
+        }
+    }
+
+    const alternatives = rankedGroups.slice(1, 3).map((group) => {
+        return {
+            key: group.key,
+            scale: group.scale,
+            strength: Number.isFinite(group.bestStrength)
+                ? group.bestStrength
+                : null,
+            score: Number.isFinite(group.score) ? group.score : null,
+        };
+    });
+
     return {
         key: best.key,
-
         scale: best.scale,
-
         strength: Number.isFinite(best.bestStrength) ? best.bestStrength : null,
+        hasRelativeConflict,
+        alternatives,
     };
 }
 
@@ -1262,6 +1822,12 @@ function normalizeResult(result, mode) {
             ? result.rhythmConfidence
             : null,
 
+        hasTonalityConflict: Boolean(result?.hasTonalityConflict),
+
+        alternatives: Array.isArray(result?.alternatives)
+            ? result.alternatives
+            : [],
+
         mode,
     };
 }
@@ -1283,8 +1849,10 @@ export class TrackAnalyzer {
      * @returns {Promise<Object>}
      */
     async analyze(file, options = {}) {
-        if (!(file instanceof File)) {
-            throw new TypeError("WM Tapper: expected an audio File.");
+        if (!(file instanceof File) && !options?.audioBuffer) {
+            throw new TypeError(
+                "WM Tapper: expected an audio File or audioBuffer.",
+            );
         }
 
         if (this.isAnalyzing) {
@@ -1295,322 +1863,132 @@ export class TrackAnalyzer {
 
         this.isAnalyzing = true;
 
-        activeTimingLog = [];
-
         try {
-            const mode = ["full", "selection", "fast"].includes(options?.mode)
-                ? options.mode
-                : "full";
+            if (typeof Worker !== "undefined") {
+                try {
+                    return await this.analyzeWithWorker(file, options);
+                } catch (workerError) {
+                    console.warn(
+                        "WM Tapper: worker analysis failed, fallback to main thread.",
+                        workerError,
+                    );
+                }
+            }
 
-            const genre =
-                typeof options?.genre === "string" ? options.genre : "auto";
-
-            const providedAudioBuffer = options?.audioBuffer;
-
-            /* -------------------------------------------------
-               Essentia
-               ------------------------------------------------- */
-
-            console.log("WM Tapper: loading Essentia...");
-
-            const essentia = await getEssentia();
-
-            /* -------------------------------------------------
-               Audio buffer
-               ------------------------------------------------- */
-
-            let decodedBuffer = providedAudioBuffer;
+            let decodedBuffer = options?.audioBuffer;
 
             if (!decodedBuffer) {
                 console.log("WM Tapper: decoding audio...", file.name);
-
-                const decodeStartedAt = performance.now();
-
                 decodedBuffer = await decodeAudioFile(file);
-
-                const decodeElapsed = performance.now() - decodeStartedAt;
-
-                console.log("WM Tapper: TIME Decode.", {
-                    milliseconds: Number(decodeElapsed.toFixed(2)),
-                    seconds: Number((decodeElapsed / 1000).toFixed(3)),
-                });
             }
 
-            console.log("WM Tapper: AUDIO.", {
-                duration: Number(decodedBuffer.duration.toFixed(2)),
-                sampleRate: decodedBuffer.sampleRate,
-                channels: decodedBuffer.numberOfChannels,
-            });
-
-            const duration = Number(decodedBuffer.duration);
-
-            if (!Number.isFinite(duration) || duration <= 0) {
-                throw new Error(
-                    "WM Tapper: decoded audio has invalid duration.",
-                );
-            }
-
-            /* =================================================
-               FULL
-               ================================================= */
-
-            if (mode === "full") {
-                console.log("WM Tapper: analyzing FULL track.");
-
-                const resampleStartedAt = performance.now();
-
-                const signal = await resampleRangeTo44100(
-                    decodedBuffer,
-                    0,
-                    duration,
-                );
-
-                const resampleElapsed = performance.now() - resampleStartedAt;
-
-                console.log("WM Tapper: TIME Resample.", {
-                    milliseconds: Number(resampleElapsed.toFixed(2)),
-                    seconds: Number((resampleElapsed / 1000).toFixed(3)),
-                });
-
-                const result = await analyzeSignal(essentia, signal);
-
-                const keyConsensus = measureTime("KeyConsensus", () =>
-                    selectKeyConsensus([result.keyProfiles], genre),
-                );
-
-                const normalizedResult = normalizeResult(
-                    {
-                        ...result,
-
-                        bpm: selectBpmResult([result], genre),
-
-                        key: keyConsensus?.key ?? null,
-
-                        scale: keyConsensus?.scale ?? null,
-
-                        strength: keyConsensus?.strength ?? null,
-                    },
-                    "full",
-                );
-
-                console.log("WM Tapper: RESULT.", {
-                    bpm: normalizedResult.bpm,
-                    key: normalizedResult.keyLabel,
-                    strength: normalizedResult.strength,
-                });
-
-                console.log("WM Tapper: TIMING.");
-
-                console.table(activeTimingLog);
-
-                return normalizedResult;
-            }
-
-            /* =================================================
-               SELECTION
-               ================================================= */
-
-            if (mode === "selection") {
-                let startTime = Number(options?.startTime);
-
-                let endTime = Number(options?.endTime);
-
-                if (!Number.isFinite(startTime)) {
-                    startTime = 0;
-                }
-
-                if (!Number.isFinite(endTime)) {
-                    endTime = duration;
-                }
-
-                startTime = Math.max(0, Math.min(duration, startTime));
-
-                endTime = Math.max(startTime, Math.min(duration, endTime));
-
-                if (endTime - startTime < 30) {
-                    throw new Error(
-                        "WM Tapper: selected range must be at least 30 seconds.",
-                    );
-                }
-
-                console.log("WM Tapper: analyzing SELECTION.", {
-                    startTime,
-                    endTime,
-                    duration: endTime - startTime,
-                });
-
-                const resampleStartedAt = performance.now();
-
-                const signal = await resampleRangeTo44100(
-                    decodedBuffer,
-                    startTime,
-                    endTime,
-                );
-
-                const resampleElapsed = performance.now() - resampleStartedAt;
-
-                console.log("WM Tapper: TIME Resample.", {
-                    milliseconds: Number(resampleElapsed.toFixed(2)),
-                    seconds: Number((resampleElapsed / 1000).toFixed(3)),
-                });
-
-                const result = await analyzeSignal(essentia, signal);
-
-                const keyConsensus = measureTime("KeyConsensus", () =>
-                    selectKeyConsensus([result.keyProfiles], genre),
-                );
-
-                const normalizedResult = normalizeResult(
-                    {
-                        ...result,
-
-                        bpm: selectBpmResult([result], genre),
-
-                        key: keyConsensus?.key ?? null,
-
-                        scale: keyConsensus?.scale ?? null,
-
-                        strength: keyConsensus?.strength ?? null,
-                    },
-                    "selection",
-                );
-
-                console.log("WM Tapper: RESULT.", {
-                    bpm: normalizedResult.bpm,
-                    key: normalizedResult.keyLabel,
-                    strength: normalizedResult.strength,
-                });
-
-                console.log("WM Tapper: TIMING.");
-
-                console.table(activeTimingLog);
-
-                return normalizedResult;
-            }
-
-            /* =================================================
-               FAST
-               ================================================= */
-
-            const segments = createFastSegments(duration);
-
-            if (segments.length === 0) {
-                throw new Error(
-                    "WM Tapper: could not create FAST analysis segments.",
-                );
-            }
-
-            console.log(
-                "WM Tapper: FAST SEGMENTS.",
-                segments.map((segment, index) => {
-                    return {
-                        segment: index + 1,
-                        start: Number(segment.startTime.toFixed(2)),
-                        end: Number(segment.endTime.toFixed(2)),
-                        duration: Number(
-                            (segment.endTime - segment.startTime).toFixed(2),
-                        ),
-                    };
-                }),
-            );
-
-            const segmentResults = [];
-
-            /*
-             * Resample the complete track only once.
-             *
-             * FAST segments are extracted from this already
-             * resampled mono signal using sample indexes.
-             */
-            console.log("WM Tapper: resampling track for FAST mode...");
-
-            const resampleStartedAt = performance.now();
-
-            const fastSignal = await resampleRangeTo44100(
-                decodedBuffer,
-                0,
-                duration,
-            );
-
-            const resampleElapsed = performance.now() - resampleStartedAt;
-
-            console.log("WM Tapper: TIME Resample.", {
-                milliseconds: Number(resampleElapsed.toFixed(2)),
-                seconds: Number((resampleElapsed / 1000).toFixed(3)),
-            });
-
-            console.log("WM Tapper: FAST track resampled.", {
-                samples: fastSignal.length,
-                sampleRate: TARGET_SAMPLE_RATE,
-                duration: fastSignal.length / TARGET_SAMPLE_RATE,
-            });
-
-            for (let index = 0; index < segments.length; index += 1) {
-                const segment = segments[index];
-
-                const signal = sliceSignalByTime(
-                    fastSignal,
-                    segment.startTime,
-                    segment.endTime,
-                );
-
-                const result = await analyzeSignal(essentia, signal);
-
-                segmentResults.push(result);
-            }
-
-            const bpm = selectBpmResult(segmentResults, genre);
-
-            const keyConsensus = measureTime("KeyConsensus", () =>
-                selectKeyConsensus(
-                    segmentResults.map((result) => {
-                        return result.keyProfiles;
-                    }),
-                    genre,
-                ),
-            );
-
-            const confidenceValues = segmentResults
-                .map((result) => {
-                    return result?.rhythmConfidence;
-                })
-                .filter((value) => {
-                    return Number.isFinite(value);
-                });
-
-            const normalizedResult = normalizeResult(
-                {
-                    bpm,
-
-                    key: keyConsensus?.key ?? null,
-
-                    scale: keyConsensus?.scale ?? null,
-
-                    strength: keyConsensus?.strength ?? null,
-
-                    rhythmConfidence: calculateMedian(confidenceValues),
-                },
-                "fast",
-            );
-
-            console.log("WM Tapper: RESULT.", {
-                bpm: normalizedResult.bpm,
-                key: normalizedResult.keyLabel,
-                strength: normalizedResult.strength,
-            });
-
-            console.log("WM Tapper: TIMING.");
-
-            console.table(activeTimingLog);
-
-            return normalizedResult;
+            return await analyzeDecodedBuffer(decodedBuffer, options);
         } catch (error) {
             console.error("WM Tapper: audio analysis failed.", error);
-
             throw error;
         } finally {
-            activeTimingLog = null;
             this.isAnalyzing = false;
         }
+    }
+
+    /**
+     * Run analysis in a module worker.
+     *
+     * @param {File} file
+     * @param {Object} options
+     * @returns {Promise<Object>}
+     */
+    async analyzeWithWorker(file, options = {}) {
+        let decodedBuffer = options?.audioBuffer;
+
+        if (!decodedBuffer) {
+            console.log("WM Tapper: decoding audio for worker...", file.name);
+            decodedBuffer = await decodeAudioFile(file);
+        }
+
+        const duration = Number(decodedBuffer.duration);
+
+        if (!Number.isFinite(duration) || duration <= 0) {
+            throw new Error("WM Tapper: invalid audio duration.");
+        }
+
+        console.log("WM Tapper: resampling on main thread for worker...");
+
+        const resampleStartedAt = performance.now();
+        const fullSignal = await resampleRangeTo44100(
+            decodedBuffer,
+            0,
+            duration,
+        );
+        const resampleElapsed = performance.now() - resampleStartedAt;
+
+        console.log("WM Tapper: TIME Resample (main).", {
+            milliseconds: Number(resampleElapsed.toFixed(2)),
+            seconds: Number((resampleElapsed / 1000).toFixed(3)),
+        });
+
+        /*
+         * Copy into a transferable ArrayBuffer.
+         */
+        const signalCopy = fullSignal.slice();
+        const signalBuffer = signalCopy.buffer;
+
+        const worker = new Worker(
+            new URL("./analysis-worker.js", import.meta.url),
+            { type: "module" },
+        );
+
+        const result = await new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                worker.terminate();
+                reject(new Error("WM Tapper: analysis worker timed out."));
+            }, 10 * 60 * 1000);
+
+            worker.onmessage = (event) => {
+                clearTimeout(timeoutId);
+                worker.terminate();
+
+                if (event.data?.ok) {
+                    resolve(event.data.result);
+                    return;
+                }
+
+                reject(
+                    new Error(
+                        event.data?.error ||
+                            "WM Tapper: analysis worker failed.",
+                    ),
+                );
+            };
+
+            worker.onerror = (event) => {
+                clearTimeout(timeoutId);
+                worker.terminate();
+                reject(
+                    event?.error ||
+                        new Error(
+                            event?.message ||
+                                "WM Tapper: analysis worker error.",
+                        ),
+                );
+            };
+
+            worker.postMessage(
+                {
+                    signalBuffer,
+                    signalLength: signalCopy.length,
+                    duration,
+                    options: {
+                        mode: options?.mode,
+                        genre: options?.genre,
+                        startTime: options?.startTime,
+                        endTime: options?.endTime,
+                    },
+                },
+                [signalBuffer],
+            );
+        });
+
+        return result;
     }
 }

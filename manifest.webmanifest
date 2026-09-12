@@ -1,0 +1,31 @@
+{
+    "name": "WM Tapper",
+    "short_name": "WM Tapper",
+    "description": "Tap tempo and audio track analyzer",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#101214",
+    "theme_color": "#151719",
+    "icons": [
+        {
+            "src": "./assets/icons/wm-tapper-icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "./assets/icons/wm-tapper-icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "./assets/icons/wm-tapper-icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
