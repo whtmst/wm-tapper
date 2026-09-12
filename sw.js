@@ -29,6 +29,7 @@ const ASSETS = [
     "./lib/essentia/essentia.js-core.es.js",
     "./lib/essentia/essentia-wasm.web.js",
     "./lib/essentia/essentia-wasm.web.wasm",
+	"./lib/essentia/essentia-wasm.es.js",
 
     "./assets/fonts/Finlandica-VariableFont_wght.ttf",
 
