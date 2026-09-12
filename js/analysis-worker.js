@@ -1,12 +1,11 @@
 /* =========================================================
    WM TAPPER
    Analysis Web Worker
-   (Essentia: essentia-wasm.es.js — official worker build)
    ========================================================= */
 
 import { EssentiaWASM } from "../lib/essentia/essentia-wasm.es.js";
 import Essentia from "../lib/essentia/essentia.js-core.es.js";
-import { analyzeMonoSignalWithEssentia } from "./analyzer-worker-api.js";
+import { analyzeMonoSignal } from "./analyzer.js";
 
 const essentia = new Essentia(EssentiaWASM);
 
@@ -23,11 +22,11 @@ self.onmessage = async (event) => {
 
         const fullSignal = new Float32Array(signalBuffer, 0, signalLength);
 
-        const result = await analyzeMonoSignalWithEssentia(
-            essentia,
+        const result = await analyzeMonoSignal(
             fullSignal,
             Number(duration),
             options || {},
+            essentia,
         );
 
         self.postMessage({ ok: true, result });
