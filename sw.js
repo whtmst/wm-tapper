@@ -14,6 +14,7 @@ const ASSETS = [
 
     "./js/app.js",
     "./js/analyzer.js",
+    "./js/analysis-worker.js",
     "./js/dropdowns.js",
     "./js/i18n.js",
     "./js/key-handler.js",
