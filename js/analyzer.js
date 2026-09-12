@@ -568,7 +568,12 @@ export { analyzeDecodedBuffer, analyzeMonoSignal };
  * @param {Object} options
  * @returns {Promise<Object>}
  */
-async function analyzeMonoSignal(fullSignal, duration, options = {}) {
+async function analyzeMonoSignal(
+    fullSignal,
+    duration,
+    options = {},
+    essentiaInstance = null,
+) {
     const mode = ["full", "selection", "fast"].includes(options?.mode)
         ? options.mode
         : "full";
@@ -581,7 +586,7 @@ async function analyzeMonoSignal(fullSignal, duration, options = {}) {
     try {
         console.log("WM Tapper: loading Essentia...");
 
-        const essentia = await getEssentia();
+        const essentia = essentiaInstance || (await getEssentia());
 
         console.log("WM Tapper: AUDIO (mono signal).", {
             duration: Number(duration.toFixed(2)),
@@ -1859,14 +1864,16 @@ export class TrackAnalyzer {
         this.isAnalyzing = true;
 
         try {
-            /*
-             * Prefer Web Worker so UI stays responsive.
-             */
-            /*
-             * Web Worker + Essentia WASM is unstable in browsers
-             * (document / locateFile). Use cooperative main-thread
-             * yielding instead (see analyzeSignal).
-             */
+            if (typeof Worker !== "undefined") {
+                try {
+                    return await this.analyzeWithWorker(file, options);
+                } catch (workerError) {
+                    console.warn(
+                        "WM Tapper: worker analysis failed, fallback to main thread.",
+                        workerError,
+                    );
+                }
+            }
 
             let decodedBuffer = options?.audioBuffer;
 
