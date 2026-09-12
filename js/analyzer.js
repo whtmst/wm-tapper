@@ -358,6 +358,10 @@ async function analyzeDecodedBuffer(decodedBuffer, options = {}) {
                         segmentSignal,
                     );
                     segmentResults.push(segResult);
+
+                    await new Promise((resolve) => {
+                        setTimeout(resolve, 0);
+                    });
                 }
 
                 keyConsensus = measureTime("KeyConsensusFallback", () =>
@@ -507,6 +511,10 @@ async function analyzeDecodedBuffer(decodedBuffer, options = {}) {
             );
             const result = await analyzeSignal(essentia, signal);
             segmentResults.push(result);
+
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
         }
 
         const bpm = selectBpmResult(segmentResults, genre);
@@ -861,6 +869,10 @@ const percivalResult = measureTime("PercivalBpmEstimator", () =>
             essentia.RhythmDescriptors(signalVector),
         );
 
+        await new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        });
+
         /*
 const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
     essentia.RhythmExtractor2013(
@@ -925,7 +937,7 @@ const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
 
         const keyProfiles = [];
 
-        keyProfileTypes.forEach((profile) => {
+        for (const profile of keyProfileTypes) {
             try {
                 const edmProfiles = ["edma", "edmm", "bgate", "braw"];
                 const useMajMin = edmProfiles.includes(profile);
@@ -961,7 +973,11 @@ const rhythmTestResult = measureTime("RhythmExtractor2013", () =>
                     error,
                 );
             }
-        });
+
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
+        }
 
         const normalizedKeyProfiles = keyProfiles
             .map(({ profile, result }) => {
@@ -1846,16 +1862,11 @@ export class TrackAnalyzer {
             /*
              * Prefer Web Worker so UI stays responsive.
              */
-            if (typeof Worker !== "undefined") {
-                try {
-                    return await this.analyzeWithWorker(file, options);
-                } catch (workerError) {
-                    console.warn(
-                        "WM Tapper: worker analysis failed, fallback to main thread.",
-                        workerError,
-                    );
-                }
-            }
+            /*
+             * Web Worker + Essentia WASM is unstable in browsers
+             * (document / locateFile). Use cooperative main-thread
+             * yielding instead (see analyzeSignal).
+             */
 
             let decodedBuffer = options?.audioBuffer;
 
