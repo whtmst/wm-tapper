@@ -379,7 +379,7 @@ html.is-standalone .app-window {
     margin-top: 0;
 }
 
-html.is-standalone .app-window.analysis--open {
+html.is-standalone .app-window.analysis-panel-open {
     overflow: visible;
 }
 
@@ -412,11 +412,11 @@ html.is-tauri .app-window {
         0 4px 12px rgba(0, 0, 0, 0.22);
 }
 
-html.is-tauri .app-window.analysis--open {
+html.is-tauri .app-window.analysis-panel-open {
     overflow: visible;
 }
 
-html.is-tauri .analysis- {
+html.is-tauri .analysis-panel {
     box-shadow:
         0 2px 8px rgba(0, 0, 0, 0.28),
         inset 0 1px 0 rgba(255, 255, 255, 0.018);
@@ -2434,6 +2434,13 @@ html.is-tauri .window-control--pin.is-active .settings-icon {
     }
 
     html:not(.is-tauri) .app-window.analysis-panel-open .analysis-panel {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        width: 100%;
+        height: auto;
+        transform: none;
         max-height: 320px;
         padding: 10px 12px 14px;
         border-top: 1px solid rgba(255, 255, 255, 0.055);
