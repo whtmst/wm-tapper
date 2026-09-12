@@ -379,7 +379,7 @@ html.is-standalone .app-window {
     margin-top: 0;
 }
 
-html.is-standalone .app-window.analysis-panel-open {
+html.is-standalone .app-window.analysis--open {
     overflow: visible;
 }
 
@@ -412,11 +412,11 @@ html.is-tauri .app-window {
         0 4px 12px rgba(0, 0, 0, 0.22);
 }
 
-html.is-tauri .app-window.analysis-panel-open {
+html.is-tauri .app-window.analysis--open {
     overflow: visible;
 }
 
-html.is-tauri .analysis-panel {
+html.is-tauri .analysis- {
     box-shadow:
         0 2px 8px rgba(0, 0, 0, 0.28),
         inset 0 1px 0 rgba(255, 255, 255, 0.018);
@@ -1486,6 +1486,11 @@ textarea {
    Panel
    --------------------------------------------------------- */
 .analysis-panel {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 50%;
+    width: calc(100% - 24px);
+    height: 170px;
     z-index: 100;
     padding: 10px 9px 9px;
     display: flex;
@@ -1493,16 +1498,21 @@ textarea {
     align-items: center;
     border: 1px solid rgba(255, 255, 255, 0.065);
     border-top: 0;
+    border-radius: 0 0 10px 10px;
     background: linear-gradient(180deg, #202426 0%, #181b1d 100%);
+    box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.42),
+        0 4px 10px rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.018);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+    transform: translateX(-50%) translateY(-8px) scaleY(0.92);
+    transform-origin: top center;
     transition:
         opacity 180ms ease,
         visibility 180ms ease,
-        transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
-        max-height 220ms ease,
-        padding 220ms ease;
+        transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .app-window.analysis-panel-open {
@@ -1513,28 +1523,7 @@ textarea {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-}
-
-/* Desktop / wide: panel hangs below the card */
-@media (min-width: 769px) {
-    .analysis-panel {
-        position: absolute;
-        top: calc(100% + 1px);
-        left: 50%;
-        width: calc(100% - 24px);
-        height: 170px;
-        border-radius: 0 0 10px 10px;
-        box-shadow:
-            0 14px 30px rgba(0, 0, 0, 0.42),
-            0 4px 10px rgba(0, 0, 0, 0.24),
-            inset 0 1px 0 rgba(255, 255, 255, 0.018);
-        transform: translateX(-50%) translateY(-8px) scaleY(0.92);
-        transform-origin: top center;
-    }
-
-    .app-window.analysis-panel-open .analysis-panel {
-        transform: translateX(-50%) translateY(0) scaleY(1);
-    }
+    transform: translateX(-50%) translateY(0) scaleY(1);
 }
 
 /* =========================================================
