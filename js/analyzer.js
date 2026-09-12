@@ -152,13 +152,34 @@ function loadEssentiaWasm() {
             self instanceof WorkerGlobalScope;
 
         if (isWorker) {
-            /*
-             * Module worker: load the UMD glue as a classic script via fetch.
-             */
             const wasmJsUrl = new URL(
                 "../lib/essentia/essentia-wasm.web.js",
                 import.meta.url,
             ).href;
+
+            const wasmBinaryUrl = new URL(
+                "../lib/essentia/essentia-wasm.web.wasm",
+                import.meta.url,
+            ).href;
+
+            /*
+             * Glue script resolves .wasm via Module.locateFile / document.
+             */
+            globalThis.Module = globalThis.Module || {};
+
+            const previousLocate = globalThis.Module.locateFile;
+
+            globalThis.Module.locateFile = (path, prefix) => {
+                if (String(path).endsWith(".wasm")) {
+                    return wasmBinaryUrl;
+                }
+
+                if (typeof previousLocate === "function") {
+                    return previousLocate(path, prefix);
+                }
+
+                return `${prefix || ""}${path}`;
+            };
 
             const source = await fetch(wasmJsUrl).then((response) => {
                 if (!response.ok) {
