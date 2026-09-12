@@ -347,11 +347,13 @@ a:focus-visible {
    STANDALONE (PWA) / TAURI
    ========================================================= */
 
-html.is-standalone:not(.is-tauri) .window-control--minimize,
-html.is-standalone:not(.is-tauri) .window-control--close {
+/* Web / PWA: no window chrome */
+html:not(.is-tauri) .window-control--minimize,
+html:not(.is-tauri) .window-control--close {
     display: none !important;
 }
 
+/* Tauri only */
 html.is-tauri .window-control--minimize,
 html.is-tauri .window-control--close {
     display: inline-flex !important;
@@ -2426,13 +2428,13 @@ html.is-tauri .window-control--pin.is-active .settings-icon {
     }
 
     /*
-     * Analysis shelf: in-flow under the card on mobile
-     * (not floating outside the viewport)
+     * Analysis shelf in normal flow (full width, not offset by left:50%)
      */
     html:not(.is-tauri) .analysis-panel {
         position: relative;
         top: auto;
-        /* left: auto; */
+        left: auto;
+        right: auto;
 
         width: 100%;
         height: auto;
@@ -2454,6 +2456,8 @@ html.is-tauri .window-control--pin.is-active .settings-icon {
         max-height: 0;
         overflow: hidden;
 
+        z-index: 30;
+
         transition:
             opacity 180ms ease,
             visibility 180ms ease,
@@ -2471,15 +2475,26 @@ html.is-tauri .window-control--pin.is-active .settings-icon {
         visibility: visible;
         pointer-events: auto;
 
-        max-height: 220px;
+        max-height: 280px;
         padding: 10px 12px 14px;
 
         border-top: 1px solid rgba(255, 255, 255, 0.055);
+
+        /* menus open upward — must not clip */
+        overflow: visible;
     }
 
     html:not(.is-tauri) .analysis-mode,
     html:not(.is-tauri) .analysis-genre {
-        width: min(100%, 200px);
+        width: min(100%, 220px);
+    }
+
+    /*
+     * Dropdowns above the shelf / card
+     */
+    html:not(.is-tauri) .analysis-mode__menu,
+    html:not(.is-tauri) .analysis-genre__menu {
+        z-index: 400;
     }
 
     html:not(.is-tauri) .analysis-busy-overlay {
