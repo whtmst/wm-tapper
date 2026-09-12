@@ -11,7 +11,9 @@ self.onmessage = async (event) => {
             event.data || {};
 
         if (!signalBuffer || !signalLength) {
-            throw new Error("WM Tapper: worker missing mono signal payload.");
+            throw new Error(
+                "WM Tapper: worker missing mono signal payload.",
+            );
         }
 
         const fullSignal = new Float32Array(signalBuffer, 0, signalLength);
