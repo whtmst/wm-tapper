@@ -3,25 +3,24 @@
    Analysis Web Worker
    ========================================================= */
 
-import {
-    analyzeDecodedBuffer,
-    createAudioBufferFromChannels,
-} from "./analyzer.js";
+import { analyzeMonoSignal } from "./analyzer.js";
 
 self.onmessage = async (event) => {
     try {
-        const { channelBuffers, sampleRate, options } = event.data || {};
+        const { signalBuffer, signalLength, duration, options } =
+            event.data || {};
 
-        if (!channelBuffers || !sampleRate) {
-            throw new Error("WM Tapper: worker missing audio payload.");
+        if (!signalBuffer || !signalLength) {
+            throw new Error("WM Tapper: worker missing mono signal payload.");
         }
 
-        const decodedBuffer = createAudioBufferFromChannels(
-            channelBuffers,
-            sampleRate,
-        );
+        const fullSignal = new Float32Array(signalBuffer, 0, signalLength);
 
-        const result = await analyzeDecodedBuffer(decodedBuffer, options || {});
+        const result = await analyzeMonoSignal(
+            fullSignal,
+            Number(duration),
+            options || {},
+        );
 
         self.postMessage({ ok: true, result });
     } catch (error) {
