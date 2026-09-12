@@ -1,41 +1,14 @@
 /* =========================================================
    WM TAPPER
    Analysis Web Worker
+   (Essentia: essentia-wasm.es.js — official worker build)
    ========================================================= */
 
-/* Minimal DOM stubs — Essentia glue expects them */
-if (typeof globalThis.document === "undefined") {
-    globalThis.document = {
-        currentScript: null,
-        getElementsByTagName() {
-            return [];
-        },
-        querySelector() {
-            return null;
-        },
-        querySelectorAll() {
-            return [];
-        },
-        createElement() {
-            return {
-                src: "",
-                async: true,
-                style: {},
-                setAttribute() {},
-                addEventListener() {},
-                removeEventListener() {},
-            };
-        },
-        head: {
-            appendChild() {},
-        },
-        body: null,
-    };
-}
+import { EssentiaWASM } from "../lib/essentia/essentia-wasm.es.js";
+import Essentia from "../lib/essentia/essentia.js-core.es.js";
+import { analyzeMonoSignalWithEssentia } from "./analyzer-worker-api.js";
 
-if (typeof globalThis.window === "undefined") {
-    globalThis.window = globalThis;
-}
+const essentia = new Essentia(EssentiaWASM);
 
 self.onmessage = async (event) => {
     try {
@@ -48,11 +21,10 @@ self.onmessage = async (event) => {
             );
         }
 
-        const { analyzeMonoSignal } = await import("./analyzer.js");
-
         const fullSignal = new Float32Array(signalBuffer, 0, signalLength);
 
-        const result = await analyzeMonoSignal(
+        const result = await analyzeMonoSignalWithEssentia(
+            essentia,
             fullSignal,
             Number(duration),
             options || {},
