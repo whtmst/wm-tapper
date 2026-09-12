@@ -2375,3 +2375,122 @@ html.is-tauri .window-control--pin.is-active .settings-icon {
     transform: rotate(0deg);
     filter: brightness(0) invert(1);
 }
+
+/* =========================================================
+   MOBILE (web only - not Tauri)
+   ========================================================= */
+
+@media (max-width: 520px) {
+    html:not(.is-tauri),
+    html:not(.is-tauri) body {
+        width: 100%;
+        min-height: 100%;
+        min-height: 100dvh;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    html:not(.is-tauri) body {
+        display: block;
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: 0;
+        background: var(--background-window-bottom);
+    }
+
+    html:not(.is-tauri) .app-window {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        min-height: 100dvh;
+        min-height: 100svh;
+
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+
+        box-shadow: none;
+    }
+
+    html:not(.is-tauri) .flip-container {
+        flex: 1 1 auto;
+        min-height: 280px;
+    }
+
+    html:not(.is-tauri) .app-content {
+        padding: 14px 14px 12px;
+    }
+
+    html:not(.is-tauri) .tap-button {
+        height: clamp(150px, 42vw, 200px);
+    }
+
+    /*
+     * Analysis shelf: in-flow under the card on mobile
+     * (not floating outside the viewport)
+     */
+    html:not(.is-tauri) .analysis-panel {
+        position: relative;
+        top: auto;
+        left: auto;
+
+        width: 100%;
+        height: auto;
+        min-height: 0;
+
+        margin: 0;
+        padding: 0 12px;
+
+        border: 0;
+        border-radius: 0;
+
+        box-shadow: none;
+
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+
+        transform: none;
+        max-height: 0;
+        overflow: hidden;
+
+        transition:
+            opacity 180ms ease,
+            visibility 180ms ease,
+            max-height 220ms ease,
+            padding 220ms ease;
+    }
+
+    html:not(.is-tauri) .app-window.analysis-panel-open {
+        overflow: visible;
+        min-height: auto;
+    }
+
+    html:not(.is-tauri) .app-window.analysis-panel-open .analysis-panel {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+
+        max-height: 220px;
+        padding: 10px 12px 14px;
+
+        border-top: 1px solid rgba(255, 255, 255, 0.055);
+    }
+
+    html:not(.is-tauri) .analysis-mode,
+    html:not(.is-tauri) .analysis-genre {
+        width: min(100%, 200px);
+    }
+
+    html:not(.is-tauri) .analysis-busy-overlay {
+        border-radius: 0;
+    }
+
+    html:not(.is-tauri)
+        .app-window.analysis-panel-open
+        .analysis-busy-overlay.is-visible {
+        top: 38px;
+        height: calc(100% - 38px);
+        border-radius: 0;
+    }
+}
