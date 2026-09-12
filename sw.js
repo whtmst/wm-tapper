@@ -3,7 +3,7 @@
    Service Worker
    ========================================================= */
 
-const CACHE_NAME = "wm-tapper-v2";
+const CACHE_NAME = "wm-tapper-v1";
 
 const ASSETS = [
     "./",
