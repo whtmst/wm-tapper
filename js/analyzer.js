@@ -259,43 +259,6 @@ async function decodeAudioFile(file) {
 
 
 /**
- * Build an AudioBuffer from transferred channel ArrayBuffers.
- * Works in window and in Worker (OfflineAudioContext).
- *
- * @param {ArrayBuffer[]} channelBuffers
- * @param {number} sampleRate
- * @returns {AudioBuffer}
- */
-function createAudioBufferFromChannels(channelBuffers, sampleRate) {
-    if (!Array.isArray(channelBuffers) || channelBuffers.length === 0) {
-        throw new Error("WM Tapper: no channel data for analysis.");
-    }
-
-    const numberOfChannels = channelBuffers.length;
-    const channel0 = new Float32Array(channelBuffers[0]);
-    const length = channel0.length;
-
-    const offlineContext = new OfflineAudioContext(
-        numberOfChannels,
-        length,
-        sampleRate,
-    );
-
-    const audioBuffer = offlineContext.createBuffer(
-        numberOfChannels,
-        length,
-        sampleRate,
-    );
-
-    for (let channel = 0; channel < numberOfChannels; channel += 1) {
-        const data = new Float32Array(channelBuffers[channel]);
-        audioBuffer.copyToChannel(data, channel);
-    }
-
-    return audioBuffer;
-}
-
-/**
  * Analyze from an already-decoded AudioBuffer (shared by main + worker).
  *
  * @param {AudioBuffer} decodedBuffer
@@ -566,7 +529,7 @@ async function analyzeDecodedBuffer(decodedBuffer, options = {}) {
     }
 }
 
-export { analyzeDecodedBuffer, createAudioBufferFromChannels, analyzeMonoSignal };
+export { analyzeDecodedBuffer, analyzeMonoSignal };
 
 /**
  * Analyze pre-resampled mono 44100 Hz signal in worker/main.
@@ -740,8 +703,6 @@ async function analyzeMonoSignal(fullSignal, duration, options = {}) {
         activeTimingLog = null;
     }
 }
-
-export { analyzeMonoSignal };
 
 /* =========================================================
    RESAMPLING
