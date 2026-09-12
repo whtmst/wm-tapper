@@ -2380,7 +2380,7 @@ html.is-tauri .window-control--pin.is-active .settings-icon {
    MOBILE (web only - not Tauri)
    ========================================================= */
 
-@media (max-width: 520px) {
+@media (max-width: 768px) {
     html:not(.is-tauri),
     html:not(.is-tauri) body {
         width: 100%;
@@ -2432,7 +2432,7 @@ html.is-tauri .window-control--pin.is-active .settings-icon {
     html:not(.is-tauri) .analysis-panel {
         position: relative;
         top: auto;
-        left: auto;
+        /* left: auto; */
 
         width: 100%;
         height: auto;
